@@ -39,7 +39,7 @@ class Handler(BaseHTTPRequestHandler):
             self.reply({'error': 'Page introuvable'}, 404)
             return
         filename, mime = files[self.path]
-        body = (ROOT / 'static' / filename).read_bytes()
+        body = (ROOT / 'legacy' / 'static' / filename).read_bytes()
         self.send_response(200)
         self.send_header('Content-Type', mime)
         self.send_header('Content-Length', str(len(body)))

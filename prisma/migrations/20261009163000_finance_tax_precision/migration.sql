@@ -1,0 +1,1 @@
+ALTER TABLE "InvoiceItem" ALTER COLUMN "taxRateBps" TYPE NUMERIC(8,3) USING "taxRateBps"::NUMERIC(8,3);

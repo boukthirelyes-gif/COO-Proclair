@@ -5,9 +5,12 @@ import { actorFor, checkPassword, issueSession, sameOrigin, sessionCookie } from
 import { CRMService } from '@/domain/service';
 import { DomainError } from '@/domain/rules';
 import { OmegaWorker } from '@/omega/worker';
+import { FinanceService } from '@/finance/service';
+import {csvRows, sumCents} from '@/lib/finance-export';
 export const runtime = 'nodejs';
 const service = new CRMService(prisma);
 const worker = new OmegaWorker(prisma);
+const finance = new FinanceService(prisma);
 let failedLogins = 0;
 let loginWindow = Date.now();
 function errorResponse(error: unknown) {
@@ -28,6 +31,18 @@ export async function GET(request: NextRequest) {
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     if (path === 'session') return NextResponse.json({actor});
     if (path === 'worker/state') return NextResponse.json(await worker.state());
+    if (path === 'finance/state' || path === 'finance/export') {
+      const {invoices,payments} = await finance.readState();
+      const issued = invoices.filter(invoice => !['DRAFT','VOID'].includes(invoice.status));
+      const summary = {issuedTotalCents:sumCents(issued.map(invoice=>invoice.totalCents)),receivedCents:sumCents(issued.map(invoice=>invoice.paidCents)),outstandingCents:sumCents(issued.map(invoice=>invoice.balanceCents)),draftCount:invoices.filter(invoice=>invoice.status==='DRAFT').length};
+      if (path === 'finance/state') return NextResponse.json({invoices,payments,summary});
+      const kind = request.nextUrl.searchParams.get('kind') || 'invoices';
+      if (!['invoices','payments'].includes(kind)) return NextResponse.json({error:'Export inconnu.'},{status:400});
+      const columns = kind==='invoices' ? ['number','customer','status','currency','dueDate','subtotalCents','taxCents','totalCents','paidCents','balanceCents'] : ['id','invoice','customer','status','currency','amountCents','method','reference','createdAt','reversalReason'];
+      const rows = kind==='invoices' ? invoices.map(invoice=>({...invoice,customer:invoice.customer.name})) : payments.map(payment=>({...payment,invoice:payment.invoice.number||payment.invoice.id,customer:payment.invoice.customer.name,currency:payment.invoice.currency,createdAt:payment.createdAt.toISOString(),reversalReason:payment.reversal?.reason||''}));
+      return new NextResponse(csvRows(columns,rows),{headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':`attachment; filename="proclair-${kind}.csv"`,'Cache-Control':'no-store'}});
+    }
+    if (/^invoices\/[^/]+$/.test(path)) return NextResponse.json(await finance.getInvoice(path.split('/')[1]));
     if (/^omega\/plans\/[^/]+$/.test(path)) {
       const plan = await prisma.omegaPlan.findUnique({where:{id:path.split('/')[2]}});
       if (!plan) return NextResponse.json({error:'Plan introuvable.'},{status:404});
@@ -64,14 +79,26 @@ async function mutate(request: NextRequest) {
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     if (path === 'session/logout') { const response = NextResponse.json({ok:true}); response.cookies.set(sessionCookie,'',{path:'/',maxAge:0}); return response; }
     if (request.method === 'PATCH' && /^visits\/[^/]+$/.test(path)) return NextResponse.json(await service.updateVisit(path.split('/')[1],input,actor));
+    if (request.method === 'PATCH' && /^customers\/[^/]+$/.test(path)) return NextResponse.json(await service.updateCustomer(path.split('/')[1],input,actor));
+    if (request.method === 'PATCH' && /^contracts\/[^/]+$/.test(path)) return NextResponse.json(await service.updateContract(path.split('/')[1],input,actor));
+    if (request.method === 'PATCH' && /^invoices\/[^/]+$/.test(path)) return NextResponse.json(await finance.updateDraft(path.split('/')[1],input,actor));
     if (request.method !== 'POST') return NextResponse.json({error:'Méthode non autorisée.'},{status:405});
     if (/^visits\/[^/]+\/transition$/.test(path)) return NextResponse.json(await service.transitionVisit(path.split('/')[1],input,actor));
+    if (/^invoices\/[^/]+\/issue$/.test(path)) return NextResponse.json(await finance.issueInvoice(path.split('/')[1],input,actor));
+    if (/^invoices\/[^/]+\/void$/.test(path)) return NextResponse.json(await finance.voidInvoice(path.split('/')[1],input,actor));
+    if (/^payments\/[^/]+\/reverse$/.test(path)) return NextResponse.json(await finance.reversePayment(path.split('/')[1],input,actor));
     switch(path) {
       case 'customers': return NextResponse.json(await service.createCustomer(input,actor),{status:201});
       case 'properties': return NextResponse.json(await service.createProperty(input,actor),{status:201});
       case 'contracts': return NextResponse.json(await service.createContract(input,actor),{status:201});
       case 'jobs': return NextResponse.json(await service.createJob(input,actor),{status:201});
       case 'visits': return NextResponse.json(await service.createVisit(input,actor),{status:201});
+      case 'invoices': return NextResponse.json(await finance.createInvoice(input,actor),{status:201});
+      case 'payments': {
+        if (!input || typeof input !== 'object' || !('invoiceId' in input) || typeof input.invoiceId !== 'string') return NextResponse.json({error:'Facture requise.'},{status:400});
+        const {invoiceId,...payment} = input;
+        return NextResponse.json(await finance.recordPayment(invoiceId,payment,actor),{status:201});
+      }
       case 'omega/preview': return NextResponse.json(await service.previewFill(input,actor));
       case 'omega/apply': return NextResponse.json(await service.applyFill(input,actor));
       case 'worker/state': return NextResponse.json(await worker.configure(input as {enabled:boolean},actor));

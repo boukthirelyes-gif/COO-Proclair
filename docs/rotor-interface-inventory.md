@@ -13,7 +13,7 @@ Date d'inspection : 2026-10-09. Source métier : directive utilisateur OMEGA GOD
 
 ## Convention d'état
 
-**Initial** = présent dans le prototype inspecté; **tranche V1** = implémentation locale présente; **à construire** = absent; **non observé** = pas de preuve Rotor. « Testé » signifie un résultat exécuté, jamais une simple existence de test. Validation exécutée rapportée par le responsable de livraison : 18 tests TypeScript réussis (règles, permissions, PostgreSQL et worker), 3 tests Python historiques réussis. Le détail reproductible appartient à `docs/validation.md`. Parcours Chromium exécuté : création métier, calendrier jour, planification OMEGA, modification, navigation et worker réussis; détails dans docs/validation.md. La cible V20 de 1 500 tests n’est pas atteinte.
+**Initial** = présent dans le prototype inspecté; **tranche V1** = implémentation locale présente; **à construire** = absent; **non observé** = pas de preuve Rotor. « Testé » signifie un résultat exécuté, jamais une simple existence de test. Validation exécutée rapportée par le responsable de livraison : 25 tests TypeScript réussis (règles, permissions, PostgreSQL et worker), 3 tests Python historiques réussis. Le détail reproductible appartient à `docs/validation.md`. Parcours Chromium exécuté : création métier, calendrier jour, planification OMEGA, modification, navigation et worker réussis; détails dans docs/validation.md. La cible V20 de 1 500 tests n’est pas atteinte.
 
 ## État réel de la première tranche livrée
 
@@ -28,19 +28,19 @@ Ordre ci-dessous : catégories de la directive V20, **pas un ordre Rotor vérifi
 | Élément Rotor / page demandée | Implémenté | Fonctionnel | Testé | Différence / inconnu |
 |---|---|---|---|---|
 | Dashboard | Initial : compteurs contacts/tâches | Local SQLite | À revalider | KPI Rotor et disposition inconnus |
-| Customers | V1 : création, liste, recherche, notes, fiche | Création/consultation PostgreSQL (édition client restante) | Tests métier; parcours Chromium réussi | Onglets Rotor non observés; modules finance/messages absents |
+| Customers | V1 : création, liste, recherche, notes, fiche | Création, consultation et édition versionnée PostgreSQL | Tests métier; parcours Chromium réussi | Onglets Rotor non observés; messages absents; factures locales accessibles depuis le client |
 | Leads | Initial : statut Prospect/En discussion | Filtrage commercial limité | Inclus dans test initial | Pipeline distinct, qualification et conversions à construire |
 | Jobs | V1 PostgreSQL | Oui, local | Tests TypeScript | Entité distincte de visite/contrat; workflows Rotor inconnus |
 | Visits | V1 PostgreSQL | Oui, local | Tests TypeScript | Création, affectation et transitions auditées prioritaires |
 | Schedule | V1 jour/semaine/mois | Oui, local | Règles testées; parcours Chromium réussi | Planning opérationnel initial; fidélité visuelle non vérifiable |
 | Dispatch | À construire / capacité V1 limitée | Pas de dispatch carte complet | Non | Carte, drag/drop et orchestration temps réel restants |
 | Quotes | À construire | Non | Non | Conditions commerciales et conversion inconnues |
-| Contracts | V1 PostgreSQL | Oui, local | Tests TypeScript | Passages restants, client/propriété/job distincts |
-| Invoices | À construire | Non | Non | Numérotation, taxes, crédit, export à définir |
-| Payments | À construire | Non | Non | Fournisseur, rapprochement, remboursements inconnus |
+| Contracts | V1 PostgreSQL avec édition versionnée | Oui, local | Tests TypeScript + Chromium | Passages restants, client/propriété/job distincts |
+| Invoices | Brouillons, édition, émission, annulation et CSV | Oui, PostgreSQL | Tests métier et Chromium | Documents PDF et envoi externe restants; Rotor non observé |
+| Payments | Paiements manuels et contrepassations auditées | Oui, ledger local | Tests métier et Chromium | Aucun encaissement ou remboursement bancaire connecté |
 | Team | Trois techniciens V1 | Oui, local | Tests TypeScript liés au planning | Damien, Ricardo, Lucas demandés; rôles applicatifs détaillés restants |
 | Communications | À construire | Aucun envoi externe | Non | Connecteurs et permissions absents |
-| Reports | À construire | Non | Non | Rapports et KPI Rotor inconnus |
+| Reports | Totaux facturés, paiements nets, soldes et CSV | Oui, snapshot PostgreSQL cohérent | Tests export et Chromium | Dépenses, profitabilité et rapports fiscaux complets restants |
 | Settings | Configuration opérationnelle V1 limitée | À valider | À consigner | Horaires/capacité; gestion fine des permissions restante |
 | OMEGA AI | Initial : règles de suivi; V1 : dispatch déterministe | Prévisualisation/approbation/application locales | Tests TypeScript | Exécution backend explicable, distincte de génération de texte |
 | Maps | À construire | Non | Non | Géocodage, trajets, licences et carte clients nécessaires |
@@ -51,7 +51,7 @@ Ordre ci-dessous : catégories de la directive V20, **pas un ordre Rotor vérifi
 
 ### Clients et propriétés
 
-Le prototype expose nom, entreprise, courriel, statut, notes. La V1 sépare client et adresse desservie, stocke le téléphone et expose une fiche avec données locales et audit. Onglets demandés : Overview, Jobs, Visits, Contracts, Invoices, Payments, Messages, Activity, Notes, Files, Photos. Seuls les onglets alimentés par des données persistées peuvent être annoncés comme opérationnels. Création de visite/contrat depuis un client prioritaire; devis/facture/envoi de messages dépendront des modules correspondants. Modales, menus contextuels, placement des boutons, tags et états Rotor : non observés.
+Le prototype expose nom, entreprise, courriel, statut, notes. La V1 sépare client et adresse desservie, stocke le téléphone et expose une fiche avec données locales et audit. Onglets demandés : Overview, Jobs, Visits, Contracts, Invoices, Payments, Messages, Activity, Notes, Files, Photos. Seuls les onglets alimentés par des données persistées peuvent être annoncés comme opérationnels. Création de visite/contrat depuis un client prioritaire; factures locales accessibles; devis et envoi de messages restent à construire. Modales, menus contextuels, placement des boutons, tags et états Rotor : non observés.
 
 ### Contrats, travaux et visites
 

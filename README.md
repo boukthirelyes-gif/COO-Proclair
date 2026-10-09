@@ -4,7 +4,7 @@ Application Next.js / React / TypeScript avec PostgreSQL et Prisma en mode moteu
 
 ## Fonctions livrées
 
-- Clients et fiches clients, propriétés desservies, contrats et prestations distincts.
+- Clients et contrats modifiables avec version et audit ; fiches clients, propriétés desservies et prestations distinctes.
 - Visites avec passage unique par contrat, prix en centimes, états explicites et versions.
 - Calendrier jour par technicien, semaine et mois, horaires de Toronto.
 - Affectation et modification avec validation de durée, heures ouvrables, chevauchements et capacité.
@@ -12,6 +12,8 @@ Application Next.js / React / TypeScript avec PostgreSQL et Prisma en mode moteu
 - OMEGA Fill : aperçu persisté, vérification des versions, approbation humaine et application transactionnelle idempotente.
 - Worker PostgreSQL : propositions toutes les quinze minutes, file durable, verrou concurrent, trois essais avec temporisation, file d’échec et arrêt d’urgence. Désactivé au départ.
 - Session administrateur signée, cookie HttpOnly, contrôle d’origine des mutations et audit.
+- Factures brouillons modifiables, émission numérotée, paiements manuels partiels/complets, contrepassations conservées et export comptable CSV.
+- Calcul exact des taxes explicites jusqu’à 0,001 point de base, sans appliquer de taux légal supposé. OMEGA peut préparer un brouillon ; les actions financières définitives restent humaines.
 
 OMEGA utilise un planificateur déterministe ; aucun modèle de langage n’est connecté. Il ne confirme pas seul les visites et ne contacte aucun client. Une marge fixe de trente minutes entre visites ne constitue pas une optimisation des trajets routiers.
 
@@ -59,10 +61,10 @@ DATABASE_URL="$TEST_DATABASE_URL" node scripts/migrate.cjs
 npm test
 ```
 
-Le parcours Chromium utilise une instance séparée au port 3001. `E2E_DATABASE_URL=URL_DE_L_INSTANCE_TEST npm run test:e2e` vérifie connexion, création client/site/contrat/prestation/visite, planification Omega, modification, navigation persistante, audit et mobile. Il crée des dossiers de test : ne pas l’exécuter sur la base opérationnelle. La CI vérifie types, tests PostgreSQL et build.
+Le parcours Chromium utilise une instance séparée au port 3001. `E2E_DATABASE_URL=URL_DE_L_INSTANCE_TEST npm run test:e2e` vérifie connexion, création client/site/contrat/prestation/visite, planification Omega, modification, navigation persistante, audit et mobile. Il crée des dossiers de test : ne pas l’exécuter sur la base opérationnelle. La CI vérifie types, tests PostgreSQL et build. Le second parcours `E2E_DATABASE_URL=URL_DE_L_INSTANCE_TEST npm run test:finance:e2e` valide création et modification de brouillons, émission, paiements, contrepassation, taux décimaux et contenu réel du CSV.
 
 ## Limites V20
 
 Voir [l’inventaire Rotor](docs/rotor-interface-inventory.md). Aucun écran Rotor ni cahier V10 fourni. MCP et site Rotor bloqués par le proxy : aucune capacité API ou synchronisation vérifiée. `LOCAL_ONLY` identifie les dossiers locaux ; aucune synchronisation simulée.
 
-Facturation, paiements, commissions V10, cartes, territoires, optimisation routière, communications et modèle IA restent à implémenter. Le déploiement public Safari et les comparaisons Rotor nécessitent les références et intégrations autorisées. La cible de 1 500 tests n’est pas atteinte ; résultats réels dans `docs/validation.md`.
+Facturation et paiements manuels sont disponibles. Encaissement bancaire, PDF et envoi des factures, commissions V10, dépenses/profitabilité, cartes, territoires, optimisation routière, communications et modèle IA restent à implémenter. Le déploiement public Safari et les comparaisons Rotor nécessitent les références et intégrations autorisées. La cible de 1 500 tests n’est pas atteinte ; résultats réels dans `docs/validation.md`.

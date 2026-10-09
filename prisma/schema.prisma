@@ -36,6 +36,7 @@ model Customer {
  lastSyncedAt DateTime?
  lastSyncError String?
  createdAt DateTime @default(now())
+ invoices Invoice[]
  properties Property[]
  contracts Contract[]
  jobs Job[]
@@ -66,6 +67,7 @@ model Contract {
  active Boolean @default(true)
  version Int @default(1)
  createdAt DateTime @default(now())
+ invoices Invoice[]
  jobs Job[]
  visits Visit[]
 }
@@ -172,4 +174,65 @@ model WorkerJob {
  createdAt DateTime @default(now())
  completedAt DateTime?
  @@index([status, availableAt])
+}
+
+model Invoice {
+ id String @id @default(cuid())
+ customerId String
+ customer Customer @relation(fields: [customerId], references: [id])
+ contractId String?
+ contract Contract? @relation(fields: [contractId], references: [id])
+ number String? @unique
+ status String @default("DRAFT")
+ currency String @default("CAD")
+ dueDate String
+ subtotalCents Int
+ taxCents Int
+ totalCents Int
+ version Int @default(1)
+ idempotencyKey String @unique
+ payloadHash String
+ issuedAt DateTime?
+ voidReason String?
+ createdAt DateTime @default(now())
+ items InvoiceItem[]
+ payments Payment[]
+}
+model InvoiceItem {
+ id String @id @default(cuid())
+ invoiceId String
+ invoice Invoice @relation(fields: [invoiceId], references: [id])
+ position Int
+ description String
+ quantity Int
+ unitPriceCents Int
+ taxRateBps Decimal @default(0) @db.Decimal(8, 3)
+ subtotalCents Int
+ taxCents Int
+ @@unique([invoiceId, position])
+}
+model Payment {
+ id String @id @default(cuid())
+ invoiceId String
+ invoice Invoice @relation(fields: [invoiceId], references: [id])
+ amountCents Int
+ method String
+ reference String?
+ note String?
+ idempotencyKey String @unique
+ payloadHash String
+ createdAt DateTime @default(now())
+ reversal PaymentReversal?
+}
+model PaymentReversal {
+ id String @id @default(cuid())
+ paymentId String @unique
+ payment Payment @relation(fields: [paymentId], references: [id])
+ reason String
+ actorId String
+ createdAt DateTime @default(now())
+}
+model InvoiceCounter {
+ id String @id
+ value Int @default(0)
 }

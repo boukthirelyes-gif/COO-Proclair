@@ -1,0 +1,34 @@
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+import {mkdir,readFile} from 'node:fs/promises';
+if(!process.env.E2E_DATABASE_URL) throw new Error('E2E_DATABASE_URL doit désigner la base de cette instance de test.');
+const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
+const page=await browser.newPage({viewport:{width:1440,height:1000},timezoneId:'America/Toronto'});
+const errors=[];page.on('pageerror',e=>errors.push(e.message));
+let checks=0;
+try{
+ await page.goto(process.env.E2E_BASE_URL||'http://127.0.0.1:3001');
+ await page.getByLabel('Mot de passe').fill(process.env.PROCLAIR_ADMIN_PASSWORD);await page.getByRole('button',{name:'Se connecter',exact:true}).click();
+ await page.getByText('Une vue claire sur les opérations.').waitFor();
+ const customerName='Finance navigateur '+Date.now();
+ const referenceSuffix=String(Date.now());
+ const customer=await page.evaluate(async name=>{const r=await fetch('/api/customers',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});if(!r.ok)throw new Error(await r.text());return r.json()},customerName);
+ await page.getByRole('button',{name:'Actualiser',exact:true}).click();
+ const navigate=async name=>page.locator('nav').getByRole('button',{name,exact:false}).click();
+ await navigate('Factures');await page.getByRole('button',{name:'+ Facture',exact:true}).click();
+ await page.getByLabel('Client de la facture').selectOption(customer.id);await page.getByLabel('Date d’échéance').fill('2027-01-31');
+ await page.getByLabel('Description',{exact:true}).fill('Prestation validée');await page.getByLabel('Quantité',{exact:true}).fill('2');await page.getByLabel('Prix unitaire en centimes').fill('10000');await page.getByLabel('Taxe en points de base').fill('500');
+ await page.getByRole('button',{name:'Enregistrer le brouillon'}).click();await page.getByRole('status').filter({hasText:'Brouillon enregistré.'}).waitFor();checks++;
+ const row=page.locator('tr').filter({hasText:customerName});await row.getByRole('button',{name:'Modifier le brouillon',exact:true}).click();await page.getByLabel('Description',{exact:true}).fill('Prestation corrigée');await page.getByLabel('Taxe en points de base').fill('997.5');await page.getByRole('button',{name:'Enregistrer le brouillon'}).click();await page.getByRole('heading',{name:'Modifier le brouillon',exact:true}).waitFor({state:'hidden'});await row.getByText('Lignes',{exact:true}).click();await row.getByText('Prestation corrigée',{exact:false}).waitFor();checks++;await row.getByRole('button',{name:'Émettre',exact:true}).click();await page.getByRole('button',{name:'Confirmer',exact:true}).click();await row.getByText('Émise',{exact:true}).waitFor();checks++;
+ const invoiceId=(await row.getAttribute('data-testid')).replace('invoice-','');
+ const stored=await page.evaluate(async id=>{const state=await fetch('/api/finance/state').then(r=>r.json());return state.invoices.find(i=>i.id===id)},invoiceId);assert.equal(stored.taxCents,1995);assert.equal(stored.totalCents,21995);await mkdir('.local/validation',{recursive:true});await page.screenshot({path:'.local/validation/finance-invoices.png',fullPage:true});
+ await navigate('Paiements');await page.getByLabel('Facture à payer').selectOption(invoiceId);await page.getByLabel('Montant reçu en centimes').fill('10000');await page.getByLabel('Référence du paiement').fill('E2E partiel '+referenceSuffix);await page.getByRole('button',{name:'Enregistrer le paiement reçu',exact:true}).click();await page.getByRole('status').filter({hasText:'Paiement reçu enregistré.'}).waitFor();checks++;
+ await navigate('Factures');await page.locator('tr').filter({hasText:customerName}).getByText('Partiellement payée',{exact:true}).waitFor();checks++;
+ await navigate('Paiements');await page.getByLabel('Facture à payer').selectOption(invoiceId);await page.getByLabel('Montant reçu en centimes').fill('11996');assert.equal(await page.getByLabel('Montant reçu en centimes').evaluate(el=>el.checkValidity()),false);checks++;
+ await page.getByLabel('Montant reçu en centimes').fill('11995');await page.getByLabel('Référence du paiement').fill('E2E solde '+referenceSuffix);await page.getByRole('button',{name:'Enregistrer le paiement reçu',exact:true}).click();await page.getByRole('status').filter({hasText:'Paiement reçu enregistré.'}).waitFor();
+ await navigate('Factures');await page.locator('tr').filter({hasText:customerName}).getByText('Payée',{exact:true}).waitFor();checks++;
+ await navigate('Paiements');const paymentRow=page.locator('tr').filter({hasText:'E2E solde '+referenceSuffix});await paymentRow.getByRole('button',{name:'Contrepasser',exact:true}).click();await page.getByLabel('Motif obligatoire').fill('Correction test');await page.getByRole('button',{name:'Confirmer',exact:true}).click();await paymentRow.getByText('Contrepassé : Correction test',{exact:true}).waitFor();checks++;
+ await page.reload();await page.locator('tr').filter({hasText:'E2E solde '+referenceSuffix}).getByText('Contrepassé : Correction test',{exact:true}).waitFor();checks++;
+ await navigate('Factures');await page.getByRole('button',{name:'+ Facture',exact:true}).click();await page.getByLabel('Client de la facture').selectOption(customer.id);await page.getByLabel('Date d’échéance').fill('2027-02-01');await page.getByLabel('Description',{exact:true}).fill('Brouillon à annuler');await page.getByLabel('Prix unitaire en centimes').fill('15000');await page.getByRole('button',{name:'Enregistrer le brouillon'}).click();await page.getByRole('heading',{name:'Nouvelle facture brouillon',exact:true}).waitFor({state:'hidden'});const draft=page.locator('tr').filter({hasText:customerName}).filter({hasText:'Brouillon à annuler'});await draft.getByRole('button',{name:'Annuler la facture',exact:true}).click();await page.getByLabel('Motif obligatoire').fill('Annulation du brouillon test');await page.getByRole('button',{name:'Confirmer',exact:true}).click();await draft.getByText('Annulée',{exact:true}).waitFor();checks++;await navigate('Rapports');const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('link',{name:'Télécharger les factures CSV'}).click()]);assert.match(download.suggestedFilename(),/\.csv$/);const csv=await readFile(await download.path(),'utf8');const exported=csv.split('\r\n').find(line=>line.includes(customerName)&&line.includes(stored.number));assert.ok(exported);assert.ok(exported.includes('"1995"'));assert.ok(exported.includes('"21995"'));checks++;
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({financeBrowserChecks:checks,pageErrors:errors}));
+}finally{await browser.close()}
