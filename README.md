@@ -59,7 +59,7 @@ DATABASE_URL="$TEST_DATABASE_URL" node scripts/migrate.cjs
 npm test
 ```
 
-Le parcours Chromium utilise une instance séparée au port 3001. `npm run test:e2e` vérifie connexion, création client/site/contrat/prestation/visite, planification Omega, modification, navigation persistante, audit et mobile. Il crée des dossiers de test : ne pas l’exécuter sur la base opérationnelle. La CI vérifie types, tests PostgreSQL et build.
+Le parcours Chromium utilise une instance séparée au port 3001. `E2E_DATABASE_URL=URL_DE_L_INSTANCE_TEST npm run test:e2e` vérifie connexion, création client/site/contrat/prestation/visite, planification Omega, modification, navigation persistante, audit et mobile. Il crée des dossiers de test : ne pas l’exécuter sur la base opérationnelle. La CI vérifie types, tests PostgreSQL et build.
 
 ## Limites V20
 

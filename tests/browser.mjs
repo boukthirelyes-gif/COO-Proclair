@@ -32,6 +32,8 @@ try {
   await page.getByRole('button',{name:'Approuver et appliquer ce plan'}).click();await page.getByRole('heading',{name:'Plan appliqué'}).waitFor();checks++;
   await navigate('Planning');await page.getByLabel('Date du planning').fill('2027-01-11');await page.getByRole('button',{name:'Jour',exact:true}).click();await page.locator('.technician-day .visit').first().waitFor();checks++;
   await page.locator('.technician-day .visit').first().click();await page.getByLabel('Notes',{exact:true}).fill('Visite modifiée dans le navigateur');await save();
+  await page.getByRole('button',{name:'Semaine',exact:true}).click();await page.locator('.calendar.week .visit').first().waitFor();checks++;
+  await page.getByRole('button',{name:'Mois',exact:true}).click();await page.locator('.calendar.month .visit').first().waitFor();assert.equal(await page.locator('.calendar.month > section').count(),31);checks++;
   await navigate('Clients');await page.locator('tr').filter({hasText:name}).getByRole('button',{name:'Ouvrir'}).click();await page.getByRole('heading',{name:name+' · Fiche client'}).waitFor();checks++;
   await page.reload();await page.getByRole('heading',{name:name+' · Fiche client'}).waitFor();checks++;
   await navigate('Journal');await page.getByText('OMEGA_SCHEDULE',{exact:true}).first().waitFor();checks++;

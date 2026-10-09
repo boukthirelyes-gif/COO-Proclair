@@ -9,7 +9,7 @@ Exécutée le 9 octobre 2026. Résultats de cette instance ; aucune publication,
 | Build Next.js production | Réussi |
 | Tests TypeScript avec PostgreSQL séparé | 18 exécutés, 18 réussis, 0 ignoré |
 | Prototype Python conservé | 3 exécutés, 3 réussis |
-| Parcours Chromium | 18 étapes validées, aucun événement pageerror |
+| Parcours Chromium | 20 étapes validées, aucun événement pageerror |
 | Mobile | Parcours 390×844 et capture inspectée ; Safari non exécuté |
 | Backup PostgreSQL | Dump custom restauré dans `proclair_restore_test`; comptes techniciens, clients et migrations identiques |
 | Instance principale | Connexion, état, base PostgreSQL et worker vérifiés ; 3 techniciens configurés, 0 client et 0 visite fictifs |
@@ -17,7 +17,7 @@ Exécutée le 9 octobre 2026. Résultats de cette instance ; aucune publication,
 | Rotor MCP / site | CONNECT HTTP 403 du proxy ; capacités, authentification et fidélité inconnues |
 | Audit dépendances runtime | 0 vulnérabilité signalée par npm audit ; ce contrôle ne certifie pas toute la sécurité de l’application |
 
-Le parcours navigateur a créé les données uniquement dans `proclair_browser_test` : connexion, client, site, contrat, prestation, visite confirmée, proposition OMEGA, approbation et affectation, modification de notes, fiche client persistante par URL, journal, activation du worker, mise en file, traitement hors navigateur, ouverture du plan, désactivation et interface mobile.
+Le parcours navigateur a créé les données uniquement dans `proclair_browser_test` : connexion, client, site, contrat, prestation, visite confirmée, proposition OMEGA, approbation et affectation, modification de notes, affichage semaine et mois, fiche client persistante par URL, journal, activation du worker, mise en file, traitement hors navigateur, ouverture du plan, désactivation et interface mobile.
 
 Les tests métier contrôlent transitions, horaires Toronto, durée, week-end, capacité de base, passage unique, concurrence de version, conflit de technicien et rollback, audit, idempotence et interdiction de confirmation par OMEGA. Le worker utilise un schéma de test propre et vérifie désactivation par défaut, permission ADMIN, déduplication, concurrence, persistance des plans et trois essais avant dead-letter.
 

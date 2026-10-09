@@ -13,7 +13,7 @@ Date d'inspection : 2026-10-09. Source métier : directive utilisateur OMEGA GOD
 
 ## Convention d'état
 
-**Initial** = présent dans le prototype inspecté; **tranche V1** = implémentation locale présente; **à construire** = absent; **non observé** = pas de preuve Rotor. « Testé » signifie un résultat exécuté, jamais une simple existence de test. Validation exécutée rapportée par le responsable de livraison : 18 tests TypeScript réussis (règles, permissions, PostgreSQL et worker), 3 tests Python historiques réussis. Le détail reproductible appartient à `docs/validation.md`. Tests navigateur en cours : aucun résultat navigateur réussi n’est revendiqué ici. La cible V20 de 1 500 tests n’est pas atteinte.
+**Initial** = présent dans le prototype inspecté; **tranche V1** = implémentation locale présente; **à construire** = absent; **non observé** = pas de preuve Rotor. « Testé » signifie un résultat exécuté, jamais une simple existence de test. Validation exécutée rapportée par le responsable de livraison : 18 tests TypeScript réussis (règles, permissions, PostgreSQL et worker), 3 tests Python historiques réussis. Le détail reproductible appartient à `docs/validation.md`. Parcours Chromium exécuté : création métier, calendrier jour, planification OMEGA, modification, navigation et worker réussis; détails dans docs/validation.md. La cible V20 de 1 500 tests n’est pas atteinte.
 
 ## État réel de la première tranche livrée
 
@@ -28,11 +28,11 @@ Ordre ci-dessous : catégories de la directive V20, **pas un ordre Rotor vérifi
 | Élément Rotor / page demandée | Implémenté | Fonctionnel | Testé | Différence / inconnu |
 |---|---|---|---|---|
 | Dashboard | Initial : compteurs contacts/tâches | Local SQLite | À revalider | KPI Rotor et disposition inconnus |
-| Customers | V1 : création, liste, recherche, notes, fiche | Création/édition PostgreSQL | Tests métier; navigateur en cours | Onglets Rotor non observés; modules finance/messages absents |
+| Customers | V1 : création, liste, recherche, notes, fiche | Création/consultation PostgreSQL (édition client restante) | Tests métier; parcours Chromium réussi | Onglets Rotor non observés; modules finance/messages absents |
 | Leads | Initial : statut Prospect/En discussion | Filtrage commercial limité | Inclus dans test initial | Pipeline distinct, qualification et conversions à construire |
 | Jobs | V1 PostgreSQL | Oui, local | Tests TypeScript | Entité distincte de visite/contrat; workflows Rotor inconnus |
 | Visits | V1 PostgreSQL | Oui, local | Tests TypeScript | Création, affectation et transitions auditées prioritaires |
-| Schedule | V1 jour/semaine/mois | Oui, local | Règles testées; navigateur en cours | Planning opérationnel initial; fidélité visuelle non vérifiable |
+| Schedule | V1 jour/semaine/mois | Oui, local | Règles testées; parcours Chromium réussi | Planning opérationnel initial; fidélité visuelle non vérifiable |
 | Dispatch | À construire / capacité V1 limitée | Pas de dispatch carte complet | Non | Carte, drag/drop et orchestration temps réel restants |
 | Quotes | À construire | Non | Non | Conditions commerciales et conversion inconnues |
 | Contracts | V1 PostgreSQL | Oui, local | Tests TypeScript | Passages restants, client/propriété/job distincts |
@@ -61,11 +61,11 @@ CUSTOMER ≠ PROPERTY ≠ CONTRACT ≠ JOB ≠ VISIT ≠ INVOICE ≠ PAYMENT. Un
 
 | Élément Rotor demandé (non observé) | Implémenté | Fonctionnel | Testé | Différence |
 |---|---|---|---|---|
-| Jour : colonnes par technicien, horaires, cartes, durée/statut | V1 | Affichage local | Navigateur en cours | Interaction et apparence Rotor inconnues |
-| Semaine : charge, filtres, disponibilités | Vue semaine V1 | Affichage local | Navigateur en cours | Parité complète non revendiquée |
-| Mois : volumes, capacité, retards | Vue mois V1 | Affichage des visites | Navigateur en cours | Vue présente; agrégations avancées restantes |
+| Jour : colonnes par technicien, horaires, cartes, durée/statut | V1 | Affichage local | Affichage implémenté; contrôles Chromium détaillés dans validation.md | Interaction et apparence Rotor inconnues |
+| Semaine : charge, filtres, disponibilités | Vue semaine V1 | Affichage local | Affichage implémenté; contrôles Chromium détaillés dans validation.md | Parité complète non revendiquée |
+| Mois : volumes, capacité, retards | Vue mois V1 | Affichage des visites | Affichage implémenté; contrôles Chromium détaillés dans validation.md | Vue présente; agrégations avancées restantes |
 | Dispatch : techniciens, non planifiées, carte, conflits | Partiel V1 sans carte | À valider | À consigner | Carte et optimisation routière restantes |
-| Détails de visite, changement date/heure/technicien | V1 | Oui, mutations PostgreSQL | Tests métier; navigateur en cours | Audit, validation et conflits implémentés |
+| Détails de visite, changement date/heure/technicien | V1 | Oui, mutations PostgreSQL | Tests métier; parcours Chromium réussi | Audit, validation et conflits implémentés |
 | Annuler, reporter, confirmer, terminer | Transitions V1 | Validées côté serveur | Tests TypeScript | Statut local; aucune confirmation client externe |
 | Copier, route, communications, glisser-déposer | À construire | Non | Non | Aucun bouton factice acceptable |
 | FILL EMPTY SLOTS WITH OMEGA : prévisualiser/appliquer | V1 | Oui, approbation et idempotence | Tests PostgreSQL | Pas de confirmation externe ni de sync Rotor |
