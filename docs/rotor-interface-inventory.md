@@ -40,7 +40,7 @@ Ordre ci-dessous : catégories de la directive V20, **pas un ordre Rotor vérifi
 | Payments | Paiements manuels et contrepassations auditées | Oui, ledger local | Tests métier et Chromium | Aucun encaissement ou remboursement bancaire connecté |
 | Team | Trois techniciens V1 | Oui, local | Tests TypeScript liés au planning | Damien, Ricardo, Lucas demandés; rôles applicatifs détaillés restants |
 | Communications | À construire | Aucun envoi externe | Non | Connecteurs et permissions absents |
-| Reports | Totaux facturés, paiements nets, soldes et CSV | Oui, snapshot PostgreSQL cohérent | Tests export et Chromium | Dépenses, profitabilité et rapports fiscaux complets restants |
+| Reports | Totaux facturés, paiements nets, soldes et CSV | Oui, snapshot PostgreSQL cohérent | Tests export et Chromium | Dépenses payées et trésorerie enregistrée livrées ; profitabilité et rapports fiscaux complets restants |
 | Settings | Configuration opérationnelle V1 limitée | À valider | À consigner | Horaires/capacité; gestion fine des permissions restante |
 | OMEGA AI | Initial : règles de suivi; V1 : dispatch déterministe | Prévisualisation/approbation/application locales | Tests TypeScript | Exécution backend explicable, distincte de génération de texte |
 | Maps | À construire | Non | Non | Géocodage, trajets, licences et carte clients nécessaires |
@@ -78,7 +78,7 @@ Pipeline cible : intent → validation → authorization → data fetch → plan
 
 ### Inbox, cartes et finance
 
-Inbox trois panneaux, classification bilingue, autoreply, désabonnement, pièces jointes : à construire après choix des connecteurs et permissions. Les brouillons ne sont pas des messages envoyés. Customer Map et Sales Map sont distinctes. États vente demandés : SOLD, NO HOME, NOT INTERESTED, CALLBACK, NOT KNOCKED, FOLLOW UP, ACTIVE, CANCELLED, DO NOT CONTACT. Ledger de commissions, taxes, dépenses, export comptable et calculs de rentabilité : à construire; paliers V10 requis avant commissions progressives.
+Inbox trois panneaux, classification bilingue, autoreply, désabonnement, pièces jointes : à construire après choix des connecteurs et permissions. Les brouillons ne sont pas des messages envoyés. Customer Map et Sales Map sont distinctes. États vente demandés : SOLD, NO HOME, NOT INTERESTED, CALLBACK, NOT KNOCKED, FOLLOW UP, ACTIVE, CANCELLED, DO NOT CONTACT. Taxes explicites, factures, paiements manuels, dépenses payées et export CSV : livrés localement. Ledger de commissions et calculs de rentabilité : à construire ; paliers V10 requis avant commissions progressives.
 
 ## ROTOR FEATURE PARITY
 

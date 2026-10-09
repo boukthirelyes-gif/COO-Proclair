@@ -236,3 +236,21 @@ model InvoiceCounter {
  id String @id
  value Int @default(0)
 }
+
+model Expense {
+ id String @id @default(cuid())
+ vendor String
+ category String
+ description String
+ paidDate String
+ amountCents Int
+ currency String @default("CAD")
+ reference String?
+ status String @default("RECORDED")
+ voidReason String?
+ version Int @default(1)
+ idempotencyKey String @unique
+ payloadHash String
+ createdAt DateTime @default(now())
+ @@index([paidDate, status])
+}

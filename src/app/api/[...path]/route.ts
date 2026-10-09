@@ -32,14 +32,15 @@ export async function GET(request: NextRequest) {
     if (path === 'session') return NextResponse.json({actor});
     if (path === 'worker/state') return NextResponse.json(await worker.state());
     if (path === 'finance/state' || path === 'finance/export') {
-      const {invoices,payments} = await finance.readState();
+      const {invoices,payments,expenses} = await finance.readState();
       const issued = invoices.filter(invoice => !['DRAFT','VOID'].includes(invoice.status));
-      const summary = {issuedTotalCents:sumCents(issued.map(invoice=>invoice.totalCents)),receivedCents:sumCents(issued.map(invoice=>invoice.paidCents)),outstandingCents:sumCents(issued.map(invoice=>invoice.balanceCents)),draftCount:invoices.filter(invoice=>invoice.status==='DRAFT').length};
-      if (path === 'finance/state') return NextResponse.json({invoices,payments,summary});
+      const expenseTotalCents=sumCents(expenses.filter(e=>e.status==='RECORDED').map(e=>e.amountCents));
+      const summary = {expenseTotalCents,cashBalanceCents:sumCents(issued.map(i=>i.paidCents))-expenseTotalCents,issuedTotalCents:sumCents(issued.map(invoice=>invoice.totalCents)),receivedCents:sumCents(issued.map(invoice=>invoice.paidCents)),outstandingCents:sumCents(issued.map(invoice=>invoice.balanceCents)),draftCount:invoices.filter(invoice=>invoice.status==='DRAFT').length};
+      if (path === 'finance/state') return NextResponse.json({invoices,payments,expenses,summary});
       const kind = request.nextUrl.searchParams.get('kind') || 'invoices';
-      if (!['invoices','payments'].includes(kind)) return NextResponse.json({error:'Export inconnu.'},{status:400});
-      const columns = kind==='invoices' ? ['number','customer','status','currency','dueDate','subtotalCents','taxCents','totalCents','paidCents','balanceCents'] : ['id','invoice','customer','status','currency','amountCents','method','reference','createdAt','reversalReason'];
-      const rows = kind==='invoices' ? invoices.map(invoice=>({...invoice,customer:invoice.customer.name})) : payments.map(payment=>({...payment,invoice:payment.invoice.number||payment.invoice.id,customer:payment.invoice.customer.name,currency:payment.invoice.currency,createdAt:payment.createdAt.toISOString(),reversalReason:payment.reversal?.reason||''}));
+      if (!['invoices','payments','expenses'].includes(kind)) return NextResponse.json({error:'Export inconnu.'},{status:400});
+      const columns = kind==='expenses' ? ['id','vendor','category','description','paidDate','amountCents','currency','reference','status','voidReason'] : kind==='invoices' ? ['number','customer','status','currency','dueDate','subtotalCents','taxCents','totalCents','paidCents','balanceCents'] : ['id','invoice','customer','status','currency','amountCents','method','reference','createdAt','reversalReason'];
+      const rows = kind==='expenses' ? expenses : kind==='invoices' ? invoices.map(invoice=>({...invoice,customer:invoice.customer.name})) : payments.map(payment=>({...payment,invoice:payment.invoice.number||payment.invoice.id,customer:payment.invoice.customer.name,currency:payment.invoice.currency,createdAt:payment.createdAt.toISOString(),reversalReason:payment.reversal?.reason||''}));
       return new NextResponse(csvRows(columns,rows),{headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':`attachment; filename="proclair-${kind}.csv"`,'Cache-Control':'no-store'}});
     }
     if (/^invoices\/[^/]+$/.test(path)) return NextResponse.json(await finance.getInvoice(path.split('/')[1]));
@@ -86,6 +87,7 @@ async function mutate(request: NextRequest) {
     if (/^visits\/[^/]+\/transition$/.test(path)) return NextResponse.json(await service.transitionVisit(path.split('/')[1],input,actor));
     if (/^invoices\/[^/]+\/issue$/.test(path)) return NextResponse.json(await finance.issueInvoice(path.split('/')[1],input,actor));
     if (/^invoices\/[^/]+\/void$/.test(path)) return NextResponse.json(await finance.voidInvoice(path.split('/')[1],input,actor));
+    if (/^expenses\/[^/]+\/void$/.test(path)) return NextResponse.json(await finance.voidExpense(path.split('/')[1],input,actor));
     if (/^payments\/[^/]+\/reverse$/.test(path)) return NextResponse.json(await finance.reversePayment(path.split('/')[1],input,actor));
     switch(path) {
       case 'customers': return NextResponse.json(await service.createCustomer(input,actor),{status:201});
@@ -93,6 +95,7 @@ async function mutate(request: NextRequest) {
       case 'contracts': return NextResponse.json(await service.createContract(input,actor),{status:201});
       case 'jobs': return NextResponse.json(await service.createJob(input,actor),{status:201});
       case 'visits': return NextResponse.json(await service.createVisit(input,actor),{status:201});
+      case 'expenses': return NextResponse.json(await finance.recordExpense(input,actor),{status:201});
       case 'invoices': return NextResponse.json(await finance.createInvoice(input,actor),{status:201});
       case 'payments': {
         if (!input || typeof input !== 'object' || !('invoiceId' in input) || typeof input.invoiceId !== 'string') return NextResponse.json({error:'Facture requise.'},{status:400});

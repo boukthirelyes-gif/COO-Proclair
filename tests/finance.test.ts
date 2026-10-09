@@ -21,6 +21,17 @@ test('finance isolated ledger: invoices numbering payments reversal permissions 
  const database=process.env.TEST_DATABASE_URL!,schema=`finance_test_${randomUUID().replaceAll('-','')}`,setup=new Client({connectionString:database});await setup.connect();await setup.query(`CREATE SCHEMA "${schema}"`);await setup.query(`SET search_path TO "${schema}"`);
  const db=new PrismaClient({adapter:new PrismaPg({connectionString:database},{schema})});
  try{for(const entry of (await readdir('prisma/migrations',{withFileTypes:true})).filter(e=>e.isDirectory()).sort((a,b)=>a.name.localeCompare(b.name)))await setup.query(await readFile(`prisma/migrations/${entry.name}/migration.sql`,'utf8'));
+ const expenseService=new FinanceService(db),expenseInput={vendor:'Supplier',category:'FUEL',description:'Paid fuel',paidDate:'2026-10-09',amountCents:12345,idempotencyKey:'expense-test-1'};
+ await assert.rejects(()=>expenseService.recordExpense(expenseInput,{id:'omega',role:'OMEGA'}),{code:'APPROVAL_REQUIRED'});
+ await assert.rejects(()=>expenseService.recordExpense({...expenseInput,amountCents:0},admin));
+ await assert.rejects(()=>expenseService.recordExpense({...expenseInput,paidDate:'2026-02-30'},admin));
+ const duplicates=await Promise.all([expenseService.recordExpense(expenseInput,admin),expenseService.recordExpense(expenseInput,admin)]);assert.equal(duplicates[0].id,duplicates[1].id);assert.equal(await db.expense.count(),1);
+ await assert.rejects(()=>expenseService.recordExpense({...expenseInput,amountCents:1},admin),{code:'IDEMPOTENCY_CONFLICT'});
+ const expense=duplicates[0];await assert.rejects(()=>expenseService.voidExpense(expense.id,{expectedVersion:1,reason:'Error'},{id:'dispatch',role:'DISPATCHER'}),{code:'FORBIDDEN'});
+ await assert.rejects(()=>expenseService.voidExpense(expense.id,{expectedVersion:2,reason:'Error'},admin),{code:'VERSION_CONFLICT'});
+ const voidExpense=await expenseService.voidExpense(expense.id,{expectedVersion:1,reason:'Duplicate receipt'},admin);assert.equal(voidExpense.status,'VOID');assert.equal(voidExpense.amountCents,12345);
+ await assert.rejects(()=>expenseService.voidExpense(expense.id,{expectedVersion:2,reason:'Again'},admin),{code:'INVALID_TRANSITION'});
+ assert.equal((await expenseService.readState()).expenses.length,1);assert.equal(await db.auditEvent.count({where:{entityType:'Expense'}}),2);
  const service=new FinanceService(db),customer=await db.customer.create({data:{name:'Finance test'}}),other=await db.customer.create({data:{name:'Other'}}),property=await db.property.create({data:{customerId:other.id,address:'Other site'}}),contract=await db.contract.create({data:{customerId:other.id,propertyId:property.id,name:'Other',service:'Cleaning',totalVisits:1,priceCents:100}});
  const input={customerId:customer.id,dueDate:'2027-01-01',idempotencyKey:'invoice-test-1',items:[{description:'Service',quantity:2,unitPriceCents:1000,taxRateBps:500}]};
  await assert.rejects(()=>service.createInvoice({...input,contractId:contract.id},admin),{code:'RELATION_MISMATCH'});
