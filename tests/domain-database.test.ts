@@ -1,0 +1,41 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {PrismaClient} from '@prisma/client';
+import {PrismaPg} from '@prisma/adapter-pg';
+import {CRMService} from '../src/domain/service';
+const database=process.env.TEST_DATABASE_URL;
+test('transactional scheduling, passage uniqueness, stale writes, audits and idempotent Omega fill',{skip:!database},async()=>{
+ const db=new PrismaClient({adapter:new PrismaPg({connectionString:database})}); const crm=new CRMService(db);const actor={id:'integration-test',role:'ADMIN' as const};const suffix=randomUUID();
+ try{
+ const customer=await crm.createCustomer({name:`Test ${suffix}`},actor);
+ const property=await crm.createProperty({customerId:customer.id,address:'Adresse de test'},actor);
+ const contract=await crm.createContract({customerId:customer.id,propertyId:property.id,name:'Entente',service:'Lavage',totalVisits:5,priceCents:20000},actor);
+ const job=await crm.createJob({customerId:customer.id,propertyId:property.id,contractId:contract.id,name:'Lavage annuel'},actor);
+ const tech=await db.technician.create({data:{name:`Test Tech ${suffix}`}});
+ const base={customerId:customer.id,propertyId:property.id,contractId:contract.id,jobId:job.id,service:'Lavage',durationMinutes:60,priceCents:4000,status:'CONFIRMED'};
+ const first=await crm.createVisit({...base,passageNumber:1},actor);
+ await assert.rejects(()=>crm.createVisit({...base,passageNumber:1},actor),{code:'PASSAGE_EXISTS'});
+ const slot={expectedVersion:1,technicianId:tech.id,startsAt:'2027-01-04T13:00:00.000Z',endsAt:'2027-01-04T14:00:00.000Z'};
+ const changed=await crm.updateVisit(first.id,slot,actor);assert.equal(changed.version,2);
+ await assert.rejects(()=>crm.updateVisit(first.id,{expectedVersion:1,notes:'Stale'},actor),{code:'VERSION_CONFLICT'});
+ const second=await crm.createVisit({...base,passageNumber:2},actor);
+ await assert.rejects(()=>crm.updateVisit(second.id,slot,actor),{code:'SCHEDULE_CONFLICT'});
+ const before=await db.visit.findUniqueOrThrow({where:{id:second.id}});assert.equal(before.startsAt,null);assert.equal(before.version,1);
+ const plan=await crm.previewFill({date:'2027-01-05'},actor);
+ assert.ok((plan.proposals as unknown[]).length>=1);
+ const apply={planId:plan.id,expectedVersion:plan.version,idempotencyKey:`test-${suffix}`,approved:true};
+ const result=await crm.applyFill(apply,actor);assert.equal(result.status,'APPLIED');
+ const duplicate=await crm.applyFill(apply,actor);assert.equal(duplicate.id,result.id);assert.equal(duplicate.version,result.version);
+ const scheduled=await db.visit.findUniqueOrThrow({where:{id:second.id}});assert.equal(scheduled.status,'SCHEDULED');
+ assert.ok(await db.auditEvent.count({where:{entityId:second.id}})>=2);
+ const third=await crm.createVisit({...base,passageNumber:4},actor);
+ const fourth=await crm.createVisit({...base,passageNumber:5},actor);
+ const raceSlot={expectedVersion:1,technicianId:tech.id,startsAt:'2027-01-06T13:00:00.000Z',endsAt:'2027-01-06T14:00:00.000Z'};
+ const race=await Promise.allSettled([crm.updateVisit(third.id,raceSlot,actor),crm.updateVisit(fourth.id,raceSlot,actor)]);
+ assert.equal(race.filter(r=>r.status==='fulfilled').length,1,'concurrent overlapping reservations have only one winner');
+ assert.equal(await db.visit.count({where:{id:{in:[third.id,fourth.id]},startsAt:{not:null}}}),1);
+ const guard=await crm.createVisit({...base,passageNumber:3,status:'PENDING'},actor);
+ await assert.rejects(()=>crm.transitionVisit(guard.id,{expectedVersion:1,status:'CONFIRMED'},{id:'omega',role:'OMEGA'}),{code:'APPROVAL_REQUIRED'});
+ }finally{await db.$disconnect();}
+});

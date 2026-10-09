@@ -1,0 +1,42 @@
+{
+  "name": "proclair-os",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build --webpack",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "db:generate": "node scripts/generate-client.cjs",
+    "db:migrate": "node --env-file-if-exists=.env scripts/migrate.cjs",
+    "db:seed": "node --env-file-if-exists=.env --import tsx scripts/seed.ts",
+    "legacy:migrate": "bash scripts/migrate-legacy.sh",
+    "worker": "node --env-file-if-exists=.env --import tsx scripts/worker.ts",
+    "test:e2e": "node --env-file=.env tests/browser.mjs"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "6.19.3",
+    "@prisma/client": "6.19.3",
+    "next": "16.4.0",
+    "pg": "8.16.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@prisma/internals": "^6.19.3",
+    "@types/node": "24.10.0",
+    "@types/pg": "^8.15.5",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "playwright": "1.58.2",
+    "prisma": "6.19.3",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3"
+  },
+  "overrides": {
+    "deepmerge-ts": "8.0.0"
+  },
+  "type": "module"
+}

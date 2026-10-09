@@ -1,0 +1,175 @@
+generator client {
+ provider = "prisma-client-js"
+ engineType = "client"
+ output = "../node_modules/.prisma/client"
+}
+datasource db {
+ provider = "postgresql"
+ url = env("DATABASE_URL")
+}
+enum VisitStatus {
+ PENDING
+ PROPOSED
+ CONFIRMED
+ SCHEDULED
+ IN_PROGRESS
+ COMPLETED
+ CANCELLED
+ RESCHEDULED
+ NO_ACCESS
+ FAILED
+ NEEDS_FOLLOWUP
+}
+model Customer {
+ legacyId Int? @unique
+ legacyCompany String?
+ legacyStatus String?
+ id String @id @default(cuid())
+ name String
+ email String?
+ phone String?
+ notes String @default("")
+ version Int @default(1)
+ sourceSystem String @default("PROCLAIR")
+ rotorExternalId String? @unique
+ syncStatus String @default("LOCAL_ONLY")
+ lastSyncedAt DateTime?
+ lastSyncError String?
+ createdAt DateTime @default(now())
+ properties Property[]
+ contracts Contract[]
+ jobs Job[]
+ visits Visit[]
+}
+model Property {
+ id String @id @default(cuid())
+ customerId String
+ customer Customer @relation(fields: [customerId], references: [id])
+ address String
+ latitude Float?
+ longitude Float?
+ createdAt DateTime @default(now())
+ contracts Contract[]
+ jobs Job[]
+ visits Visit[]
+}
+model Contract {
+ id String @id @default(cuid())
+ customerId String
+ propertyId String
+ customer Customer @relation(fields: [customerId], references: [id])
+ property Property @relation(fields: [propertyId], references: [id])
+ name String
+ service String
+ totalVisits Int
+ priceCents Int
+ active Boolean @default(true)
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ jobs Job[]
+ visits Visit[]
+}
+model Job {
+ id String @id @default(cuid())
+ customerId String
+ propertyId String
+ contractId String
+ customer Customer @relation(fields: [customerId], references: [id])
+ property Property @relation(fields: [propertyId], references: [id])
+ contract Contract @relation(fields: [contractId], references: [id])
+ name String
+ createdAt DateTime @default(now())
+ visits Visit[]
+}
+model Technician {
+ id String @id @default(cuid())
+ name String @unique
+ active Boolean @default(true)
+ dailyTarget Int @default(4)
+ fridayTarget Int @default(2)
+ visits Visit[]
+}
+model Visit {
+ id String @id @default(cuid())
+ customerId String
+ propertyId String
+ contractId String
+ jobId String
+ customer Customer @relation(fields: [customerId], references: [id])
+ property Property @relation(fields: [propertyId], references: [id])
+ contract Contract @relation(fields: [contractId], references: [id])
+ job Job @relation(fields: [jobId], references: [id])
+ technicianId String?
+ technician Technician? @relation(fields: [technicianId], references: [id])
+ service String
+ status VisitStatus @default(PENDING)
+ durationMinutes Int
+ actualDurationMinutes Int?
+ startsAt DateTime?
+ endsAt DateTime?
+ priceCents Int
+ notes String @default("")
+ passageNumber Int
+ version Int @default(1)
+ sourceSystem String @default("PROCLAIR")
+ rotorExternalId String? @unique
+ syncStatus String @default("LOCAL_ONLY")
+ lastSyncedAt DateTime?
+ lastSyncError String?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([contractId, passageNumber])
+ @@index([technicianId, startsAt])
+}
+model AuditEvent {
+ id String @id @default(cuid())
+ actorId String
+ actorRole String
+ action String
+ entityType String
+ entityId String
+ before Json?
+ after Json?
+ createdAt DateTime @default(now())
+ @@index([entityId, createdAt])
+}
+model OmegaPlan {
+ id String @id @default(cuid())
+ date String
+ proposals Json
+ status String @default("PREVIEW")
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ expiresAt DateTime
+ appliedAt DateTime?
+ idempotencyKey String? @unique
+ result Json?
+}
+
+model LegacyTask {
+ id String @id @default(cuid())
+ legacyId Int @unique
+ title String
+ due String
+ done Boolean
+}
+
+model WorkerControl {
+ id String @id @default("omega-dispatch")
+ enabled Boolean @default(false)
+ updatedAt DateTime @updatedAt
+}
+model WorkerJob {
+ id String @id @default(cuid())
+ key String @unique
+ date String
+ status String @default("PENDING")
+ attempts Int @default(0)
+ maxAttempts Int @default(3)
+ availableAt DateTime @default(now())
+ planId String?
+ lastError String?
+ createdAt DateTime @default(now())
+ completedAt DateTime?
+ @@index([status, availableAt])
+}

@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {assertTransition,authorize,validateSlot,dayBounds,DomainError} from '../src/domain/rules';
+test('confirmation precedes scheduling',()=>{assertTransition('CONFIRMED','SCHEDULED');assert.throws(()=>assertTransition('PENDING','SCHEDULED'),DomainError);});
+test('completed visits cannot be moved back into the pipeline',()=>{assert.throws(()=>assertTransition('COMPLETED','RESCHEDULED'),DomainError);});
+test('failure permits follow-up and rebooking',()=>{assertTransition('IN_PROGRESS','FAILED');assertTransition('FAILED','NEEDS_FOLLOWUP');assertTransition('NEEDS_FOLLOWUP','RESCHEDULED');});
+test('viewer has no mutation permission',()=>{assert.throws(()=>authorize({id:'reader',role:'VIEWER'}),DomainError);});
+test('dispatcher and Omega use explicit identities',()=>{authorize({id:'dispatcher',role:'DISPATCHER'});authorize({id:'omega-worker',role:'OMEGA'});assert.throws(()=>authorize({id:'',role:'ADMIN'}),DomainError);});
+test('Toronto daylight saving dates map to local midnight',()=>{assert.equal(dayBounds('2026-07-06').start.toISOString(),'2026-07-06T04:00:00.000Z');assert.equal(dayBounds('2026-12-07').start.toISOString(),'2026-12-07T05:00:00.000Z');});
+test('invalid and impossible calendar dates are rejected',()=>{assert.throws(()=>dayBounds('2026-02-30'),DomainError);assert.throws(()=>dayBounds('07/06/2026'),DomainError);});
+test('working hour boundaries allow 08 to 17 on weekdays',()=>{validateSlot(new Date('2026-07-06T12:00:00Z'),new Date('2026-07-06T21:00:00Z'),540);});
+test('duration mismatches rejected',()=>{assert.throws(()=>validateSlot(new Date('2026-07-06T12:00:00Z'),new Date('2026-07-06T13:00:00Z'),90),DomainError);});
+test('weekends rejected',()=>{assert.throws(()=>validateSlot(new Date('2026-07-04T12:00:00Z'),new Date('2026-07-04T13:00:00Z'),60),DomainError);});
+test('outside working hours rejected',()=>{assert.throws(()=>validateSlot(new Date('2026-07-06T11:00:00Z'),new Date('2026-07-06T12:00:00Z'),60),DomainError);assert.throws(()=>validateSlot(new Date('2026-07-06T20:30:00Z'),new Date('2026-07-06T21:30:00Z'),60),DomainError);});
