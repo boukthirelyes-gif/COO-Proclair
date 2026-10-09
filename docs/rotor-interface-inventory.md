@@ -90,9 +90,9 @@ Inbox trois panneaux, classification bilingue, autoreply, désabonnement, pièce
 | Audit et permissions | Aucune | V1 | Sans référence | Session admin signée, droits métier, audit | Tests TypeScript/PostgreSQL | Production et identité à durcir | Critique |
 | Synchronisation Rotor | MCP non joignable | Pas de sync vérifiée | Inconnue | Aucune | Bloquée réseau avant origine | Auth et capabilities inconnues | Critique |
 | Communications | Aucune | Pas de connecteur | Inconnue | Brouillon initial uniquement | Aucun envoi | Accès fournisseurs à établir | Haute |
-| Finance / commissions | Aucune | Absente | Inconnue | Aucune | Aucun | V10 manquant | Haute |
+| Finance / commissions | Fonctions annoncées publiquement, aucun écran du compte | Factures, paiements manuels, dépenses et impression locaux | Inconnue | Commissions absentes | 26 tests métier et 17 étapes financières navigateur | V10 et connexion compte manquants | Haute |
 | Routes / cartes / territoires | Aucune | Absents | Inconnue | Aucune | Aucun | Géocodage et optimisation à fournir | Haute |
-| Rapports / workflows 24/7 | Aucune | Worker de propositions V1; rapports absents | Inconnue | Jobs persistés, locks, retry, kill switch | Tests worker PostgreSQL | Désactivé par défaut; supervision production restante | Haute |
+| Rapports / workflows 24/7 | Fonctions annoncées publiquement | Worker de propositions et rapports financiers locaux | Inconnue | Jobs persistés, locks, retry, kill switch ; totaux et CSV | Tests worker et parcours financier | Désactivé par défaut ; supervision production restante | Haute |
 
 **Score global de parité Rotor : non calculable.** Le dénominateur des fonctionnalités observées est vide; publier un pourcentage serait trompeur. Après accès autorisé : attribuer un poids à chaque workflow observé (critique 5, haute 3, standard 1), définir des critères reproductibles, puis calculer `somme(poids × critères validés / critères attendus) / somme(poids)`. Conserver séparément couverture V20, fidélité visuelle et intégration; pas de score basé sur des pages de navigation seules.
 
@@ -106,3 +106,21 @@ Inbox trois panneaux, classification bilingue, autoreply, désabonnement, pièce
 6. Compléter les 1 500 tests significatifs demandés progressivement sur fonctionnalités existantes. Aucun test vide, compteur gonflé ou résultat supposé. Les comparaisons de captures nécessitent les écrans Rotor accessibles.
 
 Les étapes 2–6 restent à compléter; la queue persistante et ses contrôles de base de l’étape 2 existent déjà en V1, sans prétendre constituer l’exploitation production complète. Ce document ne transforme pas la première tranche en définition de done V20 accomplie.
+
+## Nouveau contrôle Rotor — 9 octobre 2026
+
+Le blocage CONNECT403 consigné ci-dessus décrit le premier contrôle historique. Nouveau contrôle : `https://www.getrotor.com` répond HTTP200 ; `initialize` vers `https://mcp.getrotor.com/mcp` répond HTTP401 avec `invalid_token`, `Authorization required`. Cette fois, le serveur Rotor est atteint. Aucune clé ni session utilisée, aucune donnée métier lue, aucune mutation distante.
+
+Métadonnées publiques observées :
+
+- Ressource OAuth : `https://mcp.getrotor.com/.well-known/oauth-protected-resource/mcp`, HTTP200 ; bearer dans l’en-tête.
+- Serveur OAuth : `https://mcp.getrotor.com/.well-known/oauth-authorization-server`, HTTP200 ; authorization code, PKCE S256, refresh token, client public, registration et révocation annoncés.
+- Autorisation : `https://mcp.getrotor.com/oauth/authorize`. Aucun client enregistré ou flux lancé dans ce contrôle.
+- Lectures annoncées : contacts, membres, prospects, clients, prestations, visites, tâches, boîte de réception, campagnes, modèles, plans de service, pins, factures, devis, paiements, paie, pipelines et feuilles de temps. Les scopes annoncés ne constituent pas une liste d’outils vérifiée ; `tools/list` attend une session autorisée.
+- Écritures annoncées : prospects, clients, visites, tâches, campagnes et modèles. Elles ne sont pas autorisées ou exécutées par ce contrôle.
+
+Le site public décrit : capture et notation de prospects, territoires/carte, pipelines et automatisations, plans récurrents avec accords signés, SMS/courriel, planning équipe, analyses, factures/paiements, portail client, campagnes et suivi du temps. Il s’agit de descriptions commerciales publiques, sans preuve de disposition visuelle ni de configuration du compte Proclair.
+
+Le site lie `https://docs.api.getrotor.com/` et `https://helpcenter.getrotor.com`. Ces deux domaines répondent encore CONNECT403 via le proxy dans cette instance. Ils sont proposés dans le brouillon réseau sans suppression des domaines existants. Un enregistrement du brouillon ne les active pas dans cette session.
+
+Prochaine dépendance : connecter le MCP Rotor avec OAuth depuis le client qui héberge cette conversation, au compte Proclair autorisé, puis découvrir les outils en lecture seule et inventorier les écrans/données accessibles avant un adaptateur. Ne jamais demander un mot de passe, un token ou un cookie dans le chat. Sans cette connexion, aucune synchronisation Proclair–Rotor n’est établie.

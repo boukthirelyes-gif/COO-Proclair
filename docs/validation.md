@@ -14,7 +14,7 @@ Exécutée le 9 octobre 2026. Résultats de cette instance ; aucune publication,
 | Backup PostgreSQL | Dump custom restauré dans `proclair_restore_test`; comptes techniciens, clients et migrations identiques |
 | Instance principale | Connexion, état CRM et financier, base PostgreSQL et worker vérifiés ; 3 techniciens configurés, 0 client, 0 visite, 0 facture et 0 paiement fictifs |
 | OMEGA | Aperçu, application idempotente, conflits, permissions, worker concurrent, retry, dead-letter, kill switch et ouverture du plan testés |
-| Rotor MCP / site | CONNECT HTTP 403 du proxy ; capacités, authentification et fidélité inconnues |
+| Rotor MCP / site | Nouveau contrôle : site HTTP200, MCP HTTP401 OAuth requis ; métadonnées OAuth publiques HTTP200 ; compte et outils non accessibles |
 | Audit dépendances runtime | 0 vulnérabilité signalée par npm audit ; ce contrôle ne certifie pas toute la sécurité de l’application |
 
 Le parcours navigateur a créé les données uniquement dans `proclair_browser_test` : connexion, client, site, contrat, prestation, visite confirmée, proposition OMEGA, approbation et affectation, modification de notes, affichage semaine et mois, fiche client persistante par URL, journal, activation du worker, mise en file, traitement hors navigateur, ouverture du plan, désactivation et interface mobile.
