@@ -6,6 +6,7 @@ import { CRMService } from '@/domain/service';
 import { DomainError } from '@/domain/rules';
 import { OmegaWorker } from '@/omega/worker';
 import { FinanceService } from '@/finance/service';
+import {invoiceDocument,invoiceDocumentCsp} from '@/lib/invoice-document';
 import {csvRows, sumCents} from '@/lib/finance-export';
 export const runtime = 'nodejs';
 const service = new CRMService(prisma);
@@ -42,6 +43,10 @@ export async function GET(request: NextRequest) {
       const columns = kind==='expenses' ? ['id','vendor','category','description','paidDate','amountCents','currency','reference','status','voidReason'] : kind==='invoices' ? ['number','customer','status','currency','dueDate','subtotalCents','taxCents','totalCents','paidCents','balanceCents'] : ['id','invoice','customer','status','currency','amountCents','method','reference','createdAt','reversalReason'];
       const rows = kind==='expenses' ? expenses : kind==='invoices' ? invoices.map(invoice=>({...invoice,customer:invoice.customer.name})) : payments.map(payment=>({...payment,invoice:payment.invoice.number||payment.invoice.id,customer:payment.invoice.customer.name,currency:payment.invoice.currency,createdAt:payment.createdAt.toISOString(),reversalReason:payment.reversal?.reason||''}));
       return new NextResponse(csvRows(columns,rows),{headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':`attachment; filename="proclair-${kind}.csv"`,'Cache-Control':'no-store'}});
+    }
+    if (/^invoices\/[^/]+\/print$/.test(path)) {
+      const invoice=await finance.getInvoice(path.split('/')[1]);
+      return new NextResponse(invoiceDocument(invoice),{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'private, no-store','Content-Security-Policy':invoiceDocumentCsp,'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'}});
     }
     if (/^invoices\/[^/]+$/.test(path)) return NextResponse.json(await finance.getInvoice(path.split('/')[1]));
     if (/^omega\/plans\/[^/]+$/.test(path)) {

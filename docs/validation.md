@@ -1,4 +1,4 @@
-# Validation des trois premières tranches V20
+# Validation des quatre premières tranches V20
 
 Exécutée le 9 octobre 2026. Résultats de cette instance ; aucune publication, restauration dans une nouvelle tâche ou fidélité Rotor certifiée.
 
@@ -7,9 +7,9 @@ Exécutée le 9 octobre 2026. Résultats de cette instance ; aucune publication,
 | Installation reproductible `bash scripts/setup.sh` | Réussie : npm ci, génération Prisma JS, migrations répétables, seed idempotent, import legacy, build et sauvegarde |
 | TypeScript | Réussi |
 | Build Next.js production | Réussi |
-| Tests TypeScript avec PostgreSQL séparé | 25 exécutés, 25 réussis, 0 ignoré |
+| Tests TypeScript avec PostgreSQL séparé | 26 exécutés, 26 réussis, 0 ignoré |
 | Prototype Python conservé | 3 exécutés, 3 réussis |
-| Parcours Chromium | 23 étapes CRM/OMEGA + 15 étapes financières validées sur le build de production, aucun événement pageerror |
+| Parcours Chromium | 23 étapes CRM/OMEGA + 17 étapes financières validées sur le build de production, aucun événement pageerror |
 | Mobile | Parcours 390×844 et capture inspectée ; Safari non exécuté |
 | Backup PostgreSQL | Dump custom restauré dans `proclair_restore_test`; comptes techniciens, clients et migrations identiques |
 | Instance principale | Connexion, état CRM et financier, base PostgreSQL et worker vérifiés ; 3 techniciens configurés, 0 client, 0 visite, 0 facture et 0 paiement fictifs |
@@ -25,7 +25,7 @@ Problèmes corrigés pendant cette validation : moteur Rust Prisma indisponible 
 
 ## Non validé ou non livré
 
-Pas de 1 500 tests, pas de référence visuelle Rotor, pas de test Safari, pas d’intégration externe opérationnelle. Les marges de déplacement sont fixes et ne vérifient ni circulation ni consentement client. SMS, courriels, encaissement externe, PDF et envoi de factures, commissions V10, cartes, optimisation de routes, modèle IA, multi-utilisateurs et déploiement public restent ouverts. Les clients et contrats sont maintenant modifiables avec version et audit. Sites, prestations et techniciens restent sans édition complète. Le calendrier n’a pas encore le glisser-déposer ni une vue dispatch cartographique.
+Pas de 1 500 tests, pas de référence visuelle Rotor, pas de test Safari, pas d’intégration externe opérationnelle. Les marges de déplacement sont fixes et ne vérifient ni circulation ni consentement client. SMS, courriels, encaissement externe, PDF serveur et envoi de factures, commissions V10, cartes, optimisation de routes, modèle IA, multi-utilisateurs et déploiement public restent ouverts. Les clients et contrats sont maintenant modifiables avec version et audit. Sites, prestations et techniciens restent sans édition complète. Le calendrier n’a pas encore le glisser-déposer ni une vue dispatch cartographique.
 
 Les commits sont locaux dans le checkout. Aucun push GitHub ni activation d’une version publiée n’a été effectué. La conservation/restauration des commits locaux dans une nouvelle tâche n’a pas été testée ; les volumes Docker exigent une sauvegarde restaurable depuis le workspace.
 
@@ -42,3 +42,9 @@ Corrections supplémentaires : conservation de la navigation en mode React Stric
 Les 25 tests TypeScript restent réussis avec des contrôles supplémentaires dans le test de registre financier isolé : dépense positive, date réelle, idempotence concurrente, conflit de clé, interdiction OMEGA, correction administrateur, version et conservation de l’original avec deux événements d’audit. Typecheck et build production réussis.
 
 Le parcours financier de 15 étapes a été exécuté sur le nouveau build : saisie d’une dépense de 12 345 cents, rechargement, export CSV, annulation motivée et diminution exacte du total de dépenses actives. Aucun événement pageerror. Le solde présenté est encaissements nets moins dépenses payées enregistrées, toutes dates confondues ; aucune prétention de bénéfice comptable, de solde bancaire ou de crédit de taxes récupérable. Les justificatifs ne sont pas téléversés. Nouvelle sauvegarde PostgreSQL créée après migration additive ; sa restauration dans une nouvelle tâche n’est pas certifiée.
+
+## Documents imprimables
+
+Le parcours financier complet de 17 étapes passe sur le build de production, sans pageerror : ouverture du document depuis la facture, numéro réel, styles d’impression masquant les commandes, génération d’un PDF A4 valide par Chromium et accès anonyme refusé (401). Un test de rendu vérifie échappement des champs HTML, montants et taux fractionnaire, date d’émission Toronto, mentions brouillon/annulation et absence de solde demandé pour ces états. Réponse privée no-store, CSP restrictive et protection contre l’encapsulation dans un iframe.
+
+Il s’agit d’une impression navigateur ; aucun PDF serveur archivé ou courriel envoyé. Les coordonnées légales et numéros fiscaux de l’émetteur restent à configurer. Les coordonnées du client et les paiements sont les données actuelles, pas une archive de l’état au moment de l’émission.

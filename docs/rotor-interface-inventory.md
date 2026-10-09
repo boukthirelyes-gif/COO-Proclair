@@ -13,7 +13,7 @@ Date d'inspection : 2026-10-09. Source métier : directive utilisateur OMEGA GOD
 
 ## Convention d'état
 
-**Initial** = présent dans le prototype inspecté; **tranche V1** = implémentation locale présente; **à construire** = absent; **non observé** = pas de preuve Rotor. « Testé » signifie un résultat exécuté, jamais une simple existence de test. Validation exécutée rapportée par le responsable de livraison : 25 tests TypeScript réussis (règles, permissions, PostgreSQL et worker), 3 tests Python historiques réussis. Le détail reproductible appartient à `docs/validation.md`. Parcours Chromium exécuté : création métier, calendrier jour, planification OMEGA, modification, navigation et worker réussis; détails dans docs/validation.md. La cible V20 de 1 500 tests n’est pas atteinte.
+**Initial** = présent dans le prototype inspecté; **tranche V1** = implémentation locale présente; **à construire** = absent; **non observé** = pas de preuve Rotor. « Testé » signifie un résultat exécuté, jamais une simple existence de test. Validation exécutée rapportée par le responsable de livraison : 26 tests TypeScript réussis (règles, permissions, PostgreSQL et worker), 3 tests Python historiques réussis. Le détail reproductible appartient à `docs/validation.md`. Parcours Chromium exécuté : création métier, calendrier jour, planification OMEGA, modification, navigation et worker réussis; détails dans docs/validation.md. La cible V20 de 1 500 tests n’est pas atteinte.
 
 ## État réel de la première tranche livrée
 
@@ -36,7 +36,7 @@ Ordre ci-dessous : catégories de la directive V20, **pas un ordre Rotor vérifi
 | Dispatch | À construire / capacité V1 limitée | Pas de dispatch carte complet | Non | Carte, drag/drop et orchestration temps réel restants |
 | Quotes | À construire | Non | Non | Conditions commerciales et conversion inconnues |
 | Contracts | V1 PostgreSQL avec édition versionnée | Oui, local | Tests TypeScript + Chromium | Passages restants, client/propriété/job distincts |
-| Invoices | Brouillons, édition, émission, annulation et CSV | Oui, PostgreSQL | Tests métier et Chromium | Documents PDF et envoi externe restants; Rotor non observé |
+| Invoices | Brouillons, édition, émission, annulation et CSV | Oui, PostgreSQL | Tests métier et Chromium | Impression et PDF navigateur livrés ; PDF serveur et envoi externe restants ; Rotor non observé |
 | Payments | Paiements manuels et contrepassations auditées | Oui, ledger local | Tests métier et Chromium | Aucun encaissement ou remboursement bancaire connecté |
 | Team | Trois techniciens V1 | Oui, local | Tests TypeScript liés au planning | Damien, Ricardo, Lucas demandés; rôles applicatifs détaillés restants |
 | Communications | À construire | Aucun envoi externe | Non | Connecteurs et permissions absents |
