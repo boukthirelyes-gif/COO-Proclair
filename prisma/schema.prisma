@@ -271,3 +271,27 @@ model LoginBucket {
  expiresAt DateTime
  @@index([expiresAt])
 }
+
+/**
+ * Rotor-owned records, mirrored locally without creating fictitious CRM
+ * contracts or overwriting manually managed customers and visits.
+ * The compound ID makes re-imports idempotent.
+ */
+model RotorMirrorRecord {
+ kind String
+ externalId String
+ name String
+ status String?
+ summary String?
+ email String?
+ phone String?
+ address String?
+ customerExternalId String?
+ jobExternalId String?
+ startsAt DateTime?
+ endsAt DateTime?
+ syncedAt DateTime @default(now())
+ @@id([kind, externalId])
+ @@index([kind, syncedAt])
+ @@index([kind, startsAt])
+}
