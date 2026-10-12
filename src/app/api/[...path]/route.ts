@@ -140,7 +140,10 @@ async function mutate(request: NextRequest) {
       case 'integrations/rotor/renew': {const state=await renewRotor();await prisma.auditEvent.create({data:{actorId:actor.id,actorRole:actor.role,action:'ROTOR_RENEWED',entityType:'Integration',entityId:'rotor',after:{access:'READ_ONLY'}}});return NextResponse.json(state);}
       case 'integrations/rotor/revoke': {const result=await revokeRotor();await prisma.auditEvent.create({data:{actorId:actor.id,actorRole:actor.role,action:'ROTOR_REVOKED',entityType:'Integration',entityId:'rotor',after:result}});return NextResponse.json(result);}
       case 'integrations/rotor/tools': return NextResponse.json(await rotorTools());
-      case 'integrations/rotor/sync/preview': return NextResponse.json(await previewRotorMirror(...(function(){const v=rotorSyncInput.parse(input);return [v.page,v.start,v.end] as const})()));
+      case 'integrations/rotor/sync/preview': {
+        const v=rotorSyncInput.parse(input);
+        return NextResponse.json(await previewRotorMirror(v.page,v.start,v.end));
+      }
       case 'integrations/rotor/sync/apply': {
         const v=rotorSyncInput.extend({approved:z.literal(true)}).parse(input);
         return NextResponse.json(await applyRotorMirror(prisma,v.page,v.start,v.end));
