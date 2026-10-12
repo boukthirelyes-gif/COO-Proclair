@@ -22,7 +22,32 @@ function errorResponse(error: unknown) {
     if (error.code === 'P2002' || error.code === 'P2034' || error.code === 'P2025') return NextResponse.json({error:'Conflit de données. Rechargez puis réessayez.',code:'CONFLICT'}, {status:409});
     if (error.code === 'P2003') return NextResponse.json({error:'Référence inexistante.',code:'INVALID_REFERENCE'}, {status:400});
   }
-  console.error('Erreur API Proclair', error instanceof Error ? error.name : 'Unknown');
+  // Log only bounded diagnostic codes. Never log error.message, meta details,
+  // SQL, request bodies, or environment variables: those may contain secrets.
+  const diagnostic: Record<string, string> = {
+    kind: error instanceof Error ? error.name : 'Unknown'
+  };
+  if (error && typeof error === 'object') {
+    const safeCode = (value: unknown) =>
+      typeof value === 'string' && /^[A-Za-z0-9_-]{1,32}$/.test(value) ? value : null;
+    const details = error as {code?: unknown; meta?: unknown; cause?: unknown};
+    const prismaCode = safeCode(details.code);
+    if (prismaCode) diagnostic.prismaCode = prismaCode;
+    const meta = details.meta && typeof details.meta === 'object'
+      ? details.meta as Record<string, unknown> : null;
+    const sqlState = safeCode(meta?.code);
+    if (sqlState) diagnostic.sqlState = sqlState;
+    const nested = meta?.driverAdapterError;
+    if (nested && typeof nested === 'object') {
+      const adapter = nested as {cause?: unknown};
+      if (adapter.cause && typeof adapter.cause === 'object') {
+        const driver = adapter.cause as {originalCode?: unknown; code?: unknown};
+        const driverCode = safeCode(driver.originalCode) ?? safeCode(driver.code);
+        if (driverCode) diagnostic.driverCode = driverCode;
+      }
+    }
+  }
+  console.error('Erreur API Proclair', diagnostic);
   return NextResponse.json({error:'Service indisponible. Consultez les journaux serveur.'}, {status:503});
 }
 export async function GET(request: NextRequest) {
