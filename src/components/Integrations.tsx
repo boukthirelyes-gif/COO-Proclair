@@ -51,5 +51,5 @@ export default function Integrations(){
   {mirror&&<><p>{mirror.counts.CUSTOMER||0} client(s), {mirror.counts.JOB||0} prestation(s), {mirror.counts.VISIT||0} visite(s) dans le miroir. Affichage des 50 derniers enregistrements.</p>
   <table><thead><tr><th>Type</th><th>Référence Rotor</th><th>Nom</th><th>Statut</th><th>Date de visite</th></tr></thead><tbody>{mirror.records.map((r:any)=><tr key={r.kind+':'+r.externalId}><td>{r.kind}</td><td>{r.externalId}</td><td>{r.name}</td><td>{r.status||'—'}</td><td>{r.startsAt?new Date(r.startsAt).toLocaleString('fr-CA',{timeZone:'America/Toronto'}):'—'}</td></tr>)}</tbody></table></>}
  </div>}
- }</section>;
+ </>}</section>;
 }
