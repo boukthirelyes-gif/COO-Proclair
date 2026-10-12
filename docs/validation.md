@@ -74,3 +74,9 @@ Protection Git élargie aux fichiers .env.*, .vercel, clés, bases et sauvegarde
 Déploiement Vercel réel non effectué : compte Vercel, PostgreSQL distant et variables non configurés dans cette session. Le domaine HTTPS Vercel pourra servir au callback sans acheter de domaine. Rotor réel reste non connecté. Voir docs/deploy-vercel.md ; aucun score de parité ou certification production n’est revendiqué.
 
 Six vérifications HTTP supplémentaires sur une instance locale configurée comme la production : santé PostgreSQL, cron anonyme 401, cron signé autorisé avec worker désactivé, finances anonymes 401, session HttpOnly/Secure/SameSite strict et réponses API privées no-store. Aucun secret ni cookie affiché. Une nouvelle sauvegarde locale PostgreSQL est conservée hors Git après la migration.
+
+## Améliorations OMEGA et pilotage — 12 octobre 2026
+
+33 tests réussis : tableau de bord excluant les visites terminées/annulées des prochaines interventions et calculant le jour Toronto ; reprise de dead-letter contrôlée, permission administrateur, tentative attendue, concurrence (une seule reprise), audit, refus de date passée et kill switch. Compteurs de la file lus depuis PostgreSQL, y compris les anciens jobs au-delà de la liste récente.
+
+Parcours Chromium étendu de 27 étapes CRM/OMEGA : tableau de bord et indicateur de progression, remise en file d’un échec dans la base séparée, traitement manuel avec résultat visible, déconnexion et API privée 401. Les 17 étapes financières et 9 contrôles Intégrations passent aussi. Aucun pageerror. Capture desktop inspectée, mobile revalidé. Aucun client réel ajouté à la base principale ; test de reprise exclusivement dans proclair_browser_test. OMEGA reste déterministe : aucun modèle IA ni nouvel envoi externe.

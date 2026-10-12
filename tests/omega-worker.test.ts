@@ -23,6 +23,13 @@ test('durable Omega queue requires activation, deduplicates, records plans, retr
  await worker.tick(now);const retry=await db.workerJob.findUniqueOrThrow({where:{id:broken.id}});assert.equal(retry.attempts,1);assert.equal(retry.status,'PENDING');assert.ok(retry.availableAt>now);
  await worker.tick(new Date(now.getTime()+31000));await worker.tick(new Date(now.getTime()+92000));
  assert.equal((await db.workerJob.findUniqueOrThrow({where:{id:broken.id}})).status,'DEAD_LETTER');
- await worker.configure({enabled:false},admin);assert.equal((await worker.tick()).processed,0);assert.equal((await worker.state()).control.enabled,false);
+ const recoverable=await db.workerJob.create({data:{key:'recoverable-'+randomUUID(),date:'2027-01-07',status:'DEAD_LETTER',attempts:3,lastError:'Temporary failure'}});
+ await assert.rejects(()=>worker.retryJob(recoverable.id,{expectedAttempts:3},{id:'omega',role:'OMEGA'},now),{code:'FORBIDDEN'});
+ await assert.rejects(()=>worker.retryJob(recoverable.id,{expectedAttempts:2},admin,now),{code:'VERSION_CONFLICT'});
+ const attempts=await Promise.allSettled([worker.retryJob(recoverable.id,{expectedAttempts:3},admin,now),worker.retryJob(recoverable.id,{expectedAttempts:3},admin,now)]);assert.equal(attempts.filter(r=>r.status==='fulfilled').length,1);
+ assert.equal((await db.workerJob.findUniqueOrThrow({where:{id:recoverable.id}})).status,'PENDING');assert.equal(await db.auditEvent.count({where:{action:'WORKER_REQUEUED'}}),1);
+ const expired=await db.workerJob.create({data:{key:'expired-'+randomUUID(),date:'2026-01-01',status:'DEAD_LETTER',attempts:3}});await assert.rejects(()=>worker.retryJob(expired.id,{expectedAttempts:3},admin,now),{code:'JOB_EXPIRED'});
+ await worker.configure({enabled:false},admin);assert.equal((await worker.tick()).processed,0);
+ await assert.rejects(()=>worker.retryJob(expired.id,{expectedAttempts:3},admin,now),{code:'WORKER_DISABLED'});const snapshot=await worker.state();assert.equal(snapshot.control.enabled,false);assert.equal(snapshot.summary.DEAD_LETTER,2);assert.ok(snapshot.summary.COMPLETED>=1);
  }finally{await db.$disconnect();await setup.query(`DROP SCHEMA "${schema}" CASCADE`);await setup.end();}
 });

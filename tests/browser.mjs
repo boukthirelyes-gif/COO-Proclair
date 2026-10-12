@@ -1,6 +1,8 @@
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
+import {Client} from 'pg';
+import {randomUUID} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 if (!process.env.E2E_DATABASE_URL) throw new Error('E2E_DATABASE_URL doit désigner la base de cette instance de test.');
 const base = process.env.E2E_BASE_URL || 'http://127.0.0.1:3001';
@@ -13,7 +15,7 @@ try {
   await page.goto(base);
   await page.getByLabel('Mot de passe').fill(process.env.PROCLAIR_ADMIN_PASSWORD);
   await page.getByRole('button',{name:'Se connecter',exact:true}).click();
-  await page.getByText('Une vue claire sur les opérations.').waitFor();checks++;
+  await page.getByText('Une vue claire sur les opérations.').waitFor();checks++;await page.getByRole('progressbar',{name:'Interventions terminées aujourd’hui'}).waitFor();await mkdir('.local/validation',{recursive:true});await page.screenshot({path:'.local/validation/dashboard-improved.png',fullPage:true});checks++;
   const navigate=async name=>{await page.locator('nav').getByRole('button',{name,exact:false}).click()};
   const save=async()=>{const [response]=await Promise.all([page.waitForResponse(r=>r.url().includes('/api/')&&['POST','PATCH'].includes(r.request().method())),page.getByRole('dialog').getByRole('button',{name:'Enregistrer',exact:true}).click()]);assert.equal(response.ok(),true,`Mutation refusée : ${response.status()}`);await page.getByRole('dialog').waitFor({state:'hidden'});checks++};
   const planDay=new Date('2027-01-11T12:00:00Z');planDay.setUTCFullYear(2027+(Math.floor(Date.now()/1000)%100));planDay.setUTCDate(planDay.getUTCDate()+((8-planDay.getUTCDay())%7));const planningDate=planDay.toISOString().slice(0,10);
@@ -48,9 +50,14 @@ try {
   execFileSync(process.execPath,['--import','tsx','scripts/worker.ts','--once'],{env:{...process.env,DATABASE_URL:process.env.E2E_DATABASE_URL},stdio:'pipe'});
   await page.getByRole('button',{name:'Actualiser l’état',exact:true}).click();
   await page.getByRole('button',{name:'Ouvrir proposition'}).first().click();await page.getByRole('heading',{name:'Proposition Omega'}).waitFor();checks++;
+  const database=new Client({connectionString:process.env.E2E_DATABASE_URL});await database.connect();
+  try{const retryId=randomUUID();await database.query('INSERT INTO "WorkerJob" ("id","key","date","status","attempts","lastError") VALUES ($1,$2,$3,$4,$5,$6)',[retryId,'retry-e2e-'+retryId,'2099-01-05','DEAD_LETTER',3,'Test reprise supervisée '+retryId]);await page.getByRole('button',{name:'Actualiser l’état',exact:true}).click();await page.locator('tr').filter({hasText:'Test reprise supervisée '+retryId}).getByRole('button',{name:'Reprendre la préparation'}).click();await page.getByRole('status').filter({hasText:'Préparation remise en file.'}).waitFor();assert.equal((await database.query('SELECT "status" FROM "WorkerJob" WHERE "id"=$1',[retryId])).rows[0].status,'PENDING');checks++;
+  await page.getByRole('button',{name:'Traiter la file OMEGA maintenant'}).click();await page.getByRole('status').filter({hasText:'préparation(s) traitée(s).'}).waitFor();checks++;
+  }finally{await database.end()}
   await page.getByRole('button',{name:'Désactiver',exact:true}).click();await page.getByRole('button',{name:'Activer',exact:true}).waitFor();checks++;
   await page.setViewportSize({width:390,height:844});await navigate('Planning');await page.getByRole('heading',{name:'Planning',exact:true}).waitFor();checks++;
   await mkdir('.local/validation',{recursive:true});await page.screenshot({path:'.local/validation/mobile-planning.png',fullPage:true});
+  await page.getByRole('button',{name:'Se déconnecter',exact:true}).click();await page.getByRole('heading',{name:'Connexion à Proclair'}).waitFor();assert.equal(await page.evaluate(()=>fetch('/api/state').then(r=>r.status)),401);checks++;
   assert.deepEqual(failures,[]);checks++;
   console.log(`${checks} étapes navigateur validées : connexion, création métier, planification Omega, modification, fiche client, persistance URL, audit et mobile.`);
 } finally { await browser.close(); }
