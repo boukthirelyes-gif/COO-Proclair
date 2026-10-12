@@ -48,3 +48,9 @@ Le parcours financier de 15 étapes a été exécuté sur le nouveau build : sai
 Le parcours financier complet de 17 étapes passe sur le build de production, sans pageerror : ouverture du document depuis la facture, numéro réel, styles d’impression masquant les commandes, génération d’un PDF A4 valide par Chromium et accès anonyme refusé (401). Un test de rendu vérifie échappement des champs HTML, montants et taux fractionnaire, date d’émission Toronto, mentions brouillon/annulation et absence de solde demandé pour ces états. Réponse privée no-store, CSP restrictive et protection contre l’encapsulation dans un iframe.
 
 Il s’agit d’une impression navigateur ; aucun PDF serveur archivé ou courriel envoyé. Les coordonnées légales et numéros fiscaux de l’émetteur restent à configurer. Les coordonnées du client et les paiements sont les données actuelles, pas une archive de l’état au moment de l’émission.
+
+## Connexion Rotor dans le CRM — 12 octobre 2026
+
+27 tests TypeScript réussis, dont un scénario OAuth simulé : client public, scopes de lecture, PKCE, chiffrement authentifié, refus de state incorrect, retour à usage unique, persistance chiffrée, initialization MCP, découverte sans tools/call et suppression locale de l’accès. Aucun compte réel Rotor connecté, aucun import ni envoi externe. Le build production passe. La connexion distante dépend d’une origine publique HTTPS et de l’autorisation du compte ; le renouvellement automatique et la révocation distante restent ouverts.
+
+Quatre contrôles Chromium réussis sur build production : page Intégrations accessible, bouton désactivé sans origine HTTPS, navigation conservée après rechargement et démarrage refusé avec CONFIG_REQUIRED/409. Aucun pageerror. Correction du débordement du menu sur petits écrans desktop : toutes les entrées restent accessibles par défilement.

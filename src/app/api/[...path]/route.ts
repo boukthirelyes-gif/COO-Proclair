@@ -1,3 +1,4 @@
+import {beginRotor,completeRotor,rotorStatus,rotorTools,disconnectRotor} from '@/lib/rotor';
 import { NextRequest, NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import { prisma } from '@/lib/db';
@@ -28,8 +29,16 @@ export async function GET(request: NextRequest) {
   try {
     const path = request.nextUrl.pathname.slice('/api/'.length);
     if (path === 'health') { await prisma.$queryRaw`SELECT 1`; return NextResponse.json({status:'ok',database:'connected'}); }
+    if(path==='integrations/rotor/callback') {
+      const cookie=request.cookies.get('rotor_oauth')?.value;
+      if(!cookie)throw new DomainError('OAUTH_STATE','Session de connexion absente.',400);
+      await completeRotor(cookie,request.nextUrl.searchParams.get('state')||'',request.nextUrl.searchParams.get('code')||'');
+      await prisma.auditEvent.create({data:{actorId:'admin',actorRole:'ADMIN',action:'ROTOR_CONNECTED',entityType:'Integration',entityId:'rotor',after:{access:'READ_ONLY'}}});
+      const response=NextResponse.redirect(new URL('/?view=integrations',process.env.PROCLAIR_PUBLIC_ORIGIN!));response.cookies.set('rotor_oauth','',{path:'/api/integrations/rotor/callback',maxAge:0});return response;
+    }
     const actor = actorFor(request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
+    if (path === 'integrations/rotor') return NextResponse.json(await rotorStatus(),{headers:{'Cache-Control':'no-store'}});
     if (path === 'session') return NextResponse.json({actor});
     if (path === 'worker/state') return NextResponse.json(await worker.state());
     if (path === 'finance/state' || path === 'finance/export') {
@@ -95,6 +104,11 @@ async function mutate(request: NextRequest) {
     if (/^expenses\/[^/]+\/void$/.test(path)) return NextResponse.json(await finance.voidExpense(path.split('/')[1],input,actor));
     if (/^payments\/[^/]+\/reverse$/.test(path)) return NextResponse.json(await finance.reversePayment(path.split('/')[1],input,actor));
     switch(path) {
+      case 'integrations/rotor/connect': {
+        const flow=await beginRotor();const response=NextResponse.json({url:flow.url});response.cookies.set('rotor_oauth',flow.cookie,{httpOnly:true,secure:true,sameSite:'lax',path:'/api/integrations/rotor/callback',maxAge:600});return response;
+      }
+      case 'integrations/rotor/tools': return NextResponse.json(await rotorTools());
+      case 'integrations/rotor/disconnect': {const result=await disconnectRotor();await prisma.auditEvent.create({data:{actorId:actor.id,actorRole:actor.role,action:'ROTOR_DISCONNECTED_LOCAL',entityType:'Integration',entityId:'rotor',after:{connected:false,remoteRevoked:false}}});return NextResponse.json(result);}
       case 'customers': return NextResponse.json(await service.createCustomer(input,actor),{status:201});
       case 'properties': return NextResponse.json(await service.createProperty(input,actor),{status:201});
       case 'contracts': return NextResponse.json(await service.createContract(input,actor),{status:201});

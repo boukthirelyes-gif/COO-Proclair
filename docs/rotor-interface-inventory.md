@@ -124,3 +124,7 @@ Le site public décrit : capture et notation de prospects, territoires/carte, pi
 Le site lie `https://docs.api.getrotor.com/` et `https://helpcenter.getrotor.com`. Ces deux domaines répondent encore CONNECT403 via le proxy dans cette instance. Ils sont proposés dans le brouillon réseau sans suppression des domaines existants. Un enregistrement du brouillon ne les active pas dans cette session.
 
 Prochaine dépendance : connecter le MCP Rotor avec OAuth depuis le client qui héberge cette conversation, au compte Proclair autorisé, puis découvrir les outils en lecture seule et inventorier les écrans/données accessibles avant un adaptateur. Ne jamais demander un mot de passe, un token ou un cookie dans le chat. Sans cette connexion, aucune synchronisation Proclair–Rotor n’est établie.
+
+## Parcours OAuth intégré au CRM — 12 octobre 2026
+
+La page Intégrations permet désormais de commencer une connexion OAuth depuis Proclair, après configuration de son origine publique HTTPS. Client public enregistré dynamiquement, PKCE S256, scopes de lecture uniquement, jetons chiffrés côté serveur et découverte tools/list. Aucun compte Rotor n’est connecté à cette instance, aucun outil métier n’est exécuté et aucun import n’est livré. Ne pas confondre le parcours implémenté/testé sur serveur simulé avec une intégration distante validée. Connexion réelle, inventaire du compte, pagination complète, renouvellement automatique et mapping/import restent à réaliser.
