@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/*.test.ts",
+    "test": "node --env-file-if-exists=.env --import tsx --test tests/*.test.ts",
     "db:generate": "node scripts/generate-client.cjs",
     "db:migrate": "node --env-file-if-exists=.env scripts/migrate.cjs",
     "db:seed": "node --env-file-if-exists=.env --import tsx scripts/seed.ts",

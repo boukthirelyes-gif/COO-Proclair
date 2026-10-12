@@ -71,3 +71,5 @@ Si des jetons existent déjà dans l’ancien dossier `.local/rotor`, utiliser *
 - Factures : impression/PDF navigateur ; aucune banque ou communication externe n’est simulée.
 
 Le contrôle local de compilation ne vaut pas un déploiement distant réussi. La publication Vercel et le test OAuth réel nécessitent le compte Vercel, la base distante, les variables et le compte Rotor autorisé. L’application utilise encore un seul compte administrateur ; identité multi-utilisateurs et modèle IA ne sont pas livrés par ce déploiement.
+
+Note de la version fusionnée : le correctif runtime présent sur la branche distante privilégie actuellement DIRECT_DATABASE_URL en Production et limite le pool à une connexion par instance. DATABASE_URL reste utilisée hors Production. Les actifs WASM du client Prisma sont inclus explicitement dans le tracing Next.js. Ce correctif est conservé ; le retour au pooler runtime nécessite une validation de la connexion du fournisseur.
