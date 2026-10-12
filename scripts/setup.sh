@@ -13,7 +13,7 @@ PY
 )"
   if [[ -n "$latest_backup" ]]; then bash scripts/db-restore-empty.sh "$latest_backup"; fi
 fi
-npm ci --cache /workspace/.npm-cache --no-audit --no-fund
+npm ci --ignore-scripts --cache /workspace/.npm-cache --no-audit --no-fund
 npm run db:generate
 npm run db:migrate
 npm run db:seed

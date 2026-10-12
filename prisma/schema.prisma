@@ -254,3 +254,20 @@ model Expense {
  createdAt DateTime @default(now())
  @@index([paidDate, status])
 }
+
+model IntegrationSecret {
+ key String @id
+ encryptedValue String @db.Text
+ updatedAt DateTime @updatedAt
+}
+model OAuthReceipt {
+ stateHash String @id
+ expiresAt DateTime
+ @@index([expiresAt])
+}
+model LoginBucket {
+ id String @id
+ attempts Int @default(0)
+ expiresAt DateTime
+ @@index([expiresAt])
+}

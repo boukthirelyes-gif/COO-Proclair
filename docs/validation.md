@@ -1,15 +1,15 @@
-# Validation des quatre premières tranches V20
+# Validation du CRM Proclair
 
-Exécutée le 9 octobre 2026. Résultats de cette instance ; aucune publication, restauration dans une nouvelle tâche ou fidélité Rotor certifiée.
+Validation initiale le 9 octobre 2026, complétée le 12 octobre pour Vercel. Résultats de cette instance ; aucune publication Vercel, restauration dans une nouvelle tâche ou fidélité Rotor certifiée.
 
 | Contrôle | Résultat réel |
 |---|---|
 | Installation reproductible `bash scripts/setup.sh` | Réussie : npm ci, génération Prisma JS, migrations répétables, seed idempotent, import legacy, build et sauvegarde |
 | TypeScript | Réussi |
 | Build Next.js production | Réussi |
-| Tests TypeScript avec PostgreSQL séparé | 26 exécutés, 26 réussis, 0 ignoré |
+| Tests TypeScript avec PostgreSQL séparé | 32 exécutés, 32 réussis, 0 ignoré |
 | Prototype Python conservé | 3 exécutés, 3 réussis |
-| Parcours Chromium | 23 étapes CRM/OMEGA + 17 étapes financières validées sur le build de production, aucun événement pageerror |
+| Parcours Chromium | 23 étapes CRM/OMEGA + 17 étapes financières + 9 contrôles Intégrations validés sur le build de production, aucun événement pageerror |
 | Mobile | Parcours 390×844 et capture inspectée ; Safari non exécuté |
 | Backup PostgreSQL | Dump custom restauré dans `proclair_restore_test`; comptes techniciens, clients et migrations identiques |
 | Instance principale | Connexion, état CRM et financier, base PostgreSQL et worker vérifiés ; 3 techniciens configurés, 0 client, 0 visite, 0 facture et 0 paiement fictifs |
@@ -27,7 +27,7 @@ Problèmes corrigés pendant cette validation : moteur Rust Prisma indisponible 
 
 Pas de 1 500 tests, pas de référence visuelle Rotor, pas de test Safari, pas d’intégration externe opérationnelle. Les marges de déplacement sont fixes et ne vérifient ni circulation ni consentement client. SMS, courriels, encaissement externe, PDF serveur et envoi de factures, commissions V10, cartes, optimisation de routes, modèle IA, multi-utilisateurs et déploiement public restent ouverts. Les clients et contrats sont maintenant modifiables avec version et audit. Sites, prestations et techniciens restent sans édition complète. Le calendrier n’a pas encore le glisser-déposer ni une vue dispatch cartographique.
 
-Les commits sont locaux dans le checkout. Aucun push GitHub ni activation d’une version publiée n’a été effectué. La conservation/restauration des commits locaux dans une nouvelle tâche n’a pas été testée ; les volumes Docker exigent une sauvegarde restaurable depuis le workspace.
+Lors des premières tranches, les commits étaient locaux dans le checkout, sans push GitHub ni activation d’une version publiée. La conservation/restauration des commits locaux dans une nouvelle tâche n’a pas été testée ; les volumes Docker exigent une sauvegarde restaurable depuis le workspace.
 
 ## Tranche financière
 
@@ -62,3 +62,15 @@ Quatre contrôles Chromium réussis sur build production : page Intégrations ac
 L’utilisateur confirme ne pas avoir de domaine public pour le CRM. Aucune adresse supposée, aucun compte Rotor connecté, aucune donnée importée. Le renouvellement est déclenché à l’utilisation et non par un service permanent. La sérialisation est locale au processus serveur ; déploiement à plusieurs réplicas non pris en charge. La découverte est bornée à 20 pages, 1 000 outils et 1 Mo par réponse ; une pagination résiduelle est signalée. Les snapshots PostgreSQL ne sauvegardent pas le fichier de jetons.
 
 Neuf contrôles Chromium réussis sur le build production, aucun pageerror : quatre contrôles locaux de la page/configuration et cinq contrôles d’interface avec réponses Rotor simulées (renouvellement, schéma d’outil, retour avant révocation, panne de révocation préservant la connexion, succès avec état déconnecté). Aucun service Rotor contacté par ces simulations.
+
+## Préparation Vercel — 12 octobre 2026
+
+Projet existant conservé. Node 24, installation npm ci gelée avec scripts de dépendances désactivés (génération Prisma explicite), puis commande `vercel:build` exécutée en mode Production sur une base isolée neuve : six migrations, seed idempotent des trois techniciens et compilation réussis. Réapplication migrations/seed vérifiée : zéro client, facture ou accès OAuth fictif.
+
+32 tests TypeScript/PostgreSQL, zéro ignoré ; 3 tests Python ; 23 étapes navigateur CRM/OMEGA, 17 financières/PDF et 9 Intégrations réussis sur build production. Aucune pageerror. OAuth et débit de connexions testés avec deux clients PostgreSQL distincts représentant des réplicas : callback à usage unique, rotation distribuée, ciphertext durable et invalid_grant conservé en base. Cron sans secret refusé ; les accès OAuth ont quitté le système de fichiers éphémère.
+
+Protection Git élargie aux fichiers .env.*, .vercel, clés, bases et sauvegardes. Scanner des blobs de tout l’historique et des fichiers destinés à Git : aucun secret ni fichier privé détecté. Aucun client réel ou export de base n’est inclus dans le dépôt. Les identifiants des bases de développement et CI sont explicitement fictifs, à ne pas réutiliser en production.
+
+Déploiement Vercel réel non effectué : compte Vercel, PostgreSQL distant et variables non configurés dans cette session. Le domaine HTTPS Vercel pourra servir au callback sans acheter de domaine. Rotor réel reste non connecté. Voir docs/deploy-vercel.md ; aucun score de parité ou certification production n’est revendiqué.
+
+Six vérifications HTTP supplémentaires sur une instance locale configurée comme la production : santé PostgreSQL, cron anonyme 401, cron signé autorisé avec worker désactivé, finances anonymes 401, session HttpOnly/Secure/SameSite strict et réponses API privées no-store. Aucun secret ni cookie affiché. Une nouvelle sauvegarde locale PostgreSQL est conservée hors Git après la migration.
