@@ -128,3 +128,5 @@ Prochaine dépendance : connecter le MCP Rotor avec OAuth depuis le client qui h
 ## Parcours OAuth intégré au CRM — 12 octobre 2026
 
 La page Intégrations permet désormais de commencer une connexion OAuth depuis Proclair, après configuration de son origine publique HTTPS. Client public enregistré dynamiquement, PKCE S256, scopes de lecture uniquement, jetons chiffrés côté serveur et découverte tools/list. Aucun compte Rotor n’est connecté à cette instance, aucun outil métier n’est exécuté et aucun import n’est livré. Ne pas confondre le parcours implémenté/testé sur serveur simulé avec une intégration distante validée. Connexion réelle, inventaire du compte, pagination complète, renouvellement automatique et mapping/import restent à réaliser.
+
+Le cycle de vie de connexion inclut maintenant renouvellement des accès à l’utilisation, révocation distante sur action humaine et découverte paginée des schémas d’outils. Ces fonctions sont testées avec serveur simulé uniquement. L’utilisateur confirme l’absence de domaine ; OAuth réel et fidélité du compte Proclair restent non validés.

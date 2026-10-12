@@ -54,3 +54,11 @@ Il s’agit d’une impression navigateur ; aucun PDF serveur archivé ou courri
 27 tests TypeScript réussis, dont un scénario OAuth simulé : client public, scopes de lecture, PKCE, chiffrement authentifié, refus de state incorrect, retour à usage unique, persistance chiffrée, initialization MCP, découverte sans tools/call et suppression locale de l’accès. Aucun compte réel Rotor connecté, aucun import ni envoi externe. Le build production passe. La connexion distante dépend d’une origine publique HTTPS et de l’autorisation du compte ; le renouvellement automatique et la révocation distante restent ouverts.
 
 Quatre contrôles Chromium réussis sur build production : page Intégrations accessible, bouton désactivé sans origine HTTPS, navigation conservée après rechargement et démarrage refusé avec CONFIG_REQUIRED/409. Aucun pageerror. Correction du débordement du menu sur petits écrans desktop : toutes les entrées restent accessibles par défilement.
+
+## Cycle de vie Rotor — 12 octobre 2026
+
+30 tests TypeScript réussis, zéro ignoré. Les nouveaux scénarios simulés couvrent renouvellement concurrent sans double rotation, refresh token conservé chiffré, pagination JSON/SSE avec schémas, panne temporaire préservant l’accès, invalid_grant imposant une reconnexion, refus de droits plus larges et révocation distante conservant les secrets sur échec puis suppression après succès. Typecheck et build production réussis.
+
+L’utilisateur confirme ne pas avoir de domaine public pour le CRM. Aucune adresse supposée, aucun compte Rotor connecté, aucune donnée importée. Le renouvellement est déclenché à l’utilisation et non par un service permanent. La sérialisation est locale au processus serveur ; déploiement à plusieurs réplicas non pris en charge. La découverte est bornée à 20 pages, 1 000 outils et 1 Mo par réponse ; une pagination résiduelle est signalée. Les snapshots PostgreSQL ne sauvegardent pas le fichier de jetons.
+
+Neuf contrôles Chromium réussis sur le build production, aucun pageerror : quatre contrôles locaux de la page/configuration et cinq contrôles d’interface avec réponses Rotor simulées (renouvellement, schéma d’outil, retour avant révocation, panne de révocation préservant la connexion, succès avec état déconnecté). Aucun service Rotor contacté par ces simulations.
