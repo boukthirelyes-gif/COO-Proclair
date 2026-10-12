@@ -1,7 +1,8 @@
 import {beginRotor,completeRotor,rotorStatus,rotorTools,disconnectRotor,renewRotor,revokeRotor} from '@/lib/rotor';
 import {cronAuthorized,takeLoginAttempt} from '@/lib/production-auth';
 import { NextRequest, NextResponse } from 'next/server';
-import { ZodError } from 'zod';
+import { ZodError, z } from 'zod';
+import {previewRotorMirror,applyRotorMirror,listRotorMirror} from '@/lib/rotor-mirror';
 import { prisma } from '@/lib/db';
 import { actorFor, checkPassword, issueSession, sameOrigin, sessionCookie } from '@/lib/auth';
 import { CRMService } from '@/domain/service';
@@ -15,6 +16,7 @@ export const maxDuration = 60;
 const service = new CRMService(prisma);
 const worker = new OmegaWorker(prisma);
 const finance = new FinanceService(prisma);
+const rotorSyncInput=z.object({page:z.number().int().min(1).max(2000),start:z.string().datetime({offset:true}),end:z.string().datetime({offset:true})}).strict();
 function errorResponse(error: unknown) {
   if (error instanceof ZodError) return NextResponse.json({error:'Champs invalides.',details:error.flatten()}, {status:400});
   if (error instanceof DomainError) return NextResponse.json({error:error.message,code:error.code}, {status:error.status});
@@ -68,6 +70,7 @@ export async function GET(request: NextRequest) {
     const actor = actorFor(request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     if (path === 'integrations/rotor') return NextResponse.json(await rotorStatus(),{headers:{'Cache-Control':'no-store'}});
+    if (path === 'integrations/rotor/mirror') return NextResponse.json(await listRotorMirror(prisma),{headers:{'Cache-Control':'no-store'}});
     if (path === 'session') return NextResponse.json({actor});
     if (path === 'worker/state') return NextResponse.json(await worker.state());
     if (path === 'finance/state' || path === 'finance/export') {
@@ -137,6 +140,14 @@ async function mutate(request: NextRequest) {
       case 'integrations/rotor/renew': {const state=await renewRotor();await prisma.auditEvent.create({data:{actorId:actor.id,actorRole:actor.role,action:'ROTOR_RENEWED',entityType:'Integration',entityId:'rotor',after:{access:'READ_ONLY'}}});return NextResponse.json(state);}
       case 'integrations/rotor/revoke': {const result=await revokeRotor();await prisma.auditEvent.create({data:{actorId:actor.id,actorRole:actor.role,action:'ROTOR_REVOKED',entityType:'Integration',entityId:'rotor',after:result}});return NextResponse.json(result);}
       case 'integrations/rotor/tools': return NextResponse.json(await rotorTools());
+      case 'integrations/rotor/sync/preview': {
+        const v=rotorSyncInput.parse(input);
+        return NextResponse.json(await previewRotorMirror(v.page,v.start,v.end));
+      }
+      case 'integrations/rotor/sync/apply': {
+        const v=rotorSyncInput.extend({approved:z.literal(true)}).parse(input);
+        return NextResponse.json(await applyRotorMirror(prisma,v.page,v.start,v.end));
+      }
       case 'integrations/rotor/disconnect': {const result=await disconnectRotor();await prisma.auditEvent.create({data:{actorId:actor.id,actorRole:actor.role,action:'ROTOR_DISCONNECTED_LOCAL',entityType:'Integration',entityId:'rotor',after:{connected:false,remoteRevoked:false}}});return NextResponse.json(result);}
       case 'customers': return NextResponse.json(await service.createCustomer(input,actor),{status:201});
       case 'properties': return NextResponse.json(await service.createProperty(input,actor),{status:201});

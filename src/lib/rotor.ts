@@ -26,3 +26,42 @@ export async function disconnectRotor(){return exclusive(async()=>{await removeC
 export async function revokeRotor(){return exclusive(async()=>{const token=await stored('connection');if(!token)return {disconnected:true,remoteRevoked:false};for(const [value,hint] of [[token.refreshToken,'refresh_token'],[token.accessToken,'access_token']]){if(!value)continue;await remote('/oauth/revoke',new URLSearchParams({token:value,token_type_hint:hint,client_id:token.clientId}).toString(),{'Content-Type':'application/x-www-form-urlencoded'})}await removeConnection();return {disconnected:true,remoteRevoked:true}})}
 async function rpcResult(response:Response,id:number){const text=await boundedText(response);let message;try{message=JSON.parse(text)}catch{const entries=text.split(/\r?\n\r?\n/).map(block=>block.split(/\r?\n/).filter(line=>line.startsWith('data:')).map(line=>line.slice(5).trimStart()).join('\n')).filter(Boolean).map(value=>{try{return JSON.parse(value)}catch{return null}});message=entries.find(entry=>entry?.id===id)}if(!message||message.id!==id||message.error||!message.result)throw new DomainError('ROTOR_PROTOCOL','Réponse MCP invalide ou refusée.',502);return message.result}
 export async function rotorTools(){const token=await usableToken();const deadline=Date.now()+30000;const headers:Record<string,string>={Authorization:'Bearer '+token.accessToken,Accept:'application/json, text/event-stream'};const init=await remote('/mcp',{jsonrpc:'2.0',id:1,method:'initialize',params:{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'proclair-crm',version:'0.1.0'}}},headers);const info=await rpcResult(init,1);if(typeof info.protocolVersion!=='string')throw new DomainError('ROTOR_PROTOCOL','Version MCP invalide.',502);const session=init.headers.get('mcp-session-id');if(session)headers['Mcp-Session-Id']=session;headers['MCP-Protocol-Version']=info.protocolVersion;await remote('/mcp',{jsonrpc:'2.0',method:'notifications/initialized'},headers);const tools:any[]=[],names=new Set<string>(),cursors=new Set<string>();let cursor:string|undefined;for(let page=0;page<20;page++){if(Date.now()>deadline)throw new DomainError('ROTOR_TIMEOUT','La découverte dépasse le temps autorisé.',504);const id=page+2;const result=await rpcResult(await remote('/mcp',{jsonrpc:'2.0',id,method:'tools/list',params:cursor?{cursor}:{}},headers),id);if(!Array.isArray(result.tools)||result.tools.length>500||tools.length+result.tools.length>1000)throw new DomainError('ROTOR_PROTOCOL','Liste d’outils invalide ou trop volumineuse.',502);for(const tool of result.tools){if(typeof tool.name!=='string'||!tool.name||names.has(tool.name))throw new DomainError('ROTOR_PROTOCOL','Nom d’outil invalide ou dupliqué.',502);names.add(tool.name);tools.push({name:tool.name,description:typeof tool.description==='string'?tool.description:'',inputSchema:tool.inputSchema??null,annotations:tool.annotations??null})}if(result.nextCursor===undefined)return {tools,hasMore:false,readOnly:true};if(typeof result.nextCursor!=='string'||!result.nextCursor||cursors.has(result.nextCursor))throw new DomainError('ROTOR_PROTOCOL','Pagination Rotor incohérente.',502);cursor=result.nextCursor as string;cursors.add(cursor)}return {tools,hasMore:true,readOnly:true}}
+
+/** Perform fixed, explicitly allowed read-only MCP operations on a single page. */
+export async function rotorReadPage(page:number,limit:number,start:string,end:string){
+ if(!Number.isInteger(page)||page<1||page>2000||!Number.isInteger(limit)||limit<1||limit>50)
+  throw new DomainError('ROTOR_PAGE','Pagination Rotor invalide.',400);
+ const begin=new Date(start),finish=new Date(end);
+ if(!Number.isFinite(begin.getTime())||!Number.isFinite(finish.getTime())||finish<=begin||finish.getTime()-begin.getTime()>32*86400000)
+  throw new DomainError('ROTOR_RANGE','Sélectionnez un intervalle de 32 jours maximum.',400);
+ const token=await usableToken();
+ const headers:Record<string,string>={Authorization:'Bearer '+token.accessToken,Accept:'application/json, text/event-stream'};
+ const init=await remote('/mcp',{jsonrpc:'2.0',id:1,method:'initialize',params:{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'proclair-crm',version:'0.1.0'}}},headers);
+ const info=await rpcResult(init,1);
+ if(typeof info.protocolVersion!=='string')throw new DomainError('ROTOR_PROTOCOL','Version MCP invalide.',502);
+ const session=init.headers.get('mcp-session-id');if(session)headers['Mcp-Session-Id']=session;
+ headers['MCP-Protocol-Version']=info.protocolVersion;
+ await remote('/mcp',{jsonrpc:'2.0',method:'notifications/initialized'},headers);
+ async function read(name:'list_customers'|'list_jobs'|'list_visits',args:Record<string,unknown>,id:number){
+  // Names are fixed here. Arbitrary tools/call operations are deliberately prohibited.
+  const raw=await rpcResult(await remote('/mcp',{jsonrpc:'2.0',id,method:'tools/call',params:{name,arguments:args}},headers),id);
+  if(raw.isError)throw new DomainError('ROTOR_TOOL','Lecture Rotor refusée.',502);
+  let payload=raw.structuredContent;
+  if(!payload){
+   const text=Array.isArray(raw.content)?raw.content.find((entry:any)=>entry?.type==='text'&&typeof entry.text==='string')?.text:null;
+   if(typeof text!=='string'||text.length>1000000)throw new DomainError('ROTOR_PROTOCOL','Réponse de lecture Rotor invalide.',502);
+   try{payload=JSON.parse(text)}catch{throw new DomainError('ROTOR_PROTOCOL','Données Rotor invalides.',502)}
+  }
+  if(!payload||!Array.isArray(payload.data)||payload.data.length>limit||!payload.pagination||typeof payload.pagination!=='object')
+   throw new DomainError('ROTOR_PROTOCOL','Pagination Rotor invalide.',502);
+  return {data:payload.data as Record<string,unknown>[],pagination:{
+   page,
+   hasMore:payload.pagination.has_more===true,
+   total:Number.isSafeInteger(payload.pagination.total)?payload.pagination.total:null,
+  }};
+ }
+ const customers=await read('list_customers',{page,limit},2);
+ const jobs=await read('list_jobs',{page,limit},3);
+ const visits=await read('list_visits',{page,limit,start,end},4);
+ return {customers,jobs,visits,page,limit,start,end};
+}
