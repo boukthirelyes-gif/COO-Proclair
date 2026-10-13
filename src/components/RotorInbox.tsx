@@ -21,7 +21,27 @@ export default function RotorInbox({connected,grantedScopes}:{connected:boolean;
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
  const [notice,setNotice]=useState('');
+ const [auto,setAuto]=useState<any>(null);
+ const [followups,setFollowups]=useState<any[]>([]);
  const authorized=connected&&grantedScopes.includes('inbox:read');
+ async function loadAux(){
+  const results=await Promise.all([
+   fetch('/api/integrations/rotor/messages/auto',{cache:'no-store'}),
+   fetch('/api/integrations/rotor/messages/followups',{cache:'no-store'}),
+  ]);
+  const a=await results[0].json(),b=await results[1].json();
+  if(!results[0].ok||!results[1].ok)throw new Error(a.error||b.error||'Synchronisation indisponible.');
+  setAuto(a);setFollowups(b.items||[]);
+ }
+ async function toggleAuto(){
+  setBusy(true);setError('');
+  try{
+   const r=await fetch('/api/integrations/rotor/messages/auto',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({enabled:!auto.enabled})});
+   const data=await r.json();if(!r.ok)throw new Error(data.error||'Changement impossible.');
+   setAuto(data);setNotice(data.enabled?'Synchronisation quotidienne activée (lecture seule).':'Synchronisation quotidienne désactivée.');
+  }catch(e:any){setError(e.message)}finally{setBusy(false)}
+ }
  async function load(){
   const params=new URLSearchParams({page:String(historyPage)});
   if(query.trim())params.set('q',query.trim());
@@ -31,6 +51,7 @@ export default function RotorInbox({connected,grantedScopes}:{connected:boolean;
   setRows(data.rows);setTotal(data.localTotal);setFilteredTotal(data.total);
  }
  useEffect(()=>{if(connected)void load().catch(e=>setError(e.message))},[connected,query,historyPage]);
+ useEffect(()=>{if(connected)void loadAux().catch(e=>setError(e.message))},[connected]);
  async function sync(){
   setBusy(true);setError('');setNotice('');
   try{
@@ -41,7 +62,7 @@ export default function RotorInbox({connected,grantedScopes}:{connected:boolean;
    const data=await r.json();
    if(!r.ok)throw new Error(data.error||'Import SMS Rotor indisponible.');
    setHasMore(data.hasMore);setSourceTotal(data.sourceTotal);
-   await load();
+   await Promise.all([load(),loadAux()]);
    setNotice(data.imported+' SMS de la page '+page+' importés ou actualisés. Aucun SMS envoyé.');
   }catch(e:any){setError(e.message)}
   finally{setBusy(false)}
@@ -53,6 +74,13 @@ export default function RotorInbox({connected,grantedScopes}:{connected:boolean;
   {!authorized&&<p className="notice" role="status">Pour importer les SMS, connectez Rotor ci-dessus avec le droit <code>inbox:read</code>, puis cliquez sur « Découvrir les outils disponibles ». Aucune clé Twilio nécessaire.</p>}
   {error&&<p className="notice" role="alert">{error}</p>}
   {notice&&<p className="notice success" role="status">{notice}</p>}
+  <div className="panel" style={{marginBottom:16}}>
+   <h3>Synchronisation automatique des SMS</h3>
+   <p>Import des 100 SMS Rotor les plus récents une fois par jour à 13:30 UTC via Vercel. Désactivée par défaut. Si plus de 100 nouveaux messages arrivent entre deux passages, une importation manuelle des pages suivantes peut être nécessaire.</p>
+   <p>État : <strong>{auto===null?'Vérification…':auto.enabled?'Activée':'Désactivée'}</strong>{auto?.lastRunAt?' · Dernier contrôle '+dateLabel(auto.lastRunAt):''}</p>
+   {auto?.lastErrorCode&&<p role="alert">Dernière erreur de synchronisation : {auto.lastErrorCode}</p>}
+   <button disabled={busy||!authorized||!auto} onClick={toggleAuto}>{auto?.enabled?'Désactiver la synchronisation':'Activer la synchronisation quotidienne'}</button>
+  </div>
   <div className="toolbar" style={{flexWrap:'wrap'}}>
    <label>Page source Rotor <input type="number" min={1} max={2000} value={page} onChange={e=>{setPage(Math.max(1,Math.min(2000,Number(e.target.value)||1)));setHasMore(null)}}/></label>
    <button className="primary" disabled={!authorized||busy} onClick={sync}>Importer cette page (100 max.)</button>
@@ -77,5 +105,8 @@ export default function RotorInbox({connected,grantedScopes}:{connected:boolean;
   {!rows.length&&<p>Aucun SMS Rotor correspondant dans l'historique importé.</p>}
   <div className="toolbar"><span>{filteredTotal} résultat(s) dans l'historique importé.</span><button disabled={busy||historyPage===1} onClick={()=>setHistoryPage(p=>Math.max(1,p-1))}>← Précédent</button><span>Page {historyPage}</span><button disabled={busy||historyPage*100>=filteredTotal} onClick={()=>setHistoryPage(p=>p+1)}>Suivant →</button></div>
   <small>Recherche paginée dans les messages déjà importés. Aucun envoi ni transfert de numéro.</small>
+  <h3>Conversations à examiner (lecture seule)</h3>
+  <p>Le dernier SMS connu de ces conversations est entrant. Vérifiez Rotor avant de répondre : un message hors de la période importée peut manquer.</p>
+  {followups.length?followups.map(item=><article className="service-contract" key={item.externalId}><strong>{item.customerName||item.phone||'Client non rapproché'}</strong><small>{dateLabel(item.messageAt)} · SMS reçu</small><p style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{item.body}</p></article>):<p>Aucun suivi détecté dans les messages importés.</p>}
  </section>
 }
