@@ -36,6 +36,7 @@ model Customer {
  lastSyncedAt DateTime?
  lastSyncError String?
  createdAt DateTime @default(now())
+ quotes Quote[]
  invoices Invoice[]
  properties Property[]
  contracts Contract[]
@@ -177,6 +178,8 @@ model WorkerJob {
 }
 
 model Invoice {
+ issuerSnapshot Json?
+ sourceQuote Quote? @relation("ConvertedQuote")
  id String @id @default(cuid())
  customerId String
  customer Customer @relation(fields: [customerId], references: [id])
@@ -294,4 +297,54 @@ model RotorMirrorRecord {
  @@id([kind, externalId])
  @@index([kind, syncedAt])
  @@index([kind, startsAt])
+}
+
+model Quote {
+ issuerSnapshot Json?
+ id String @id @default(cuid())
+ customerId String
+ customer Customer @relation(fields: [customerId], references: [id])
+ number String? @unique
+ status String @default("DRAFT")
+ validUntil String
+ currency String @default("CAD")
+ items Json
+ subtotalCents Int
+ taxCents Int
+ totalCents Int
+ version Int @default(1)
+ idempotencyKey String @unique
+ payloadHash String
+ decisionNote String?
+ issuedAt DateTime?
+ acceptedAt DateTime?
+ conversionDueDate String?
+ convertedInvoiceId String? @unique
+ convertedInvoice Invoice? @relation("ConvertedQuote", fields: [convertedInvoiceId], references: [id])
+ createdAt DateTime @default(now())
+ @@index([customerId, status])
+}
+
+model BusinessProfile {
+ id String @id @default("proclair")
+ legalName String
+ address String?
+ email String?
+ phone String?
+ taxInformation String?
+ version Int @default(1)
+ updatedAt DateTime @updatedAt
+}
+
+model ClientLink {
+ tokenHash String @id
+ kind String
+ documentId String
+ customerId String
+ expiresAt DateTime
+ revoked Boolean @default(false)
+ acceptedAt DateTime?
+ acceptanceHash String?
+ createdAt DateTime @default(now())
+ @@index([kind, documentId])
 }

@@ -23,3 +23,6 @@ prisma/.prisma/
 *.backup
 *.pem
 *.key
+
+# Downloaded CRM exports must never be published
+proclair-export-*.json

@@ -86,3 +86,9 @@ Après autorisation, **Découvrir les outils disponibles** initialise MCP et con
 Le stockage OAuth PostgreSQL persiste entre déploiements et prend un verrou distribué pour les rotations. Les scopes accordés et les jetons réels restent à valider chez Rotor.
 
 Améliorations OMEGA : compteurs persistés de la file, traitement manuel avec résultat visible et reprise administrateur des préparations en échec. Une reprise exige l’état et le nombre de tentatives attendus, refuse les dates passées et conserve l’ancien échec dans l’audit. Le tableau de bord affiche les visites actives à venir triées, l’avancement Toronto et les dossiers de suivi. Déconnexion disponible sur desktop et mobile.
+
+## CRM indépendant de Rotor
+
+Les opérations natives fonctionnent sans compte Rotor. Devis locaux (émission, décisions auditées, conversion unique en facture), impression/PDF et export JSON métier sont disponibles. Voir [l’état d’autonomie](docs/autonomie-proclair.md) pour les fonctions livrées et les fonctions restantes. Les données du miroir Rotor restent séparées des données natives.
+
+La page Entreprise permet de gérer votre identité d’émetteur. Le portail client natif partage un devis ou une facture par lien privé expirant/révocable, affiche uniquement le document ciblé et consigne l’accord sur un devis. Identité de l’émetteur figée à émission ; aucun compte Rotor ni fournisseur de messagerie requis. Aucun paiement en ligne ni signature certifiée revendiqués.

@@ -8,6 +8,10 @@ import { actorFor, checkPassword, issueSession, sameOrigin, sessionCookie } from
 import { CRMService } from '@/domain/service';
 import { DomainError } from '@/domain/rules';
 import { OmegaWorker } from '@/omega/worker';
+import {saveBusinessProfile} from '@/lib/business-profile';
+import {nativeExport} from '@/lib/native-export';
+import {ClientPortal} from '@/sales/client-portal';
+import {QuoteService} from '@/sales/quotes';
 import { FinanceService } from '@/finance/service';
 import {invoiceDocument,invoiceDocumentCsp} from '@/lib/invoice-document';
 import {csvRows, sumCents} from '@/lib/finance-export';
@@ -16,6 +20,8 @@ export const maxDuration = 60;
 const service = new CRMService(prisma);
 const worker = new OmegaWorker(prisma);
 const finance = new FinanceService(prisma);
+const quotes=new QuoteService(prisma);
+const portal=new ClientPortal(prisma);
 const rotorSyncInput=z.object({page:z.number().int().min(1).max(2000),start:z.string().datetime({offset:true}),end:z.string().datetime({offset:true})}).strict();
 function errorResponse(error: unknown) {
   if (error instanceof ZodError) return NextResponse.json({error:'Champs invalides.',details:error.flatten()}, {status:400});
@@ -69,9 +75,13 @@ export async function GET(request: NextRequest) {
     }
     const actor = actorFor(request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
+    if(path==='settings/business')return NextResponse.json(await prisma.businessProfile.findUnique({where:{id:'proclair'}}));
+    if(path==='export/native')return new NextResponse(await nativeExport(prisma),{headers:{'Content-Type':'application/json; charset=utf-8','Content-Disposition':'attachment; filename="proclair-export-'+new Date().toISOString().slice(0,10)+'.json"','Cache-Control':'private, no-store'}});
     if (path === 'integrations/rotor') return NextResponse.json(await rotorStatus(),{headers:{'Cache-Control':'no-store'}});
     if (path === 'integrations/rotor/mirror') return NextResponse.json(await listRotorMirror(prisma),{headers:{'Cache-Control':'no-store'}});
     if (path === 'session') return NextResponse.json({actor});
+    if(/^quotes\/[^/]+\/print$/.test(path)){const quote=await quotes.get(path.split('/')[1]);return new NextResponse(invoiceDocument({...quote,items:quote.items as any,dueDate:quote.validUntil,contract:null,paidCents:0,balanceCents:0,voidReason:quote.status==='VOID'?quote.decisionNote:null},'quote'),{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'private, no-store','Content-Security-Policy':invoiceDocumentCsp,'X-Content-Type-Options':'nosniff'}});}
+    if(path==='quotes')return NextResponse.json(await quotes.list());
     if (path === 'worker/state') return NextResponse.json(await worker.state());
     if (path === 'finance/state' || path === 'finance/export') {
       const {invoices,payments,expenses} = await finance.readState();
@@ -120,6 +130,8 @@ async function mutate(request: NextRequest) {
       response.cookies.set(sessionCookie, issueSession(), {httpOnly:true,sameSite:'strict',secure:request.nextUrl.protocol==='https:'||Boolean(process.env.PROCLAIR_PUBLIC_ORIGIN?.startsWith('https://')),path:'/',maxAge:8*60*60});
       return response;
     }
+    if(path==='portal/read'&&request.method==='POST')return NextResponse.json(await portal.read(input));
+    if(path==='portal/accept'&&request.method==='POST')return NextResponse.json(await portal.accept(input));
     const actor = actorFor(request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     if (path === 'session/logout') { const response = NextResponse.json({ok:true}); response.cookies.set(sessionCookie,'',{path:'/',maxAge:0}); return response; }
@@ -127,6 +139,7 @@ async function mutate(request: NextRequest) {
     if (request.method === 'PATCH' && /^customers\/[^/]+$/.test(path)) return NextResponse.json(await service.updateCustomer(path.split('/')[1],input,actor));
     if (request.method === 'PATCH' && /^contracts\/[^/]+$/.test(path)) return NextResponse.json(await service.updateContract(path.split('/')[1],input,actor));
     if (request.method === 'PATCH' && /^invoices\/[^/]+$/.test(path)) return NextResponse.json(await finance.updateDraft(path.split('/')[1],input,actor));
+    if(request.method==='PATCH'&&/^quotes\/[^/]+$/.test(path))return NextResponse.json(await quotes.edit(path.split('/')[1],input,actor));
     if (request.method !== 'POST') return NextResponse.json({error:'Méthode non autorisée.'},{status:405});
     if (/^worker\/jobs\/[^/]+\/retry$/.test(path)) return NextResponse.json(await worker.retryJob(path.split('/')[2],input,actor));
     if (/^visits\/[^/]+\/transition$/.test(path)) return NextResponse.json(await service.transitionVisit(path.split('/')[1],input,actor));
@@ -134,6 +147,8 @@ async function mutate(request: NextRequest) {
     if (/^invoices\/[^/]+\/void$/.test(path)) return NextResponse.json(await finance.voidInvoice(path.split('/')[1],input,actor));
     if (/^expenses\/[^/]+\/void$/.test(path)) return NextResponse.json(await finance.voidExpense(path.split('/')[1],input,actor));
     if (/^payments\/[^/]+\/reverse$/.test(path)) return NextResponse.json(await finance.reversePayment(path.split('/')[1],input,actor));
+    if(/^quotes\/[^/]+\/(issue|accept|decline|void)$/.test(path))return NextResponse.json(await quotes.decide(path.split('/')[1],path.split('/')[2],input,actor));
+    if(/^quotes\/[^/]+\/convert$/.test(path))return NextResponse.json(await quotes.convert(path.split('/')[1],input,actor));
     switch(path) {
       case 'integrations/rotor/connect': {
         const flow=await beginRotor();const response=NextResponse.json({url:flow.url});response.cookies.set('rotor_oauth',flow.cookie,{httpOnly:true,secure:true,sameSite:'lax',path:'/api/integrations/rotor/callback',maxAge:600});return response;
@@ -150,6 +165,10 @@ async function mutate(request: NextRequest) {
         return NextResponse.json(await applyRotorMirror(prisma,v.page,v.start,v.end));
       }
       case 'integrations/rotor/disconnect': {const result=await disconnectRotor();await prisma.auditEvent.create({data:{actorId:actor.id,actorRole:actor.role,action:'ROTOR_DISCONNECTED_LOCAL',entityType:'Integration',entityId:'rotor',after:{connected:false,remoteRevoked:false}}});return NextResponse.json(result);}
+      case 'portal/links': return NextResponse.json(await portal.create(input,actor));
+      case 'portal/revoke': return NextResponse.json(await portal.revoke(input,actor));
+      case 'settings/business': return NextResponse.json(await saveBusinessProfile(prisma,input,actor));
+      case 'quotes': return NextResponse.json(await quotes.create(input,actor),{status:201});
       case 'customers': return NextResponse.json(await service.createCustomer(input,actor),{status:201});
       case 'properties': return NextResponse.json(await service.createProperty(input,actor),{status:201});
       case 'contracts': return NextResponse.json(await service.createContract(input,actor),{status:201});

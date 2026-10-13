@@ -84,3 +84,13 @@ Parcours Chromium étendu de 27 étapes CRM/OMEGA : tableau de bord et indicateu
 La branche distante contenait entre-temps des correctifs Vercel (tracing WASM Prisma, diagnostic sûr, connexion directe temporaire) et un miroir Rotor en lecture seule. Ces changements ont été fusionnés sans écrasement. Le fixture navigateur a été adapté à l’endpoint miroir et la commande npm test charge la configuration locale sans imprimer ses valeurs. Le miroir distant reste distinct des contrats et visites locales ; validation des appels Rotor par simulations uniquement dans cette session.
 
 Après fusion : 36 tests exécutés, 36 réussis, zéro ignoré ; compilation réussie ; 27 + 17 + 9 contrôles Chromium réussis. Le miroir Rotor issu de la branche distante est préservé. Aucun compte réel Rotor n’a été sollicité dans ces tests.
+
+## Devis et portabilité sans Rotor — 12 octobre 2026
+
+37 tests TypeScript réussis, aucun ignoré. Devis natif : montant 21 995 cents dont 1 995 de taxes, édition versionnée, lignes figées à émission, accord humain, refus, expiration et conversion concurrente unique. La répétition reste idempotente même après édition de l’échéance de la facture. Aucun contrat ou visite fictif créé. Export métier vérifié sur PostgreSQL : devis/facture inclus, sentinelles du stockage des secrets et du rate limit exclues. Le rendu de devis est distinct de la facture, sans demande de paiement.
+
+Types et compilation réussis. Les 27 étapes CRM/OMEGA, 17 financières et 9 Intégrations restent réussies. Source de référence Rotor : documentation/fonctions publiques déjà inventoriées et miroir existant ; aucune prétention d’extraction complète de règles privées ou de parité totale. Les fonctionnalités restantes sont explicites dans docs/autonomie-proclair.md.
+
+Identité entreprise et portail ajoutés à la validation PostgreSQL : version de fiche, snapshot d’émetteur conservé après changement du profil, partage refusé pour brouillons/OMEGA, jeton hashé, lien ciblé, consentement obligatoire, acceptation concurrente unique sous rôle CLIENT, idempotence, expiry et révocation. Aucun token de lien client inclus dans l’export. Les 37 tests restent réussis.
+
+Parcours natifs supplémentaires sur build production : 8 étapes devis/PDF/conversion/export et 6 étapes identité/partage/client anonyme/accord/révocation, zéro pageerror. La requête anonyme vers l’administration est refusée (401), les notes internes ne sont pas rendues et la révocation est constatée après rechargement (410). Le parcours financier de 17 étapes reste réussi après ces ajouts. Données uniquement dans la base de test séparée.

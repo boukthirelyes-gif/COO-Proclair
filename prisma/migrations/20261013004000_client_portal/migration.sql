@@ -1,0 +1,2 @@
+CREATE TABLE "ClientLink" ("tokenHash" TEXT PRIMARY KEY, "kind" TEXT NOT NULL CHECK ("kind" IN ('QUOTE','INVOICE')), "documentId" TEXT NOT NULL, "customerId" TEXT NOT NULL REFERENCES "Customer"("id"), "expiresAt" TIMESTAMP(3) NOT NULL, "revoked" BOOLEAN NOT NULL DEFAULT false, "acceptedAt" TIMESTAMP(3), "acceptanceHash" TEXT, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE INDEX "ClientLink_kind_documentId_idx" ON "ClientLink"("kind", "documentId");

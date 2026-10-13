@@ -34,7 +34,7 @@ Ordre ci-dessous : catégories de la directive V20, **pas un ordre Rotor vérifi
 | Visits | V1 PostgreSQL | Oui, local | Tests TypeScript | Création, affectation et transitions auditées prioritaires |
 | Schedule | V1 jour/semaine/mois | Oui, local | Règles testées; parcours Chromium réussi | Planning opérationnel initial; fidélité visuelle non vérifiable |
 | Dispatch | À construire / capacité V1 limitée | Pas de dispatch carte complet | Non | Carte, drag/drop et orchestration temps réel restants |
-| Quotes | À construire | Non | Non | Conditions commerciales et conversion inconnues |
+| Quotes | Module natif Proclair | Brouillon, édition, émission, décisions, conversion facture, impression | Tests PostgreSQL et parcours dédié | Rotor privé non observé ; accord consigné sans signature électronique |
 | Contracts | V1 PostgreSQL avec édition versionnée | Oui, local | Tests TypeScript + Chromium | Passages restants, client/propriété/job distincts |
 | Invoices | Brouillons, édition, émission, annulation et CSV | Oui, PostgreSQL | Tests métier et Chromium | Impression et PDF navigateur livrés ; PDF serveur et envoi externe restants ; Rotor non observé |
 | Payments | Paiements manuels et contrepassations auditées | Oui, ledger local | Tests métier et Chromium | Aucun encaissement ou remboursement bancaire connecté |

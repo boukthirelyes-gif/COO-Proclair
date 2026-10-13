@@ -7,7 +7,7 @@ def git(*args):
 
 def sensitive_path(name):
     path=Path(name)
-    return (path.name=='.env' or (path.name.startswith('.env.') and path.name!='.env.example') or
+    return (path.name.startswith('proclair-export-') or path.name=='.env' or (path.name.startswith('.env.') and path.name!='.env.example') or
             any(part in ('.local','.vercel','node_modules','.next') for part in path.parts) or
             path.suffix.lower() in ('.sqlite','.sqlite3','.db','.dump','.backup','.pem','.key'))
 

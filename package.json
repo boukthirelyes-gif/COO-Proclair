@@ -17,7 +17,9 @@
     "test:finance:e2e": "node --env-file=.env tests/browser-finance.mjs",
     "vercel:build": "node scripts/vercel-build.mjs",
     "test:integrations:e2e": "node --env-file=.env tests/browser-integrations.mjs",
-    "check:secrets": "python3 scripts/check-secrets.py"
+    "check:secrets": "python3 scripts/check-secrets.py",
+    "test:quotes:e2e": "node --env-file=.env tests/browser-quotes.mjs",
+    "test:portal:e2e": "node --env-file=.env tests/browser-portal.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "6.19.3",
