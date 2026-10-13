@@ -1,4 +1,4 @@
-import type {PrismaClient} from '@prisma/client';
+import {Prisma,type PrismaClient} from '@prisma/client';
 import {z} from 'zod';
 import {DomainError} from '@/domain/rules';
 import {requirePermission,type AccessActor} from './access';
@@ -39,13 +39,23 @@ export function normalizeRotorInbox(raw:unknown,expectedPage:number){
 }
 export class RotorInboxService {
  constructor(private db:PrismaClient,private read:typeof rotorInboxRead=rotorInboxRead){}
- async list(actor:AccessActor){
+ async list(actor:AccessActor,input:unknown={}){
   requirePermission(actor,'integrations');requirePermission(actor,'crm.read');
-  const [rows,total]=await Promise.all([
-   this.db.rotorInboxMessage.findMany({orderBy:[{messageAt:'desc'},{externalId:'asc'}],take:100}),
+  const v=z.object({
+   phone:z.string().regex(/^\\+[1-9]\\d{7,14}$/).optional(),
+   q:z.string().trim().max(80).optional(),
+   page:z.number().int().min(1).max(1000).default(1),
+  }).strict().parse(input);
+  const where:Prisma.RotorInboxMessageWhereInput={
+   ...(v.phone?{phone:v.phone}:{}),
+   ...(v.q?{OR:[{body:{contains:v.q,mode:'insensitive'}},{phone:{contains:v.q}}]}:{}),
+  };
+  const [rows,total,localTotal]=await Promise.all([
+   this.db.rotorInboxMessage.findMany({where,orderBy:[{messageAt:'desc'},{externalId:'asc'}],take:100,skip:(v.page-1)*100}),
+   this.db.rotorInboxMessage.count({where}),
    this.db.rotorInboxMessage.count(),
   ]);
-  return {rows,total,provider:'ROTOR_SURGE',readOnly:true};
+  return {rows,total,localTotal,page:v.page,provider:'ROTOR_SURGE',readOnly:true};
  }
  async sync(input:unknown,actor:AccessActor){
   requirePermission(actor,'integrations');requirePermission(actor,'crm.read');
