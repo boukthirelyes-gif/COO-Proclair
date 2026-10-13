@@ -1,3 +1,4 @@
+import {LeadService} from '@/sales/leads';
 import parity from '@/data/rotor-parity.json';
 import {systemHealth} from '@/lib/system-health';
 import {RotorCapabilityRegistry} from '@/lib/rotor-capabilities';
@@ -30,6 +31,7 @@ const worker = new OmegaWorker(prisma);
 const finance = new FinanceService(prisma);
 const quotes=new QuoteService(prisma);
 const portal=new ClientPortal(prisma);
+const leads=new LeadService(prisma);
 const registry=new RotorCapabilityRegistry(prisma);
 const rotorMap=new RotorMapService(prisma);
 const rotorMonitor=new RotorMonitor(prisma);
@@ -93,6 +95,10 @@ export async function GET(request: NextRequest) {
     const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
+    if(path==='leads')return NextResponse.json(await leads.list(actor));
+    if(/^leads\/[^/]+\/history$/.test(path))return NextResponse.json(await leads.history(path.split('/')[1],actor));
+    if(/^leads\/[^/]+$/.test(path))return NextResponse.json(await leads.get(path.split('/')[1],actor));
+    if(/^prospecting\/[^/]+$/.test(path))return NextResponse.json(await prospecting.get(path.split('/')[1],actor));
     if(path==='system/health')return NextResponse.json(await systemHealth(prisma));
     if(path==='system/parity')return NextResponse.json(parity);
     if(path==='integrations/rotor/capabilities')return NextResponse.json(await registry.state());
@@ -163,6 +169,7 @@ async function mutate(request: NextRequest) {
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
     if (path === 'session/logout') { const response = NextResponse.json({ok:true}); response.cookies.set(sessionCookie,'',{path:'/',maxAge:0}); return response; }
+    if(request.method==='PATCH'&&/^leads\/[^/]+$/.test(path))return NextResponse.json(await leads.update(path.split('/')[1],input,actor));
     if(request.method==='PATCH'&&/^users\/[^/]+$/.test(path))return NextResponse.json(await users.update(path.split('/')[1],input,actor));
     if(request.method==='PATCH'&&/^prospecting\/[^/]+$/.test(path))return NextResponse.json(await prospecting.save(path.split('/')[1],input,actor));
     if (request.method === 'PATCH' && /^visits\/[^/]+$/.test(path)) return NextResponse.json(await service.updateVisit(path.split('/')[1],input,actor));
@@ -179,8 +186,12 @@ async function mutate(request: NextRequest) {
     if (/^payments\/[^/]+\/reverse$/.test(path)) return NextResponse.json(await finance.reversePayment(path.split('/')[1],input,actor));
     if(/^quotes\/[^/]+\/(issue|accept|decline|void)$/.test(path))return NextResponse.json(await quotes.decide(path.split('/')[1],path.split('/')[2],input,actor));
     if(/^quotes\/[^/]+\/convert$/.test(path))return NextResponse.json(await quotes.convert(path.split('/')[1],input,actor));
+    if(/^leads\/[^/]+\/stage$/.test(path))return NextResponse.json(await leads.move(path.split('/')[1],input,actor));
+    if(/^leads\/[^/]+\/conversion-preview$/.test(path))return NextResponse.json(await leads.conversionPreview(path.split('/')[1],actor));
+    if(/^leads\/[^/]+\/convert$/.test(path))return NextResponse.json(await leads.convert(path.split('/')[1],input,actor));
     if(/^integrations\/rotor\/capabilities\/[^/]+\/acknowledge$/.test(path))return NextResponse.json(await registry.acknowledge(path.split('/')[3],input,actor));
     switch(path) {
+      case 'leads':return NextResponse.json(await leads.create(input,actor),{status:201});
       case 'integrations/rotor/monitor':return NextResponse.json(await rotorMonitor.configure(input,actor));
       case 'integrations/rotor/pin-types':return NextResponse.json(await rotorMap.refreshTypes(actor));
       case 'integrations/rotor/pins/preview':return NextResponse.json(await rotorMap.preview(input,actor));

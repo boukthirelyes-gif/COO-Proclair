@@ -22,7 +22,8 @@
     "test:portal:e2e": "node --env-file=.env tests/browser-portal.mjs",
     "test:users-map:e2e": "node --env-file=.env tests/browser-users-map.mjs",
     "test:compatibility:e2e": "node --env-file=.env tests/browser-compatibility.mjs",
-    "check:parity": "node scripts/render-parity.mjs --check"
+    "check:parity": "node scripts/render-parity.mjs --check",
+    "test:leads:e2e": "node --env-file=.env tests/browser-leads.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "6.19.3",

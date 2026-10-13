@@ -118,3 +118,11 @@ Parcours natifs supplémentaires sur build production : 8 étapes devis/PDF/conv
 - Les lectures Rotor métier sont testées avec fixtures et transport simulé. Aucun token du compte n’est enregistré dans cette instance, aucun client réel importé, aucun SMS ou paiement effectué.
 - Build final : 84 contrôles navigateur réussis, aucun pageerror (CRM/OMEGA 27, finances 17, devis 8, portail 6, intégrations 9 dont cinq simulés, utilisateurs/carte 8, compatibilité/catégories 9). Les trois tests Python historiques passent également.
 - L’API GitHub est refusée au CONNECT par le proxy (403) pour REST et GraphQL. Le push Git reste utilisable ; la création de PR doit être achevée depuis l’interface GitHub ou après ajout d’api.github.com aux domaines autorisés.
+
+## Prospects et pipeline natifs — 2026-10-13
+
+- 46 tests Node exécutés et réussis, aucun ignoré, sur PostgreSQL séparé après migrations : propriétaires, permissions, idempotence, versions, restriction de contact, doublons normalisés, conversions concurrentes et absence de facturation automatique.
+- Build de production réussi. Sept nouveaux contrôles navigateur commerciaux réussis, zéro pageerror : vendeur mobile depuis une porte, relance Toronto, étape, conversion vendeur refusée, conversion administrateur, choix d’un client existant et visibilité des seules affectations. Capture mobile inspectée.
+- Régression exécutée sur cette tranche : 27 contrôles CRM/OMEGA, huit utilisateurs/carte et neuf compatibilité, tous réussis. Les autres 40 contrôles financiers, devis, portail et intégrations étaient validés sur la tranche précédente ; ils ne sont pas présentés comme réexécutés ici.
+- Deux migrations additives appliquées en local et dans les bases de test. Correction d’une animation Leaflet qui pouvait survivre au passage carte → prospects ; nouveau parcours sans erreur JavaScript.
+- Matrice canonique enrichie uniquement pour les fonctions natives livrées. Pas de changement du statut de production ou de preuve Rotor privée. Aucun message ni paiement externe.

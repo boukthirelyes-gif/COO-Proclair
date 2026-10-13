@@ -21,6 +21,11 @@ enum VisitStatus {
  NEEDS_FOLLOWUP
 }
 model Customer {
+ normalizedEmail String? @default(dbgenerated())
+ normalizedPhone String? @default(dbgenerated())
+ @@index([normalizedEmail])
+ @@index([normalizedPhone])
+ convertedLeads Lead[]
  legacyId Int? @unique
  legacyCompany String?
  legacyStatus String?
@@ -350,6 +355,7 @@ model ClientLink {
 }
 
 model AppUser {
+ leads Lead[]
  id String @id @default(cuid())
  username String @unique
  name String
@@ -363,6 +369,7 @@ model AppUser {
  pins ProspectPin[]
 }
 model ProspectPin {
+ lead Lead?
  typeId String?
  type MapPinType? @relation(fields: [typeId], references: [id])
  id String @id @default(cuid())
@@ -435,4 +442,52 @@ model RotorMonitorControl {
  lastCheckedAt DateTime?
  lastCode String?
  updatedAt DateTime @updatedAt
+}
+model SalesPipeline {
+ id String @id
+ name String
+ stages SalesStage[]
+ leads Lead[]
+}
+model SalesStage {
+ id String @id
+ pipelineId String
+ pipeline SalesPipeline @relation(fields: [pipelineId], references: [id])
+ name String
+ position Int
+ kind String @default("OPEN")
+ leads Lead[]
+ @@unique([pipelineId, position])
+}
+model Lead {
+ id String @id @default(cuid())
+ name String
+ email String?
+ phone String?
+ address String?
+ notes String @default("")
+ source String @default("MANUAL")
+ tags String[]
+ valueCents Int @default(0)
+ probability Int @default(0)
+ status String @default("ACTIVE")
+ followUpAt DateTime?
+ ownerId String?
+ owner AppUser? @relation(fields: [ownerId], references: [id])
+ pipelineId String
+ pipeline SalesPipeline @relation(fields: [pipelineId], references: [id])
+ stageId String
+ stage SalesStage @relation(fields: [stageId], references: [id])
+ sourcePinId String? @unique
+ sourcePin ProspectPin? @relation(fields: [sourcePinId], references: [id])
+ convertedCustomerId String?
+ convertedCustomer Customer? @relation(fields: [convertedCustomerId], references: [id])
+ conversionChoice String?
+ convertedAt DateTime?
+ idempotencyKey String @unique
+ payloadHash String
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([ownerId, status, followUpAt])
 }

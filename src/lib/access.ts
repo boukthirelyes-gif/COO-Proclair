@@ -3,11 +3,11 @@ import type {PrismaClient} from '@prisma/client';
 import {z} from 'zod';
 import type {Actor} from '../domain/rules';
 import {DomainError} from '../domain/rules';
-export const permissions=['crm.read','crm.write','dispatch','finance','quotes','omega','map.read','map.write','map.all','users','settings','integrations','export','audit'] as const;
+export const permissions=['crm.read','crm.write','dispatch','finance','quotes','omega','map.read','map.write','map.all','users','settings','integrations','export','audit','leads.read','leads.write','leads.all'] as const;
 export type Permission=typeof permissions[number];
 export const presets:Record<string,Permission[]>={
- ADMIN:[...permissions],MANAGER:['crm.read','crm.write','dispatch','finance','quotes','omega','map.read','map.write','map.all'],
- DISPATCHER:['crm.read','dispatch','omega','map.read'],SELLER:['map.read','map.write'],VIEWER:['crm.read','map.read'],
+ ADMIN:[...permissions],MANAGER:['crm.read','crm.write','dispatch','finance','quotes','omega','map.read','map.write','map.all','leads.read','leads.write','leads.all'],
+ DISPATCHER:['crm.read','dispatch','omega','map.read'],SELLER:['map.read','map.write','leads.read','leads.write'],VIEWER:['crm.read','map.read','leads.read'],
 };
 export type AccessActor=Actor & {accountRole:string;name:string;permissions:Permission[];sessionVersion:number};
 export const bootstrapActor:AccessActor={id:'admin',role:'ADMIN',accountRole:'ADMIN',name:'Administrateur principal',permissions:[...permissions],sessionVersion:0};
@@ -18,7 +18,7 @@ export function userActor(user:{id:string;name:string;role:string;permissions:st
 export function hashPassword(password:string){const salt=randomBytes(16).toString('hex');return salt+':'+scryptSync(password,salt,64).toString('hex');}
 export function verifyPassword(password:string,stored:string){const [salt,digest]=stored.split(':');const actual=scryptSync(password,salt||'unknown-user',64);const expected=Buffer.from(digest||'00'.repeat(64),'hex');return actual.length===expected.length&&timingSafeEqual(actual,expected);}
 const publicSelect={id:true,username:true,name:true,role:true,permissions:true,active:true,version:true,createdAt:true} as const;
-const fields=z.object({username:z.string().trim().toLowerCase().regex(/^[a-z0-9][a-z0-9._@-]{2,99}$/).refine(v=>v!=='admin','Identifiant réservé.'),name:z.string().trim().min(1).max(200),role:z.enum(['ADMIN','MANAGER','DISPATCHER','SELLER','VIEWER']),permissions:z.array(z.enum(permissions)).max(permissions.length),active:z.boolean().default(true)}).strict().superRefine((data,ctx)=>{if(data.permissions.some(p=>!presets[data.role].includes(p)))ctx.addIssue({code:'custom',message:'Autorisation incompatible avec le rôle.'});if(data.role==='ADMIN'&&permissions.some(p=>!data.permissions.includes(p)))ctx.addIssue({code:'custom',message:'Un administrateur conserve toutes les autorisations.'});if((data.permissions.includes('map.write')||data.permissions.includes('map.all'))&&!data.permissions.includes('map.read'))ctx.addIssue({code:'custom',message:'La modification de la carte nécessite sa consultation.'});if(['crm.write','dispatch','quotes','finance','omega'].some(p=>data.permissions.includes(p as Permission))&&!data.permissions.includes('crm.read'))ctx.addIssue({code:'custom',message:'La gestion nécessite la consultation du CRM.'});});
+const fields=z.object({username:z.string().trim().toLowerCase().regex(/^[a-z0-9][a-z0-9._@-]{2,99}$/).refine(v=>v!=='admin','Identifiant réservé.'),name:z.string().trim().min(1).max(200),role:z.enum(['ADMIN','MANAGER','DISPATCHER','SELLER','VIEWER']),permissions:z.array(z.enum(permissions)).max(permissions.length),active:z.boolean().default(true)}).strict().superRefine((data,ctx)=>{if(data.permissions.some(p=>!presets[data.role].includes(p)))ctx.addIssue({code:'custom',message:'Autorisation incompatible avec le rôle.'});if(data.role==='ADMIN'&&permissions.some(p=>!data.permissions.includes(p)))ctx.addIssue({code:'custom',message:'Un administrateur conserve toutes les autorisations.'});if((data.permissions.includes('map.write')||data.permissions.includes('map.all'))&&!data.permissions.includes('map.read'))ctx.addIssue({code:'custom',message:'La modification de la carte nécessite sa consultation.'});if((data.permissions.includes('leads.write')||data.permissions.includes('leads.all'))&&!data.permissions.includes('leads.read'))ctx.addIssue({code:'custom',message:'La gestion des prospects nécessite leur consultation.'});if(['crm.write','dispatch','quotes','finance','omega'].some(p=>data.permissions.includes(p as Permission))&&!data.permissions.includes('crm.read'))ctx.addIssue({code:'custom',message:'La gestion nécessite la consultation du CRM.'});});
 const password=z.string().min(12).max(256);
 export class UserService {
  constructor(public db:PrismaClient){}
@@ -34,6 +34,7 @@ export class UserService {
 // Every authenticated route has an explicit grant. Unknown routes default to denial.
 export function routePermission(path:string,method:string):Permission|null {
  if(path==='session'||path==='session/logout'||path==='state')return null;
+ if(path==='leads'||path.startsWith('leads/'))return method==='GET'?'leads.read':'leads.write';
  if(path==='users'||path.startsWith('users/'))return 'users';
  if(path==='prospecting'||path.startsWith('prospecting/'))return method==='GET'?'map.read':'map.write';
  if(path.startsWith('system/'))return 'integrations';

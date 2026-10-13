@@ -12,3 +12,7 @@ aside{overflow-y:auto}aside .brand,aside nav,aside .side-bottom{flex-shrink:0}
 .parity-table{max-height:640px;overflow:auto}.parity-table thead{position:sticky;top:0;z-index:1}.parity-table td{min-width:100px}.parity-table td:last-child{min-width:260px}
 
 .prospect-drawer{position:fixed;right:20px;top:90px;width:460px;max-width:calc(100vw - 30px);max-height:calc(100vh - 110px);overflow-y:auto;z-index:15;box-shadow:0 14px 60px #102f3e40}.prospect-drawer .form-grid{grid-template-columns:1fr}.prospect-drawer>h3{margin-top:0}@media(max-width:700px){.prospect-drawer{right:15px;top:20px;max-height:calc(100vh - 40px)}}
+
+.sales-board{display:flex;gap:14px;overflow-x:auto;padding-bottom:14px}.sales-column{min-width:230px;flex:1;background:#f3f7f7;border-radius:10px;padding:12px}.sales-column>h3{margin-top:0}.sales-card{background:#fff;border:1px solid #dce7e4;border-radius:8px;padding:12px;margin:12px 0}.sales-card p{font-size:12px}.sales-card button{width:100%;text-align:left}.sales-card label{margin-top:12px}
+
+.sales-card{overflow-wrap:anywhere}.sales-column{flex:0 0 260px}

@@ -9,3 +9,7 @@ Les vendeurs ne voient que leurs portes. Les pins Rotor n’ont pas encore de co
 OAuth utilise PKCE S256, stockage AES-GCM, anti-rejeu durable et révocation. Le secret de session sert aussi au chiffrement existant : le changer rend les tokens Rotor illisibles et impose une procédure de reconnexion, pas une rotation aveugle. Les scopes demandés et accordés sont distincts. Les outils de carte valident les schémas courants et utilisent une liste fermée de lectures ; aucun outil d’écriture arbitraire n’est exposé.
 
 Les exports privés peuvent contenir des renseignements clients et doivent être conservés comme tels. Les sauvegardes PostgreSQL restent ignorées par Git. `npm run check:secrets` vérifie l’historique et les fichiers du projet avant push. Il ne certifie pas une conformité Loi 25 ni un audit de vulnérabilités exhaustif. La page Santé affiche explicitement l’absence de scan de sécurité en temps réel.
+
+## Accès commercial natif
+
+Les routes de prospects exigent les permissions commerciales et limitent les vendeurs à leur affectation. Le rattachement à une porte exige son accès carte. La conversion en client est réservée aux droits leads.all + leads.write + crm.write. Clé idempotente, verrou transactionnel, version et audit protègent les créations et conversions concurrentes. Les colonnes de normalisation client sont calculées par PostgreSQL et servent uniquement à la recherche de doublons.

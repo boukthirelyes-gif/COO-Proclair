@@ -1,6 +1,6 @@
 # Titre de pull request
 
-feat: add Rotor capability tracking and Proclair map categories
+feat: add native sales pipeline, map workflow and Rotor capability tracking
 
 # Description prête à publier
 
@@ -8,8 +8,10 @@ Le client Rotor demandait un ensemble fixe de lectures et ne conservait pas d’
 
 La carte utilise les cinq catégories et UUID Proclair fournis, tout en préservant les anciens suivis et audits. Elle ajoute un panneau latéral, filtres de catégorie/date/membre, compteurs de pins et un calque Rotor réservé aux administrateurs. Les adaptateurs valident le schéma courant et importent une page de pins dans un miroir distinct, sans créer de clients ni assimiler les membres externes aux comptes locaux. Never Knock reste une restriction serveur. La restauration peut viser une base séparée et refuse toute cible non vide.
 
-Validation : TypeScript et build Next.js réussis ; 44 tests Node, 84 contrôles Chromium et trois tests Python réussis ; matrice de 512 identifiants / 32 domaines vérifiée ; sauvegarde/restauration sur cible isolée puis refus d’une seconde restauration validés ; scan de secrets sans détection. Les flux Rotor métier utilisent des fixtures/mocks. Les métadonnées OAuth et sept articles officiels ont été lus réellement.
+Le parcours commercial est maintenant natif : une porte peut créer un prospect affecté au vendeur, avec coordonnées, source, tags, potentiel déclaré et relance Toronto. Un pipeline fixe de cinq étapes permet le suivi. La conversion humaine exige les permissions du gestionnaire, examine les doublons par nom/courriel/téléphone et associe explicitement un client existant ou crée une fiche distincte motivée. Versions, idempotence, restriction Never Knock et audit protègent les mutations ; aucun contrat, facture, paiement ou message ne découle automatiquement de la conversion. Les comptes non administrateurs existants gardent leurs permissions explicites.
 
-Impact : migration additive, aucune suppression de données métier, aucune écriture Rotor, aucun paiement ou message envoyé. Aucun statut PRODUCTION_VERIFIED. Les catégories initiales portent la provenance USER_PROVIDED_REFERENCE jusqu’à une relecture Rotor autorisée. La production et les tuiles sont bloquées par le réseau Codex ; l’OAuth du compte n’est pas enregistré ici. La facturation par job, les récurrences complètes, territoires, routage, Stripe, communications et commissions restent à développer/autoriser selon les documents de limites. Dependabot propose les mises à jour sans fusion automatique.
+Validation : TypeScript et build Next.js réussis ; 46 tests Node réussis ; sept nouveaux contrôles commerciaux Chromium et 44 contrôles de régression CRM/OMEGA, carte/utilisateurs et compatibilité réussis. La tranche précédente avait validé 84 contrôles Chromium et trois tests Python ; matrice de 512 identifiants / 32 domaines vérifiée ; sauvegarde/restauration sur cible isolée puis refus d’une seconde restauration validés ; scan de secrets sans détection. Les flux Rotor métier utilisent des fixtures/mocks. Les métadonnées OAuth et sept articles officiels ont été lus réellement.
+
+Impact : migrations additives, aucune suppression de données métier, aucune écriture Rotor, aucun paiement ou message envoyé. Aucun statut PRODUCTION_VERIFIED. Les catégories initiales portent la provenance USER_PROVIDED_REFERENCE jusqu’à une relecture Rotor autorisée. La production et les tuiles sont bloquées par le réseau Codex ; l’OAuth du compte n’est pas enregistré ici. La facturation par job, les récurrences complètes, territoires, routage, Stripe, communications et commissions restent à développer/autoriser selon les documents de limites. Dependabot propose les mises à jour sans fusion automatique.
 
 La branche ne doit pas être présentée comme déployée en production. Après revue et fusion, vérifier les variables de production, la migration et la compatibilité du plan Vercel avec deux crons quotidiens.

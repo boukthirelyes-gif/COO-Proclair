@@ -2,6 +2,8 @@
 
 ## 0.2.0 — branche rotor-capabilities-map — 2026-10-13
 
+- Prospects natifs et pipeline commercial de cinq étapes, lien porte → prospect, affectations et restrictions par vendeur.
+- Conversion humaine en client, rapprochement de doublons, justification des identités distinctes, versions et idempotence transactionnelle.
 - Catalogue initial de 512 capacités candidates, avec origine, preuve, statut, permissions, limites et références de validation.
 - Registre dynamique MCP avec snapshots persistés, schémas d’entrée/sortie, protocole, scopes et différences. Isolation des schémas modifiés et outils retirés.
 - Consentement progressif pour les lectures Rotor ; scopes demandés et réellement accordés séparés. Aucune écriture distante.

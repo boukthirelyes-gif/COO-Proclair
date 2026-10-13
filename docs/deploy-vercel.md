@@ -85,3 +85,7 @@ La migration additive `20261013020000_rotor_capabilities` crée snapshots, guard
 Un second cron appelle `/api/cron/compatibility` à 13:15 UTC avec le même `CRON_SECRET`. Il est inactif fonctionnellement jusqu’à activation dans Santé et compatibilité. Vérifiez que le plan Vercel accepte ces deux crons quotidiens. Les contrôles réseau dans Codex ne permettent pas d’attester le déploiement de cette branche.
 
 Pour la carte Rotor : sélectionner `pins:read` dans Intégrations, reconnecter et consentir depuis le compte Rotor Proclair, découvrir les outils, actualiser les catégories puis prévisualiser/importer une page. Les pins restent dans un miroir distinct réservé aux administrateurs. Les écritures distantes sont désactivées ; Stripe et les fournisseurs de communication restent non connectés. Aucune variable privée supplémentaire n’est nécessaire pour cette livraison.
+
+### Migrations commerciales de cette branche
+
+`20261013030000_native_sales` et `20261013031000_contact_normalization` sont additives. Elles créent le pipeline/prospects et des colonnes client calculées avec index ; aucune donnée métier supprimée. Sauvegarder avant la migration de production. Aucune nouvelle variable Vercel n’est nécessaire pour ces fonctions natives. Les droits des comptes non administrateurs existants restent explicites.

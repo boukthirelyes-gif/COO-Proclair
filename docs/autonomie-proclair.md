@@ -55,3 +55,13 @@ L’administrateur peut désactiver tous les liens d’un document. Révocation 
 ## Comptes d’équipe et carte de prospection
 
 Proclair dispose maintenant de comptes d’équipe avec rôles, permissions restreignables, désactivation et révocation des sessions, ainsi que d’une carte native de portes avec affectations, neuf statuts, rappels Toronto et historique. Les territoires polygonaux, le géocodage et les itinéraires restent à développer. Voir [le guide](utilisateurs-prospection.md).
+
+## Prospects et pipeline natifs — 2026-10-13
+
+Depuis **Prospects**, créez une fiche ou ouvrez une porte puis choisissez « Créer un prospect depuis cette porte ». Saisissez le nom et les coordonnées réelles, la source, les tags, le potentiel en centimes CAD et une relance à l’heure de Toronto. Le pipeline livré comporte cinq étapes fixes ; le changement d’étape utilise une sélection. Une valeur potentielle ne représente pas un revenu encaissé et une étape « Gagné » ne crée pas un paiement.
+
+Les nouveaux vendeurs reçoivent `leads.read` et `leads.write`, et voient uniquement les prospects qui leur sont affectés. `leads.all` permet au gestionnaire de consulter et affecter toute l’équipe. La conversion exige également `crm.write` et `leads.write`. Les comptes non administrateurs déjà existants gardent leurs permissions explicites : ajoutez les nouveaux droits depuis Utilisateurs selon leur rôle. Les restrictions sont vérifiées côté serveur à chaque requête.
+
+La conversion propose les clients correspondant au nom, courriel ou téléphone normalisé. Choisissez explicitement une fiche existante ; une nouvelle fiche malgré une correspondance exige une justification. Une conversion rejouée reste unique. Les données du client existant ne sont pas remplacées. Le prospect converti devient consultable uniquement ; les modifications suivantes appartiennent à la fiche client. Never Knock et « Ne pas contacter » bloquent les relances et la conversion.
+
+Relances enregistrées et audit interne sont disponibles ; aucun appel, courriel, SMS, contrat, rendez-vous, facture ou paiement ne découle automatiquement de cette conversion. Les pipelines personnalisés, séquences de messages, commissions et prévisions avancées restent à développer.
