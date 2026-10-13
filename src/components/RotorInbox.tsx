@@ -15,17 +15,22 @@ export default function RotorInbox({connected,grantedScopes}:{connected:boolean;
  const [page,setPage]=useState(1);
  const [hasMore,setHasMore]=useState<boolean|null>(null);
  const [search,setSearch]=useState('');
+ const [query,setQuery]=useState('');
+ const [historyPage,setHistoryPage]=useState(1);
+ const [filteredTotal,setFilteredTotal]=useState(0);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
  const [notice,setNotice]=useState('');
  const authorized=connected&&grantedScopes.includes('inbox:read');
  async function load(){
-  const r=await fetch('/api/integrations/rotor/messages',{cache:'no-store'});
+  const params=new URLSearchParams({page:String(historyPage)});
+  if(query.trim())params.set('q',query.trim());
+  const r=await fetch('/api/integrations/rotor/messages?'+params.toString(),{cache:'no-store'});
   const data=await r.json();
   if(!r.ok)throw new Error(data.error||'Historique Rotor indisponible.');
-  setRows(data.rows);setTotal(data.total);
+  setRows(data.rows);setTotal(data.localTotal);setFilteredTotal(data.total);
  }
- useEffect(()=>{if(connected)void load().catch(e=>setError(e.message))},[connected]);
+ useEffect(()=>{if(connected)void load().catch(e=>setError(e.message))},[connected,query,historyPage]);
  async function sync(){
   setBusy(true);setError('');setNotice('');
   try{
@@ -41,7 +46,7 @@ export default function RotorInbox({connected,grantedScopes}:{connected:boolean;
   }catch(e:any){setError(e.message)}
   finally{setBusy(false)}
  }
- const filtered=rows.filter(m=>(m.phone+' '+m.body+' '+(m.status||'')).toLowerCase().includes(search.toLowerCase()));
+ const filtered=rows;
  return <section className="panel" aria-busy={busy}>
   <div className="panel-heading"><h2>Boîte SMS Rotor / Surge</h2><button disabled={busy} onClick={()=>load().catch(e=>setError(e.message))}>Actualiser</button></div>
   <p>Copie locale en lecture seule des SMS Rotor. Le numéro professionnel et les conversations restent chez Rotor/Surge. Cette boîte n’envoie pas de messages.</p>
@@ -54,7 +59,11 @@ export default function RotorInbox({connected,grantedScopes}:{connected:boolean;
    {hasMore&&page<2000&&<button disabled={busy} onClick={()=>{setPage(p=>p+1);setHasMore(null)}}>Page suivante →</button>}
   </div>
   <p><strong>{total}</strong> SMS dans le miroir local{sourceTotal!==null?' · '+sourceTotal+' éléments annoncés par Rotor pour la recherche SMS':''}. Import page par page uniquement sur demande.</p>
-  <input aria-label="Filtrer les SMS Rotor importés" placeholder="Rechercher téléphone ou message..." value={search} onChange={e=>setSearch(e.target.value)}/>
+  <form onSubmit={e=>{e.preventDefault();setHistoryPage(1);setQuery(search)}} className="toolbar">
+   <input aria-label="Rechercher dans tous les SMS Rotor importés" placeholder="Rechercher dans l'historique importé..." value={search} onChange={e=>setSearch(e.target.value)}/>
+   <button type="submit">Rechercher</button>
+   <button type="button" onClick={()=>{setSearch('');setQuery('');setHistoryPage(1)}}>Effacer</button>
+  </form>
   <div style={{overflowX:'auto'}}><table>
    <thead><tr><th>Date · Toronto</th><th>Téléphone</th><th>Sens</th><th>Texte</th><th>État</th></tr></thead>
    <tbody>{filtered.map(m=><tr key={m.externalId}>
@@ -65,7 +74,8 @@ export default function RotorInbox({connected,grantedScopes}:{connected:boolean;
     <td>{m.status||'—'}</td>
    </tr>)}</tbody>
   </table></div>
-  {!rows.length&&<p>Aucun SMS Rotor importé pour l’instant.</p>}
-  {rows.length>0&&<small>Affichage des 100 SMS locaux les plus récents. Aucun envoi ni transfert de numéro.</small>}
+  {!rows.length&&<p>Aucun SMS Rotor correspondant dans l'historique importé.</p>}
+  <div className="toolbar"><span>{filteredTotal} résultat(s) dans l'historique importé.</span><button disabled={busy||historyPage===1} onClick={()=>setHistoryPage(p=>Math.max(1,p-1))}>← Précédent</button><span>Page {historyPage}</span><button disabled={busy||historyPage*100>=filteredTotal} onClick={()=>setHistoryPage(p=>p+1)}>Suivant →</button></div>
+  <small>Recherche paginée dans les messages déjà importés. Aucun envoi ni transfert de numéro.</small>
  </section>
 }
