@@ -1,0 +1,296 @@
+/*
+ * Proclair OS · Rotor-inspired dark theme
+ * Visual-only theme: no business logic, persisted data or financial document changed.
+ * Screen-specific to preserve light, legible printed quotes and invoices.
+ */
+@media screen {
+  :root {
+    color-scheme: dark;
+    --accent: #ff4c2d;
+    --ink: #f5f5f6;
+    --muted: #aaaab0;
+    --line: #424246;
+    --pc-bg: #1b1b1d;
+    --pc-sidebar: #242427;
+    --pc-surface: #303033;
+    --pc-elevated: #38383b;
+    --pc-control: #202022;
+    --pc-border: #47474b;
+    --pc-text: #f5f5f6;
+    --pc-muted: #aaaab0;
+    --pc-orange: #f54425;
+    --pc-orange-hover: #ff613f;
+    --pc-soft-orange: #4a2b28;
+    --pc-green: #53d67b;
+    --pc-focus: #ffa48f;
+  }
+
+  html { background: var(--pc-bg); scroll-behavior: smooth; }
+  body {
+    background: var(--pc-bg);
+    color: var(--pc-text);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  ::selection { background: #a93a24; color: #fff; }
+  :is(h1,h2,h3,h4,h5,h6,strong,b,legend,summary) { color: var(--pc-text); }
+  :is(p,small,label,.eyebrow) { color: var(--pc-muted); }
+  a { color: #ff8a72; text-decoration-color: #a44f40; }
+  a:hover { color: #ffb39f; }
+  :is(button,input,select,textarea,a,summary):focus-visible {
+    outline: 2px solid var(--pc-focus);
+    outline-offset: 3px;
+  }
+  :is(button,input,select,textarea) { accent-color: var(--pc-orange); }
+  :is(input,select,textarea) { color-scheme: dark; }
+
+  /* App shell and navigation */
+  .shell { background: var(--pc-bg); }
+  aside {
+    background: var(--pc-sidebar);
+    border-right: 1px solid #3b3b3e;
+    color: var(--pc-text);
+    box-shadow: 6px 0 22px #00000012;
+  }
+  .brand { letter-spacing: .08em; }
+  .brand>b { background: var(--pc-orange); color: #fff; border-radius: 10px; }
+  .brand small { color: #a2a2a8; }
+  nav button {
+    color: #b6b6bc;
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: 10px;
+    font-weight: 560;
+  }
+  nav button:hover { color: #fff; background: #363639; }
+  nav button.active, nav button[aria-current="page"] {
+    background: #f5f5f5;
+    color: #1a1a1c;
+    box-shadow: inset 3px 0 var(--pc-orange);
+  }
+  nav button.active span, nav button[aria-current="page"] span { color: #1a1a1c; }
+  nav button.active:hover { background: #fff; color: #111; }
+  .side-bottom { border-top-color: var(--pc-border); color: var(--pc-muted); }
+  .dot { background: var(--pc-green); }
+  main { color: var(--pc-text); }
+  main > header { border-bottom: 1px solid #323235; padding-bottom: 21px; }
+  h1 { font-weight: 740; letter-spacing: -.03em; }
+  h2 { font-weight: 690; letter-spacing: -.02em; }
+  .eyebrow { color: #a6a6aa; }
+  .avatar { background: #424246; color: #fff; border: 1px solid #57575b; }
+
+  /* Surfaces and hierarchy */
+  .panel, .stat, .sales-card, .login {
+    background: var(--pc-surface);
+    color: var(--pc-text);
+    border-color: var(--pc-border);
+    box-shadow: 0 6px 22px #00000012;
+  }
+  .welcome {
+    background: linear-gradient(122deg, #353538, #2c2c2e);
+    border-color: var(--pc-border);
+  }
+  .welcome p { color: #bdbdc1; }
+  .stat > span { color: #b7b7bb; }
+  .stat b { color: #fafafa; }
+  .stat-button, .sales-card {
+    background: var(--pc-surface);
+    color: var(--pc-text);
+  }
+  .stat-button:hover, .sales-card:hover {
+    background: var(--pc-elevated);
+    box-shadow: 0 8px 24px #00000028;
+  }
+  .stat-button small { color: #ff9a83; }
+  .panel-heading h2 { color: var(--pc-text); }
+  .omega-card { background: linear-gradient(135deg, #392c2b, #29292d); border: 1px solid #5d3730; }
+  .omega-card p, .omega-metric { color: #ccc1bf; }
+  .omega-card .eyebrow { color: #ff947e; }
+  .omega-card .primary { background: var(--pc-orange); border-color: var(--pc-orange); color: #fff; }
+  .omega-metric b { color: #fff; }
+  .progress-track { background: #1d1d1f; }
+  .progress-track > div { background: linear-gradient(90deg, #ff4c2d, #ff9479); }
+
+  /* Buttons and interaction */
+  button {
+    background: #3a3a3d;
+    color: #eeeef0;
+    border: 1px solid #535357;
+    border-radius: 9px;
+    transition: background-color .16s, border-color .16s, box-shadow .16s;
+  }
+  button:hover { background: #4a4a4d; border-color: #69696c; }
+  button:disabled { opacity: .48; cursor: not-allowed; }
+  button.primary, .primary, button[type="submit"].primary {
+    background: var(--pc-orange);
+    color: #fff;
+    border-color: var(--pc-orange);
+    font-weight: 700;
+    box-shadow: 0 2px 12px #fa48221c;
+  }
+  button.primary:hover, .primary:hover { background: var(--pc-orange-hover); border-color: var(--pc-orange-hover); }
+  .header-actions > button { background: #353538; }
+  .header-actions > button:hover { background: #444447; }
+  .segmented { background: #242426; border: 1px solid var(--pc-border); }
+  .segmented button { background: transparent; border: none; color: #b7b7bb; box-shadow: none; }
+  .segmented button.selected {
+    background: #f4f4f5;
+    color: #202022;
+    box-shadow: 0 2px 6px #0004;
+  }
+  .panel-heading button:not(.primary) { color: #d2d2d4; }
+  .quick-actions button { background: #39393c; }
+
+  /* Inputs and form layouts */
+  :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) {
+    background: var(--pc-control);
+    color: var(--pc-text);
+    border: 1px solid #55555a;
+    border-radius: 9px;
+    box-shadow: none;
+  }
+  :is(input,textarea)::placeholder { color: #96969c; opacity: 1; }
+  :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea):hover {
+    border-color: #77777b;
+  }
+  :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea):focus {
+    border-color: var(--pc-focus);
+    box-shadow: 0 0 0 3px #ff6a4330;
+  }
+  :is(input,select,textarea):disabled { background: #29292b; color: #a6a6aa; }
+  input[type="checkbox"], input[type="radio"] { accent-color: var(--pc-orange); }
+  option { background: #28282a; color: #fff; }
+  label { color: #d0d0d3; }
+  fieldset { background: #313134; border: 1px solid #505054; border-radius: 12px; }
+  legend { background: #313134; padding: 0 7px; }
+  .grant { color: #d4d4d7; }
+  .form-grid { align-items: start; }
+
+  /* Tables, finance, client records, audit */
+  .table-wrap, .parity-table { border-radius: 10px; }
+  .table-panel, .table-wrap table, .parity-table table { background: var(--pc-surface); }
+  table { color: var(--pc-text); }
+  th {
+    background: #252527;
+    color: #bcbcc1;
+    border-bottom: 1px solid #4b4b4f;
+  }
+  td { border-top: 1px solid #47474b; color: #eeeef0; }
+  tr:hover td { background: #363639; }
+  td small { color: #b2b2b8; }
+  .badge { background: #224432; color: #79ef9d; font-weight: 700; }
+  .audit { border-color: #48484c; background: transparent; }
+  .audit span { color: #d5d5d8; }
+  code, pre {
+    background: #1c1c1e;
+    color: #e7e7eb;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+  }
+  code { padding: .12em .32em; }
+  pre { padding: 12px; overflow: auto; }
+
+  /* Notifications and dialogs */
+  .notice { background: #482e29; border-color: #8a473c; color: #ffe0d8; }
+  .notice.success, .success { background: #224334; color: #b5f7c8; border-color: #3c7555; }
+  .preview, .worker-box {
+    background: #29292c;
+    color: var(--pc-text);
+    border: 1px solid var(--pc-border);
+    border-radius: 12px;
+  }
+  .overlay { background: #060607c9; backdrop-filter: blur(7px); }
+  .dialog, .prospect-drawer {
+    background: #303033;
+    color: var(--pc-text);
+    border: 1px solid #606064;
+    box-shadow: 0 25px 75px #000a;
+  }
+  .dialog footer { border-color: #505054; }
+  .empty { color: #b4b4b9; }
+  details { color: var(--pc-text); }
+  summary { cursor: pointer; }
+
+  /* Calendar and dispatch */
+  .calendar {
+    background: var(--pc-surface);
+    border-color: var(--pc-border);
+  }
+  .calendar > section {
+    background: var(--pc-surface);
+    border-right-color: #4b4b50;
+  }
+  .calendar.month > section, .hour-slot { border-color: #4b4b50; }
+  .calendar > section.today { background: #3c312f; }
+  .day-head, .calendar-note { color: #b3b3b9; }
+  .day-head b { color: #f6f6f6; }
+  .today .day-head b { background: var(--pc-orange); color: #fff; }
+  .technician-day .day-head { background: #252528; }
+  .hour-slot > span { color: #b6b6bc; }
+  .visit {
+    background: #333a49;
+    color: #e6edff;
+    border: 1px solid #516687;
+    border-left: 4px solid #78a4fa;
+  }
+  .visit:hover { background: #414c61; }
+  .visit strong { color: #f4f7ff; }
+  .visit span, .visit small { color: #c1d0e8; }
+  .visit.completed { background: #283d31; border-color: #476f55; opacity: .9; }
+  .visit.CANCELLED { background: #482c2c; border-color: #884b4b; }
+  .visit.RESCHEDULED { background: #413522; border-color: #8c6b3f; }
+
+  /* Prospect map: only its chrome; pin colors remain untouched */
+  .prospecting-map { border-color: #55555a; background: #1f2225; }
+  .map-legend { color: #c6c6cc; }
+  .map-legend span { color: #c6c6cc; }
+  .map-legend i { border: 1px solid #e8e8eb; }
+  .leaflet-container { background: #222427; }
+  .leaflet-container a { color: #ff836b; }
+  .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+    background: #303034;
+    color: #f5f5f6;
+  }
+  .leaflet-popup-content a { color: #ff9782; }
+  .leaflet-control-layers, .leaflet-bar a, .leaflet-bar a:hover {
+    background: #303034;
+    color: #f5f5f6;
+    border-color: #58585e;
+  }
+  .leaflet-control-attribution { background: #242426df !important; color: #d4d4d6; }
+
+  /* Sales pipeline, follow-ups and portal */
+  .sales-column { background: #262629; border: 1px solid #48484b; }
+  .sales-card { border-color: #4b4b4f; }
+  .sales-card p { color: #b6b6bc; }
+  .followup-row { background: #39302b; border-color: #785e49; color: #fff; }
+  .followup-row span { color: #fac9a0; }
+  .upcoming-row { border-color: #46464a; color: var(--pc-text); }
+  .upcoming-time { color: #bdbdc3; }
+  .client-portal { color: var(--pc-text); }
+  .client-portal > header { border-bottom: 1px solid #4c4c50; }
+  .client-portal .panel { background: #303033; }
+  .client-portal table { background: #303033; }
+
+  /* Dense finance/forms must still be readable on phones */
+  @media (max-width: 700px) {
+    body { font-size: 14px; }
+    aside { background: #242427; border-bottom: 1px solid #444448; }
+    .brand { margin-bottom: 14px; }
+    nav button { border-radius: 9px; }
+    nav button.active { box-shadow: inset 0 -3px var(--pc-orange); }
+    main > header { margin-bottom: 22px; }
+    .panel { padding: 18px; }
+    .table-panel { padding: 0; }
+    .dialog { padding: 19px; }
+    .prospect-drawer { background: #303033; }
+    .stats { gap: 10px; }
+    .stat { padding: 15px; }
+  }
+}
+
+/* Do not print dark cards or text in white on paper. */
+@media print {
+  :root { color-scheme: light; }
+  body, .client-portal, .client-portal :is(h1,h2,h3,h4,p,td,th,span,strong,b,label) { color: #111 !important; }
+  body, .client-portal, .client-portal .panel, .client-portal table { background: #fff !important; box-shadow: none !important; }
+}
