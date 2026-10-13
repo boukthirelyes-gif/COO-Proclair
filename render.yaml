@@ -2,10 +2,9 @@ services:
   - type: web
     name: coo-proclair
     runtime: node
-    plan: starter
+    plan: free
     branch: main
-    buildCommand: npm ci --include=dev --ignore-scripts && npm run db:generate && npm run build
-    preDeployCommand: node scripts/render-predeploy.mjs
+    buildCommand: npm ci --include=dev --ignore-scripts && npm run db:generate && node scripts/render-predeploy.mjs && npm run build
     startCommand: node node_modules/next/dist/bin/next start --hostname 0.0.0.0 --port $PORT
     healthCheckPath: /api/health
     envVars:
