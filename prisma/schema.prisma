@@ -21,6 +21,7 @@ enum VisitStatus {
  NEEDS_FOLLOWUP
 }
 model Customer {
+ rotorSms RotorInboxMessage[]
  rotorMappings RotorCustomerMapping[]
  normalizedEmail String? @default(dbgenerated())
  normalizedPhone String? @default(dbgenerated())
@@ -664,6 +665,8 @@ model StripeCheckout {
 }
 
 model RotorInboxMessage {
+ customerId String?
+ customer Customer? @relation(fields:[customerId],references:[id])
  externalId String @id
  channel String
  direction String
@@ -679,4 +682,15 @@ model RotorInboxMessage {
  syncedAt DateTime @default(now())
  @@index([messageAt])
  @@index([phone,messageAt])
+ @@index([customerId,messageAt])
+}
+
+model RotorSmsSyncControl {
+ id String @id @default("rotor-sms")
+ enabled Boolean @default(false)
+ leaseUntil DateTime?
+ lastRunAt DateTime?
+ lastImported Int @default(0)
+ lastErrorCode String?
+ updatedAt DateTime @updatedAt
 }
