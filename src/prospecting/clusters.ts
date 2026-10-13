@@ -1,0 +1,2 @@
+// Fixed pixel cells in the projected map; input order does not change membership.
+export function clusterPoints<T>(points:T[],project:(point:T)=>{x:number;y:number},size=60){const cells=new Map<string,T[]>();for(const point of points){const p=project(point);if(!Number.isFinite(p.x)||!Number.isFinite(p.y))continue;const key=Math.floor(p.x/size)+':'+Math.floor(p.y/size);const values=cells.get(key);if(values)values.push(point);else cells.set(key,[point])}return [...cells.values()]}

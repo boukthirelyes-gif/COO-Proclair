@@ -1,3 +1,11 @@
+## Carte : recherche serveur et groupes de portes — 2026-10-13
+
+- Filtres PostgreSQL avant pagination : recherche, état, catégorie, vendeur, territoire et dates de Toronto.
+- Compteurs exacts pour tous les résultats autorisés ; réponses de filtres précédents ignorées.
+- Regroupement des pins natifs chargés au dézoom, agrandissement au clic et retour aux portes individuelles au zoom 18.
+- Aucun changement des droits, contrats, règles Never Knock ou calques Rotor.
+- Voir CARTE_FILTRES_GROUPES.md pour l'utilisation et les limites.
+
 ## Parcours vendeur natif — 2026-10-13
 
 - Mes ventes : devis et contrats depuis ses propres prospects, droit sales.write distinct de l'accès global CRM.

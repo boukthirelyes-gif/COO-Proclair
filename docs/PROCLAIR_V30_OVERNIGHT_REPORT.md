@@ -114,3 +114,9 @@ Nouvel espace Mes ventes et droit sales.write : devis depuis son prospect, accep
 Comptes non administrateurs existants sans droit supplémentaire automatique. Activer le droit dans Utilisateurs pour un vendeur existant. Deux migrations additives ; anciens contrats, devis et API CRM conservés. Correction du curseur de carte pour préserver l'affichage des portes récentes. Voir PARCOURS_VENDEUR.md pour les limites, dont transferts coordonnés non proposés et listes de documents personnelles bornées à 100.
 
 Validation : 60 tests serveur, compilation de production, 41 vérifications navigateur distinctes, zéro erreur de page sur les parcours réussis. Aucune connexion fournisseur ni statut Vercel Ready vérifié ; publication GitHub et déploiement Vercel restent deux états distincts.
+
+## Suite : filtres serveur et groupes de pins — 13 octobre 2026
+
+Les filtres de carte natifs et compteurs sont maintenant calculés côté PostgreSQL sur tous les résultats autorisés. La recherche atteint les portes absentes de la première page, conserve la pagination et refuse l'accès à d'autres vendeurs sans map.all. Les pins natifs chargés peuvent être regroupés au dézoom et ouverts individuellement au zoom 18 ; le regroupement ne représente pas les portes encore non chargées. Aucun géocodage, itinéraire ou suivi continu des vendeurs. Rotor reste un calque distinct.
+
+Validation : compilation de production, 62 tests serveur et 19 vérifications navigateur réussis. Voir CARTE_FILTRES_GROUPES.md. Publication du code et statut Vercel Ready restent distincts ; aucun statut de production vérifié depuis cet environnement.
