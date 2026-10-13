@@ -1,3 +1,6 @@
+import {providerStatus} from '@/providers/config';
+import {Communications} from '@/providers/twilio';
+import {StripePayments} from '@/providers/stripe';
 import {TerritoryService} from '@/prospecting/territories';
 import {ServiceAgreements} from '@/sales/service-agreements';
 import {dashboardMetrics} from '@/lib/dashboard-metrics';
@@ -107,6 +110,9 @@ export async function GET(request: NextRequest) {
     const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
+    if(path==='integrations/providers')return NextResponse.json(providerStatus());
+    if(path==='integrations/communications')return NextResponse.json(await new Communications(prisma).list(actor));
+    if(path==='finance/stripe')return NextResponse.json(await new StripePayments(prisma).list(actor));
     if(path==='dashboard/metrics')return NextResponse.json(await dashboardMetrics(prisma,actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='agreements')return NextResponse.json(await agreements.list(actor));
     if(path==='agreements/options')return NextResponse.json(await agreements.options(actor));
@@ -194,6 +200,9 @@ async function mutate(request: NextRequest) {
     const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
+    if(path==='integrations/communications/consent'&&request.method==='POST')return NextResponse.json(await new Communications(prisma).consent(input,actor));
+    if(path==='integrations/communications/send'&&request.method==='POST')return NextResponse.json(await new Communications(prisma).send(input,actor));
+    if(path==='finance/stripe/checkout'&&request.method==='POST')return NextResponse.json(await new StripePayments(prisma).checkout(input,actor));
     if (path === 'session/logout') { const response = NextResponse.json({ok:true}); response.cookies.set(sessionCookie,'',{path:'/',maxAge:0}); return response; }
     if(request.method==='PATCH'&&/^agreements\/[^/]+$/.test(path))return NextResponse.json(await agreements.updateDraft(path.split('/')[1],input,actor));
     if(request.method==='POST'&&/^agreements\/[^/]+\/issue$/.test(path))return NextResponse.json(await agreements.issue(path.split('/')[1],input,actor));

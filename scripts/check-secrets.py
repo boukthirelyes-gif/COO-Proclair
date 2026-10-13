@@ -12,7 +12,7 @@ def sensitive_path(name):
             path.suffix.lower() in ('.sqlite','.sqlite3','.db','.dump','.backup','.pem','.key'))
 
 known=[]
-variables=['PROCLAIR_ADMIN_PASSWORD','PROCLAIR_SESSION_SECRET','CRON_SECRET','ROTOR_ACCESS_TOKEN','ROTOR_REFRESH_TOKEN']
+variables=['PROCLAIR_ADMIN_PASSWORD','PROCLAIR_SESSION_SECRET','CRON_SECRET','ROTOR_ACCESS_TOKEN','ROTOR_REFRESH_TOKEN','STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET','TWILIO_AUTH_TOKEN']
 for key in variables:
     value=os.environ.get(key)
     if value and len(value)>=12: known.append(value.encode())
@@ -22,7 +22,7 @@ if Path('.env').exists():
         if sep and key.strip() in variables:
             value=value.strip().strip('"\'')
             if len(value)>=12: known.append(value.encode())
-pattern=re.compile(rb'(?:sk-(?:proj-|svcacct-)?[A-Za-z0-9_-]{24,}|gh[opusr]_[A-Za-z0-9]{30,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----)')
+pattern=re.compile(rb'(?:sk_(?:live|test)_[A-Za-z0-9]{24,}|whsec_[A-Za-z0-9]{24,}|sk-(?:proj-|svcacct-)?[A-Za-z0-9_-]{24,}|gh[opusr]_[A-Za-z0-9]{30,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----)')
 issues=set();count=0
 for entry in git('rev-list','--objects','--all').decode().splitlines():
     parts=entry.split(' ',1)

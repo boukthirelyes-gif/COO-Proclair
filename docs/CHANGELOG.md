@@ -1,3 +1,11 @@
+## Stripe et Twilio — 2026-10-13
+
+- SDK officiels, webhooks signés et stockage natif des SMS, consentements, appels et sessions Stripe.
+- STOP protégé, approbation des envois individuels, callbacks monotones et absence de réessai après envoi incertain.
+- Checkout Stripe limité au test ; aucun règlement réel ou modification du registre comptable.
+- État de configuration et historique visibles dans Intégrations, liens de test dans Paiements ; droits existants préservés.
+- Voir STRIPE_TWILIO.md pour les variables, réglages fournisseur et limites.
+
 # Historique des livraisons
 
 ## Territoires natifs — 2026-10-13

@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import twilio from 'twilio';
+import Stripe from 'stripe';
+import {PrismaClient} from '@prisma/client';
+import {PrismaPg} from '@prisma/adapter-pg';
+if(!process.env.E2E_DATABASE_URL)throw Error('Base de test séparée requise.');
+const base=process.env.E2E_WEBHOOK_BASE_URL||'http://127.0.0.1:3002',origin='https://crm.example.test',account='AC'+'a'.repeat(32),token='fixture-token-not-real',number='+15145550000',phone='+15145551234',sid='SM'+randomUUID().replaceAll('-',''),db=new PrismaClient({adapter:new PrismaPg({connectionString:process.env.E2E_DATABASE_URL})});let checks=0;
+async function post(kind,p,signature=true){const path='/api/webhooks/twilio/'+kind;return fetch(base+path,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','X-Twilio-Signature':signature?twilio.getExpectedTwilioSignature(token,origin+path,p):'invalid'},body:new URLSearchParams(p)})}
+try{const params={AccountSid:account,MessageSid:sid,From:phone,To:number,Body:'STOP',OptOutType:'STOP'};assert.equal((await post('sms',params,false)).status,403);assert.equal(await db.smsMessage.count({where:{providerSid:sid}}),0);checks++;
+ const received=await post('sms',params);assert.equal(received.status,200);assert.equal(await received.text(),'<Response/>');assert.equal((await post('sms',params)).status,200);assert.equal(await db.smsMessage.count({where:{providerSid:sid}}),1);assert.equal((await db.smsConsent.findUnique({where:{phone}})).optedOut,true);checks++;
+ const callSid='CA'+randomUUID().replaceAll('-',''),call={AccountSid:account,CallSid:callSid,From:phone,CallStatus:'ringing',Direction:'inbound'};const voice=await post('voice',call);assert.equal(voice.status,200);assert.match(await voice.text(),/Reject reason="busy"/);assert.equal((await post('calls',{...call,CallStatus:'completed',CallDuration:'42'})).status,204);assert.equal((await db.phoneCall.findUnique({where:{sid:callSid}})).durationSeconds,42);checks++;
+ const stripe=new Stripe('sk_test_fixture_not_real'),eventId='evt_'+randomUUID().replaceAll('-',''),event={id:eventId,type:'checkout.session.completed',livemode:false,data:{object:{id:'cs_test_unmapped',metadata:{}}}},body=JSON.stringify(event),signature=stripe.webhooks.generateTestHeaderString({payload:body,secret:'whsec_fixture_not_real'});async function stripePost(payload,header){return fetch(base+'/api/webhooks/stripe',{method:'POST',headers:{'Content-Type':'application/json','Stripe-Signature':header},body:payload})}assert.equal((await stripePost(body,'invalid')).status,403);assert.equal((await stripePost(body,signature)).status,200);const replay=await stripePost(body,signature);assert.equal(replay.status,200);assert.equal((await replay.json()).duplicate,true);assert.equal(await db.providerEvent.count({where:{id:'stripe:'+eventId}}),1);checks++;
+ const liveBody=JSON.stringify({...event,id:eventId+'live',livemode:true}),liveSignature=stripe.webhooks.generateTestHeaderString({payload:liveBody,secret:'whsec_fixture_not_real'});assert.equal((await stripePost(liveBody,liveSignature)).status,403);assert.equal(await db.providerEvent.count({where:{id:'stripe:'+eventId+'live'}}),0);checks++;
+ console.log(JSON.stringify({signedHttpWebhookChecks:checks,externalProviderRequests:0}));
+}finally{await db.$disconnect()}

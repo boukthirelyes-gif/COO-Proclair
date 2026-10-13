@@ -27,7 +27,9 @@
     "test:v30:e2e": "node --env-file=.env tests/browser-v30.mjs",
     "test:v30-import:e2e": "node --env-file=.env --import tsx tests/browser-v30-import.mjs",
     "test:agreements:e2e": "node --env-file=.env tests/browser-agreements.mjs",
-    "test:territories:e2e": "node --env-file=.env tests/browser-territories.mjs"
+    "test:territories:e2e": "node --env-file=.env tests/browser-territories.mjs",
+    "test:providers:e2e": "node --env-file=.env tests/browser-providers.mjs",
+    "test:providers:webhooks": "node --env-file=.env tests/provider-webhooks.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",
@@ -41,6 +43,8 @@
     "pg": "8.16.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "stripe": "^23.0.0",
+    "twilio": "^6.2.0",
     "zod": "3.25.76"
   },
   "devDependencies": {

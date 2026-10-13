@@ -97,3 +97,7 @@ Trois migrations additives ajoutent import/checkpoints, correspondances clients 
 Le retour OAuth reste `/api/integrations/rotor/callback` sur l’origine stable de chaque environnement. La page `/agreement` utilise un jeton de document privé dans le fragment URL, hashé en base. Configurer l’identité Entreprise avant émission. Un accord client active le contrat ; les passages sont ensuite créés explicitement en PENDING, sans prélèvement ni rendez-vous confirmé. Révoquer un lien ne supprime pas le document signé.
 
 Voir [le rapport V30](PROCLAIR_V30_OVERNIGHT_REPORT.md) pour les limites et vérifications. Cette branche ne doit pas être présentée comme déjà publiée.
+
+### Stripe et Twilio
+
+Les intégrations sont facultatives pour le démarrage. Configurer les variables serveur et les webhooks décrits dans [STRIPE_TWILIO.md](STRIPE_TWILIO.md), puis redéployer. L'envoi SMS et le transfert vocal restent désactivés par défaut. Stripe est limité au mode test : aucune clé ou opération de paiement réel n'est acceptée.
