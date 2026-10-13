@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: coo-proclair
+    runtime: node
+    plan: starter
+    branch: main
+    buildCommand: npm ci --include=dev --ignore-scripts && npm run db:generate && npm run build
+    preDeployCommand: node scripts/render-predeploy.mjs
+    startCommand: node node_modules/next/dist/bin/next start --hostname 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 24
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_DATABASE_URL
+        sync: false
+      - key: PROCLAIR_ADMIN_PASSWORD
+        sync: false
+      - key: PROCLAIR_SESSION_SECRET
+        sync: false
+      - key: PROCLAIR_PUBLIC_ORIGIN
+        sync: false
+      - key: CRON_SECRET
+        sync: false
+      - key: TWILIO_SEND_ENABLED
+        value: 'false'
+      - key: TWILIO_VOICE_ENABLED
+        value: 'false'
