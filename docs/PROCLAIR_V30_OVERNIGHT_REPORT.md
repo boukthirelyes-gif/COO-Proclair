@@ -125,3 +125,9 @@ Validation : compilation de production, 62 tests serveur et 19 vérifications na
 OMEGA propose des suivis à partir des dossiers natifs existants, avec vue personnelle dans Mes ventes et supervision globale selon les permissions. Chaque proposition exige une approbation humaine et un compte rendu manuel ; le dossier, sa version et les restrictions sont revérifiés. Aucun envoi, paiement, transmission ou planification automatique. Voir OMEGA_SUIVIS_VENTES.md pour les limites de volume et les dates historiques inconnues.
 
 Validation : compilation de production, 63 tests serveur et 25 vérifications navigateur réussis sans erreur de page. Serveur redémarré et base connectée. Le statut Vercel Ready et les connexions fournisseurs restent non vérifiés.
+
+## Suite : correction des devis personnels — 13 octobre 2026
+
+Les vendeurs peuvent corriger leurs devis brouillons dans Mes ventes, avec recalcul serveur des taxes et montants, audit et contrôle du propriétaire actuel. Les devis émis restent figés ; émission, accord, contrat, signature et transmission conservent leurs actions distinctes. Aucune migration ou nouvelle clé. Voir DEVIS_PERSONNELS_CORRECTIONS.md.
+
+Validation : compilation de production, 64 tests serveur et 12 vérifications navigateur réussis, sans erreur de page sur les parcours terminés. Serveur redémarré et base connectée. La publication GitHub ne certifie pas le déploiement Vercel.

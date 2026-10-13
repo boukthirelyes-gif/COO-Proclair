@@ -1,5 +1,11 @@
 # Validation du CRM Proclair
 
+## Corrections des devis personnels — 13 octobre 2026
+
+Compilation de production réussie (contrôle TypeScript inclus). 64 tests serveur réussis, zéro échec ou test ignoré. Nouveau test : arrondis fiscaux exacts, champs interdits, permissions, restrictions de contact, réattribution, corrections concurrentes et course avec émission. Chromium : 7 contrôles du parcours vendeur et 5 des suivis OMEGA, soit 12 vérifications réussies sans erreur de page. Le prix corrigé est conservé jusqu'au contrat signé et son PDF ; aucun paiement déclenché. L'attente du rafraîchissement après émission a été ajoutée au test mobile après un premier échec d'assertion prématurée.
+
+Serveur redémarré, état de santé et connexion PostgreSQL vérifiés. Aucun changement de schéma. Le statut Vercel de production n'est pas vérifié depuis cette instance.
+
 ## Suivis commerciaux OMEGA — 13 octobre 2026
 
 Compilation de production et TypeScript réussis. Suite serveur : 63 tests réussis, zéro échec ou test ignoré. Chromium sur base séparée : 5 contrôles des suivis, 6 du parcours vendeur, 8 V30 et 6 des contrats, soit 25 vérifications réussies sans erreur de page. Le parcours mobile vérifie l'absence de débordement horizontal ; les contrôles couvrent l'approbation, le compte rendu, l'isolement des vendeurs et l'interdiction de traiter un prospect devenu Ne pas contacter. Aucun contact externe ni paiement déclenché.

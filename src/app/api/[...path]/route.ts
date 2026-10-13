@@ -213,6 +213,7 @@ async function mutate(request: NextRequest) {
     if(/^(sales\/followups|omega\/sales-followups)\/[^/]+$/.test(path)&&request.method==='PATCH')return NextResponse.json(await new SalesFollowUps(prisma).review(path.split('/')[2],input,actor));
     if(path==='sales/contracts'&&request.method==='POST')return NextResponse.json(await agreements.createFromLead(input,actor),{status:201});
     if(path==='sales/quotes'&&request.method==='POST')return NextResponse.json(await new SellerQuotes(prisma).create(input,actor),{status:201});
+    if(/^sales\/quotes\/[^/]+$/.test(path)&&request.method==='PATCH')return NextResponse.json(await new SellerQuotes(prisma).edit(path.split('/')[2],input,actor));
     if(/^sales\/quotes\/[^/]+\/issue$/.test(path)&&request.method==='POST')return NextResponse.json(await new SellerQuotes(prisma).issue(path.split('/')[2],input,actor));
     if(/^sales\/contracts\/[^/]+\/issue$/.test(path)&&request.method==='POST')return NextResponse.json(await agreements.issue(path.split('/')[2],input,actor));
     if(/^sales\/contracts\/[^/]+\/submit$/.test(path)&&request.method==='POST')return NextResponse.json(await agreements.submit(path.split('/')[2],input,actor));

@@ -32,7 +32,7 @@ Les créations sont idempotentes et la conversion, l'adresse et le document sont
 
 La liste affiche les 100 derniers documents personnels ; la sélection accepte jusqu'à 1 000 prospects. Les devis personnels émis utilisent le portail de devis existant et son impression navigateur ; l'archive PDF signée appartient au contrat de service. Le formulaire de devis personnel propose jusqu'à 24 services ; il ne remplace pas le module administratif complet de devis.
 
-Les liens de devis personnels expirent après sept jours ; la date de validité du devis peut bloquer l'acceptation avant cette échéance. Les brouillons de contrat sont modifiables ; le formulaire personnel ne propose pas encore l'édition, annulation ou révocation d'un devis. Le suivi des contrats signés reste conservé après révocation de leurs liens.
+Les liens de devis personnels expirent après sept jours ; la date de validité du devis peut bloquer l'acceptation avant cette échéance. Les brouillons de contrat sont modifiables ; les devis personnels brouillons peuvent être corrigés dans Mes ventes. Le formulaire personnel ne propose pas encore l'annulation ou la révocation d'un devis. Le suivi des contrats signés reste conservé après révocation de leurs liens.
 
 Aucun envoi SMS/courriel, paiement, mandat bancaire, commission, confirmation automatique ou autopilot. Le lien privé doit être partagé uniquement avec le client concerné. Le nom saisi et le consentement ne constituent pas une signature avec certificat qualifié. Le statut Gagné / Made Sale est commercial et ne représente ni un encaissement, ni un service réalisé.
 

@@ -1,3 +1,10 @@
+## Corrections des devis personnels — 2026-10-13
+
+- Édition des services, quantités, prix, taxes et validité d'un brouillon dans Mes ventes.
+- Recalcul serveur en cents, versions concurrentes et propriétaire actuel contrôlés, historique avant/après.
+- Devis émis immuables ; émission, accord, contrat et signature restent des actions distinctes.
+- Aucune migration ou nouvelle variable d'environnement. Voir DEVIS_PERSONNELS_CORRECTIONS.md.
+
 ## Carte : recherche serveur et groupes de portes — 2026-10-13
 
 - Filtres PostgreSQL avant pagination : recherche, état, catégorie, vendeur, territoire et dates de Toronto.
