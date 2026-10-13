@@ -5,6 +5,7 @@ import {StripePayments} from '@/providers/stripe';
 import {TerritoryService} from '@/prospecting/territories';
 import {ServiceAgreements} from '@/sales/service-agreements';
 import {dashboardMetrics} from '@/lib/dashboard-metrics';
+import {rotorLivePage} from '@/lib/rotor-live';
 import {RotorCustomerPromotion} from '@/lib/rotor-customer-promotion';
 import {customerDossier} from '@/lib/customer-dossier';
 import {omegaAssistant} from '@/omega/assistant';
@@ -115,6 +116,12 @@ export async function GET(request: NextRequest) {
     if(path==='sales/contracts')return NextResponse.json(await agreements.sellerList(actor));
     if(path==='sales/quotes')return NextResponse.json(await new SellerQuotes(prisma).list(actor));
     if(/^sales\/contracts\/[^/]+\/pdf$/.test(path)){const pdf=await agreements.pdf(path.split('/')[2],actor);return new NextResponse(new Uint8Array(pdf.pdfBytes!),{headers:{'Content-Type':'application/pdf','Content-Disposition':'inline; filename=proclair-contract.pdf','Cache-Control':'private, no-store'}});}
+    const liveMatch=path.match(/^integrations\\/rotor\\/live\\/(payments|sms|invoices)$/);
+    if(liveMatch){
+      const page=Number(request.nextUrl.searchParams.get('page')||'1');
+      const limit=Number(request.nextUrl.searchParams.get('limit')||'25');
+      return NextResponse.json(await rotorLivePage(liveMatch[1] as 'payments'|'sms'|'invoices',page,limit),{headers:{'Cache-Control':'private, no-store'}});
+    }
     if(path==='integrations/providers')return NextResponse.json(providerStatus());
     if(path==='integrations/communications')return NextResponse.json(await new Communications(prisma).list(actor));
     if(path==='finance/stripe')return NextResponse.json(await new StripePayments(prisma).list(actor));
