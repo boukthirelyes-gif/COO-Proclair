@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
     if(path==='integrations/rotor/pins'){const rows=await prisma.rotorMapPin.findMany({take:2000,orderBy:{syncedAt:'desc'}}),ids=rows.map(p=>p.customerExternalId).filter((v):v is string=>Boolean(v));const [native,mirrored]=await Promise.all([prisma.customer.findMany({where:{rotorExternalId:{in:ids}},select:{id:true,name:true,rotorExternalId:true}}),prisma.rotorMirrorRecord.findMany({where:{kind:'CUSTOMER',externalId:{in:ids}},select:{externalId:true,name:true}})]);const pins=rows.map(p=>({...p,customerReference:p.customerExternalId?{externalId:p.customerExternalId,nativeId:native.find(c=>c.rotorExternalId===p.customerExternalId)?.id??null,name:native.find(c=>c.rotorExternalId===p.customerExternalId)?.name??mirrored.find(c=>c.externalId===p.customerExternalId)?.name??null}:null}));if(Buffer.byteLength(JSON.stringify(pins))>3500000)throw new DomainError('MAP_TOO_LARGE','Le miroir nécessite une recherche paginée plus précise.',413);return NextResponse.json(pins);}
     if(path==='territories')return NextResponse.json(await territories.list(actor));
     if(path==='users')return NextResponse.json(await users.list(actor));
-    if(path==='prospecting')return NextResponse.json(await prospecting.list(actor));
+    if(path==='prospecting')return NextResponse.json(await prospecting.list(actor,request.nextUrl.searchParams.get('after')));
     if(/^prospecting\/[^/]+\/history$/.test(path))return NextResponse.json(await prospecting.history(path.split('/')[1],actor));
     if(path==='settings/business')return NextResponse.json(await prisma.businessProfile.findUnique({where:{id:'proclair'}}));
     if(path==='export/native')return new NextResponse(await nativeExport(prisma),{headers:{'Content-Type':'application/json; charset=utf-8','Content-Disposition':'attachment; filename="proclair-export-'+new Date().toISOString().slice(0,10)+'.json"','Cache-Control':'private, no-store'}});
@@ -279,7 +279,7 @@ async function mutate(request: NextRequest) {
         return NextResponse.json(await finance.recordPayment(invoiceId,payment,actor),{status:201});
       }
       case 'omega/preview': return NextResponse.json(await service.previewFill(input,actor));
-      case 'omega/apply': return NextResponse.json(await service.applyFill(input,actor));
+      case 'omega/apply': requirePermission(actor,'dispatch');return NextResponse.json(await service.applyFill(input,actor));
       case 'worker/state': return NextResponse.json(await worker.configure(input as {enabled:boolean},actor));
       case 'worker/tick': return NextResponse.json(await worker.tick());
       case 'worker/run': {

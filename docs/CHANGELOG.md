@@ -1,3 +1,10 @@
+## Ergonomie CRM et accès — 2026-10-13
+
+- Carte native paginée par lots de 100 : le volume global supérieur à 2 000 portes ne bloque plus son ouverture ; compteurs limités aux portes chargées et actualisation dédiée.
+- Menu mobile donnant accès à toutes les rubriques autorisées et recherche globale utilisable avec les flèches et Entrée.
+- Choix des permissions cohérents : ajout des droits de lecture nécessaires et retrait des actions qui en dépendent.
+- Application d'un plan OMEGA soumise aux droits OMEGA **et** de planification ; décompte des passages réalisés directement par PostgreSQL sans charger chaque visite.
+
 ## Améliorations des connexions — 2026-10-13
 
 - Diagnostic des SID/numéros Twilio et des clés Stripe incompatibles ; activation affichée seulement lorsque la configuration est complète.

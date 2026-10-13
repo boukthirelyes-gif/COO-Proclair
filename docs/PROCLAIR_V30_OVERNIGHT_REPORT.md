@@ -98,3 +98,11 @@ Avant production : revue de branche/Preview avec base séparée, sauvegarde de l
 - Création de PR tentée avec la description prête ; réponse GitHub GraphQL **Forbidden (403)**. **Aucune nouvelle PR créée** par cette session. Lien pour l’ouvrir : https://github.com/boukthirelyes-gif/COO-Proclair/pull/new/feature/proclair-v30-titan.
 - Description complète : `docs/PR_PROCLAIR_V30.md`. Rapport ajouté au commit applicatif et complété dans un commit documentaire suivant ; tous les changements sont conservés sur la branche.
 - Aucun déploiement/Preview vérifié. État local du CRM : endpoint health connecté à PostgreSQL. Les autorisations financières, d’envoi massif et AUTOPILOT demeurent inchangées.
+
+## Suite : ergonomie générale et supervision — 13 octobre 2026
+
+La lecture native de la carte est paginée par lots de 100, avec total autorisé, chargement supplémentaire et actualisation dédiée ; la limite globale bloquante de 2 000 portes est retirée. Les filtres et statistiques locaux concernent les portes chargées. Les clusters et filtres cartographiques serveur restent à développer.
+
+Toutes les rubriques autorisées sont accessibles par un menu mobile. La recherche globale se pilote avec les flèches et Entrée. Le formulaire des utilisateurs respecte les dépendances des permissions. Un compte possédant OMEGA sans dispatch ne peut plus appliquer une affectation ; le décompte des passages terminés utilise une agrégation PostgreSQL.
+
+Validation de cette tranche : 59 tests serveur, compilation de production et 27 vérifications navigateur réussis, sans erreur de page. Les tests de volume et parcours utilisent des données synthétiques séparées. La connexion aux fournisseurs, les imports Rotor réels et le statut Vercel de production demeurent non vérifiés depuis cette instance.
