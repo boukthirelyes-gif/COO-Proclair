@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizeRotorInbox} from '../src/lib/rotor-inbox';
+import {normalizeRotorInbox,exactRotorCustomerId} from '../src/lib/rotor-inbox';
 const example={data:[{
  id:'84b34ae1-566b-4360-9422-c34899d3bacc',channel:'sms',
  direction:'outbound',content:'Message test',contact_phone:'+15145550001',
@@ -30,4 +30,19 @@ test('requires a valid offset-aware timestamp and SMS direction',()=>{
 test('rejects pages containing more than 100 messages',()=>{
  const messages=Array.from({length:101},(_,index)=>({...example.data[0],id:'id-'+index}));
  assert.throws(()=>normalizeRotorInbox({...example,data:messages},1));
+});
+
+test('SMS customer matching uses exact approved source identities only',()=>{
+ const mappings=new Map([['rotor-123','local-A']]);
+ const native=new Map([['rotor-321','local-B']]);
+ assert.equal(exactRotorCustomerId('customer','rotor-123',mappings,native),'local-A');
+ assert.equal(exactRotorCustomerId('customer','rotor-321',mappings,native),'local-B');
+ assert.equal(exactRotorCustomerId('lead','rotor-123',mappings,native),null);
+ assert.equal(exactRotorCustomerId('customer','missing',mappings,native),null);
+ assert.equal(exactRotorCustomerId('customer',null,mappings,native),null);
+});
+test('conflicting native and mapped Rotor customer IDs are not linked',()=>{
+ const mapping=new Map([['same','client-1']]);
+ const native=new Map([['same','client-2']]);
+ assert.equal(exactRotorCustomerId('customer','same',mapping,native),null);
 });
