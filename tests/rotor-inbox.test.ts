@@ -22,3 +22,12 @@ test('rejects repeated message IDs and incoherent pagination',()=>{
 test('rejects oversized message payloads',()=>{
  assert.throws(()=>normalizeRotorInbox({...example,data:[{...example.data[0],content:'x'.repeat(20001)}]},1));
 });
+
+test('requires a valid offset-aware timestamp and SMS direction',()=>{
+ assert.throws(()=>normalizeRotorInbox({...example,data:[{...example.data[0],created_at:'not-a-date'}]},1));
+ assert.throws(()=>normalizeRotorInbox({...example,data:[{...example.data[0],direction:'unknown'}]},1));
+});
+test('rejects pages containing more than 100 messages',()=>{
+ const messages=Array.from({length:101},(_,index)=>({...example.data[0],id:'id-'+index}));
+ assert.throws(()=>normalizeRotorInbox({...example,data:messages},1));
+});
