@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
     const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
-    if(path==='integrations/rotor/messages')return NextResponse.json(await rotorInbox.list(actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='integrations/rotor/messages')return NextResponse.json(await rotorInbox.list(actor,{phone:request.nextUrl.searchParams.get('phone')||undefined,q:request.nextUrl.searchParams.get('q')||undefined,page:Number(request.nextUrl.searchParams.get('page')||1)}),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='integrations/providers')return NextResponse.json(providerStatus());
     if(path==='integrations/communications')return NextResponse.json(await new Communications(prisma).list(actor));
     if(path==='finance/stripe')return NextResponse.json(await new StripePayments(prisma).list(actor));
