@@ -1,3 +1,9 @@
+## Améliorations des connexions — 2026-10-13
+
+- Diagnostic des SID/numéros Twilio et des clés Stripe incompatibles ; activation affichée seulement lorsque la configuration est complète.
+- Actualisation de configuration, copie des adresses de webhooks et consignes de connexion.
+- Dates à l'heure de Toronto, états lisibles en français, filtre sur les appels et retrait du consentement SMS.
+
 ## Stripe et Twilio — 2026-10-13
 
 - SDK officiels, webhooks signés et stockage natif des SMS, consentements, appels et sessions Stripe.

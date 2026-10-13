@@ -62,3 +62,9 @@ Un paiement réussi est affiché **PAID_TEST** et ne crée aucun paiement dans l
 Migration additive `20261013180000_provider_events`, sans modification des données existantes. L'export natif inclut les SMS, consentements, appels et références Stripe ; il exclut les URL Checkout et les secrets fournisseur. Les journaux de webhook ne publient ni corps, ni signatures, ni erreurs SDK susceptibles d'exposer des données.
 
 Tests : `tests/providers.test.ts` (signatures et stockage PostgreSQL) et `tests/browser-providers.mjs` (interface, autorisations et refus d'envoi sans configuration). Les comptes et événements simulés ne constituent pas une preuve de connexion en production.
+
+### Améliorations de configuration et de consultation
+
+La carte de connexion signale les formats SID/numéro incorrects et les clés Stripe incompatibles, sans exposer leurs valeurs. Un bouton actualise le diagnostic et les adresses de webhooks peuvent être copiées. L'état d'activation SMS exige une configuration complète ; une destination vocale incorrecte désactive le transfert affiché sans désactiver le diagnostic SMS. Cette validation de forme ne prouve pas une authentification auprès du fournisseur.
+
+L'historique affiche les dates dans le fuseau America/Toronto et les états en français. La recherche filtre aussi les appels. Le retrait explicite du consentement est disponible avec une preuve saisie ; la protection STOP demeure applicable.
