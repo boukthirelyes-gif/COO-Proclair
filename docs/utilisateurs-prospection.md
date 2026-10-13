@@ -51,3 +51,7 @@ Les nouveaux vendeurs reçoivent `leads.read` et `leads.write`, et voient unique
 La conversion propose les clients correspondant au nom, courriel ou téléphone normalisé. Choisissez explicitement une fiche existante ; une nouvelle fiche malgré une correspondance exige une justification. Une conversion rejouée reste unique. Les données du client existant ne sont pas remplacées. Le prospect converti devient consultable uniquement ; les modifications suivantes appartiennent à la fiche client. Never Knock et « Ne pas contacter » bloquent les relances et la conversion.
 
 Relances enregistrées et audit interne sont disponibles ; aucun appel, courriel, SMS, contrat, rendez-vous, facture ou paiement ne découle automatiquement de cette conversion. Les pipelines personnalisés, séquences de messages, commissions et prévisions avancées restent à développer.
+
+## Territoires de vente
+
+Les gestionnaires peuvent dessiner, affecter et modifier les secteurs natifs. Les vendeurs voient leurs contours et créent des portes dans leurs zones actives. Les portes historiques conservent leur affectation. [Règles, parcours et limites](TERRITOIRES_VENTES.md).

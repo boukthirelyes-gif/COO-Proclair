@@ -132,3 +132,7 @@ Parcours natifs supplémentaires sur build production : 8 étapes devis/PDF/conv
 52 tests Node exécutés et réussis, aucun ignoré ; compilation et TypeScript réussis, trois tests Python conservés. Contrôles Chromium exécutés pendant la livraison : 109 réussis, dont 18 nouveaux V30/accords/import de fixture ; aucun pageerror dans les parcours finalisés. Import/promotion : données synthétiques et OAuth simulé, pas de compte Rotor réel. Détail des scénarios et limites dans PROCLAIR_V30_OVERNIGHT_REPORT.md.
 
 Backup restauré dans une cible vide avec 18 migrations et cinq catégories. Police PDF et WASM Prisma présents dans le tracing. AJV corrigé à 8.20.0, audit runtime suivant sans vulnérabilité signalée, scan de secrets sans détection. Safari et production Vercel non vérifiés.
+
+## Territoires natifs — 2026-10-13
+
+54 tests Node réussis, aucun ignoré. Compilation et TypeScript réussis. Cinq contrôles navigateur de territoires, huit utilisateurs/carte et sept prospects réussis. Les tests PostgreSQL vérifient contours invalides, visibilité, conflits concurrents, frontières, versions, réaffectations protégées et conservation des portes historiques. Toutes les fixtures sont séparées de la base principale.

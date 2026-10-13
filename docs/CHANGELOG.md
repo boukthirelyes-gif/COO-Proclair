@@ -1,5 +1,12 @@
 # Historique des livraisons
 
+## Territoires natifs — 2026-10-13
+
+- Dessin et modification de polygones, couleur, vendeur, activation et filtre de secteur.
+- Affectations contrôlées, refus des conflits, containment des portes, audit et versions ; portes historiques préservées.
+- Statistiques de portes par statut et visibilité par vendeur. Migration additive, aucune donnée supprimée.
+- Voir TERRITOIRES_VENTES.md pour les règles conservatrices et limites.
+
 ## 0.3.0 — première tranche V30 — 2026-10-13
 
 - Reprise vérifiée du thème sombre de la branche design, navigation regroupée, icônes SVG, barre mobile et actions directes.

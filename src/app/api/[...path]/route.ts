@@ -1,3 +1,4 @@
+import {TerritoryService} from '@/prospecting/territories';
 import {ServiceAgreements} from '@/sales/service-agreements';
 import {dashboardMetrics} from '@/lib/dashboard-metrics';
 import {RotorCustomerPromotion} from '@/lib/rotor-customer-promotion';
@@ -46,6 +47,7 @@ const registry=new RotorCapabilityRegistry(prisma);
 const rotorMap=new RotorMapService(prisma);
 const rotorMonitor=new RotorMonitor(prisma);
 const users=new UserService(prisma);
+const territories=new TerritoryService(prisma);
 const prospecting=new ProspectingService(prisma);
 const rotorSyncInput=z.object({page:z.number().int().min(1).max(2000),start:z.string().datetime({offset:true}),end:z.string().datetime({offset:true})}).strict();
 function errorResponse(error: unknown) {
@@ -121,6 +123,7 @@ export async function GET(request: NextRequest) {
     if(/^integrations\/rotor\/imports\/[^/]+$/.test(path))return NextResponse.json(await rotorImports.report(path.split('/')[3],actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='integrations/rotor/capabilities')return NextResponse.json(await registry.state());
     if(path==='integrations/rotor/pins'){const rows=await prisma.rotorMapPin.findMany({take:2000,orderBy:{syncedAt:'desc'}}),ids=rows.map(p=>p.customerExternalId).filter((v):v is string=>Boolean(v));const [native,mirrored]=await Promise.all([prisma.customer.findMany({where:{rotorExternalId:{in:ids}},select:{id:true,name:true,rotorExternalId:true}}),prisma.rotorMirrorRecord.findMany({where:{kind:'CUSTOMER',externalId:{in:ids}},select:{externalId:true,name:true}})]);const pins=rows.map(p=>({...p,customerReference:p.customerExternalId?{externalId:p.customerExternalId,nativeId:native.find(c=>c.rotorExternalId===p.customerExternalId)?.id??null,name:native.find(c=>c.rotorExternalId===p.customerExternalId)?.name??mirrored.find(c=>c.externalId===p.customerExternalId)?.name??null}:null}));if(Buffer.byteLength(JSON.stringify(pins))>3500000)throw new DomainError('MAP_TOO_LARGE','Le miroir nécessite une recherche paginée plus précise.',413);return NextResponse.json(pins);}
+    if(path==='territories')return NextResponse.json(await territories.list(actor));
     if(path==='users')return NextResponse.json(await users.list(actor));
     if(path==='prospecting')return NextResponse.json(await prospecting.list(actor));
     if(/^prospecting\/[^/]+\/history$/.test(path))return NextResponse.json(await prospecting.history(path.split('/')[1],actor));
@@ -200,6 +203,7 @@ async function mutate(request: NextRequest) {
     if(request.method==='POST'&&/^integrations\/rotor\/imports\/[^/]+\/step$/.test(path))return NextResponse.json(await rotorImports.step(path.split('/')[3],actor));
     if(path==='integrations/rotor/imports'&&request.method==='POST')return NextResponse.json(await rotorImports.create(input,actor),{status:201});
     if(request.method==='PATCH'&&/^leads\/[^/]+$/.test(path))return NextResponse.json(await leads.update(path.split('/')[1],input,actor));
+    if(request.method==='PATCH'&&/^territories\/[^/]+$/.test(path))return NextResponse.json(await territories.save(path.split('/')[1],input,actor));
     if(request.method==='PATCH'&&/^users\/[^/]+$/.test(path))return NextResponse.json(await users.update(path.split('/')[1],input,actor));
     if(request.method==='PATCH'&&/^prospecting\/[^/]+$/.test(path))return NextResponse.json(await prospecting.save(path.split('/')[1],input,actor));
     if (request.method === 'PATCH' && /^visits\/[^/]+$/.test(path)) return NextResponse.json(await service.updateVisit(path.split('/')[1],input,actor));
@@ -252,6 +256,7 @@ async function mutate(request: NextRequest) {
       case 'integrations/rotor/promotion/apply': return NextResponse.json(await rotorPromotion.apply(input,actor));
       case 'agreements': return NextResponse.json(await agreements.create(input,actor),{status:201});
       case 'omega/assistant': return NextResponse.json(await omegaAssistant(prisma,input,actor));
+      case 'territories': return NextResponse.json(await territories.save(null,input,actor),{status:201});
       case 'customers': return NextResponse.json(await service.createCustomer(input,actor),{status:201});
       case 'properties': return NextResponse.json(await service.createProperty(input,actor),{status:201});
       case 'contracts': return NextResponse.json(await service.createContract(input,actor),{status:201});

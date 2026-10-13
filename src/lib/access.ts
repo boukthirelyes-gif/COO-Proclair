@@ -40,6 +40,7 @@ export function routePermission(path:string,method:string):Permission|null {
  if(path==='session'||path==='session/logout'||path==='state')return null;
  if(path==='leads'||path.startsWith('leads/'))return method==='GET'?'leads.read':'leads.write';
  if(path==='users'||path.startsWith('users/'))return 'users';
+ if(path==='territories'||path.startsWith('territories/'))return method==='GET'?'map.read':'map.all';
  if(path==='prospecting'||path.startsWith('prospecting/'))return method==='GET'?'map.read':'map.write';
  if(path.startsWith('system/'))return 'integrations';
  if(path==='settings/business')return 'settings';

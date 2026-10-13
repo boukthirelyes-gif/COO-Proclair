@@ -26,7 +26,8 @@
     "test:leads:e2e": "node --env-file=.env tests/browser-leads.mjs",
     "test:v30:e2e": "node --env-file=.env tests/browser-v30.mjs",
     "test:v30-import:e2e": "node --env-file=.env --import tsx tests/browser-v30-import.mjs",
-    "test:agreements:e2e": "node --env-file=.env tests/browser-agreements.mjs"
+    "test:agreements:e2e": "node --env-file=.env tests/browser-agreements.mjs",
+    "test:territories:e2e": "node --env-file=.env tests/browser-territories.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",

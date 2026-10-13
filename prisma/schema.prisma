@@ -360,6 +360,7 @@ model ClientLink {
 }
 
 model AppUser {
+ territories SalesTerritory[]
  agreements ServiceAgreement[]
  leads Lead[]
  id String @id @default(cuid())
@@ -375,6 +376,9 @@ model AppUser {
  pins ProspectPin[]
 }
 model ProspectPin {
+ territoryId String?
+ territory SalesTerritory? @relation(fields:[territoryId],references:[id])
+ @@index([territoryId])
  lead Lead?
  typeId String?
  type MapPinType? @relation(fields: [typeId], references: [id])
@@ -590,4 +594,19 @@ model AgreementAccess {
  revoked Boolean @default(false)
  createdAt DateTime @default(now())
  @@index([agreementId])
+}
+model SalesTerritory {
+ id String @id @default(cuid())
+ name String
+ color String
+ points Json
+ ownerId String?
+ owner AppUser? @relation(fields:[ownerId],references:[id])
+ active Boolean @default(true)
+ version Int @default(1)
+ createdBy String
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ pins ProspectPin[]
+ @@index([ownerId,active])
 }
