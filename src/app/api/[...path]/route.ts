@@ -93,6 +93,7 @@ function errorResponse(error: unknown) {
 export async function GET(request: NextRequest) {
   try {
     const path = request.nextUrl.pathname.slice('/api/'.length);
+    if(path==='cron/rotor-sms'){if(!cronAuthorized(request.headers.get('authorization')))return NextResponse.json({error:'Authentification cron requise.'},{status:401});return NextResponse.json(await rotorInbox.tick(),{headers:{'Cache-Control':'no-store'}});}
     if(path==='cron/compatibility'){if(!cronAuthorized(request.headers.get('authorization')))return NextResponse.json({error:'Authentification cron requise.'},{status:401});return NextResponse.json(await rotorMonitor.tick());}
     if (path === 'cron/omega') {
       if(!cronAuthorized(request.headers.get('authorization')))return NextResponse.json({error:'Authentification cron requise.'},{status:401});
@@ -112,6 +113,8 @@ export async function GET(request: NextRequest) {
     const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
+    if(path==='integrations/rotor/messages/auto')return NextResponse.json(await rotorInbox.autoStatus(actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='integrations/rotor/messages/followups')return NextResponse.json(await rotorInbox.followups(actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='integrations/rotor/messages')return NextResponse.json(await rotorInbox.list(actor,{phone:request.nextUrl.searchParams.get('phone')||undefined,q:request.nextUrl.searchParams.get('q')||undefined,page:Number(request.nextUrl.searchParams.get('page')||1)}),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='integrations/providers')return NextResponse.json(providerStatus());
     if(path==='integrations/communications')return NextResponse.json(await new Communications(prisma).list(actor));
@@ -203,6 +206,7 @@ async function mutate(request: NextRequest) {
     const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
+    if(path==='integrations/rotor/messages/auto'&&request.method==='POST')return NextResponse.json(await rotorInbox.configureAuto(input,actor));
     if(path==='integrations/rotor/messages/sync'&&request.method==='POST')return NextResponse.json(await rotorInbox.sync(input,actor));
     if(path==='integrations/communications/consent'&&request.method==='POST')return NextResponse.json(await new Communications(prisma).consent(input,actor));
     if(path==='integrations/communications/send'&&request.method==='POST')return NextResponse.json(await new Communications(prisma).send(input,actor));
