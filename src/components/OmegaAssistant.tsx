@@ -1,7 +1,7 @@
 'use client';
 import {useState} from 'react';
 import type {SearchResult} from '@/lib/global-search';
-const prompts=['Combien de contrats actifs avons-nous ?','Qui n’a pas encore confirmé ?','Montre les factures impayées.','Quels clients ont des visites restantes ?','Remplis les routes de demain.'];
+const prompts=['Combien de contrats actifs avons-nous ?','Qui n’a pas encore confirmé ?','Montre les factures impayées.','Quels clients ont des visites restantes ?','Remplis les routes de demain.','Quels SMS clients nécessitent un suivi ?'];
 export default function OmegaAssistant({onOpen,onPrepare}:{onOpen:(row:SearchResult)=>void;onPrepare:()=>void}){
  const [message,setMessage]=useState(''),[entries,setEntries]=useState<any[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState('');
  async function ask(text:string){if(!text.trim())return;setBusy(true);setError('');try{const r=await fetch('/api/omega/assistant',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})}),answer=await r.json();if(!r.ok)throw Error(answer.error||'Analyse indisponible.');setEntries(v=>[...v.slice(-9),{question:text,...answer}]);setMessage('')}catch(e:any){setError(e.message)}finally{setBusy(false)}}
