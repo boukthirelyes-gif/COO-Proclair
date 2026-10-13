@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
     if(path==='sales/contracts')return NextResponse.json(await agreements.sellerList(actor));
     if(path==='sales/quotes')return NextResponse.json(await new SellerQuotes(prisma).list(actor));
     if(/^sales\/contracts\/[^/]+\/pdf$/.test(path)){const pdf=await agreements.pdf(path.split('/')[2],actor);return new NextResponse(new Uint8Array(pdf.pdfBytes!),{headers:{'Content-Type':'application/pdf','Content-Disposition':'inline; filename=proclair-contract.pdf','Cache-Control':'private, no-store'}});}
-    const liveMatch=path.match(/^integrations\\/rotor\\/live\\/(payments|sms|invoices)$/);
+    const liveMatch=path.match(/^integrations\/rotor\/live\/(payments|sms|invoices)$/);
     if(liveMatch){
       const page=Number(request.nextUrl.searchParams.get('page')||'1');
       const limit=Number(request.nextUrl.searchParams.get('limit')||'25');
