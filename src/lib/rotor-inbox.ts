@@ -42,7 +42,7 @@ export class RotorInboxService {
  async list(actor:AccessActor,input:unknown={}){
   requirePermission(actor,'integrations');requirePermission(actor,'crm.read');
   const v=z.object({
-   phone:z.string().regex(/^\\+[1-9]\\d{7,14}$/).optional(),
+   phone:z.string().regex(/^\+[1-9]\d{7,14}$/).optional(),
    q:z.string().trim().max(80).optional(),
    page:z.number().int().min(1).max(1000).default(1),
   }).strict().parse(input);
