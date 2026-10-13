@@ -70,3 +70,10 @@ Code de branche, sans preuve de publication distante. Voir PROCLAIR_V30_OVERNIGH
 - Surveillance quotidienne de découverte MCP, désactivée par défaut, avec bail PostgreSQL. PR de dépendances proposées par Dependabot.
 
 Cette entrée décrit le code de branche. Elle ne constitue pas une preuve de fusion ou de production. Les accès réels Rotor, Stripe, SMS, le fond de carte dans Codex et la fidélité des écrans privés demeurent limités comme indiqué dans INTEGRATION_LIMITATIONS.md.
+## OMEGA : suivis commerciaux supervisés — 2026-10-13
+
+- Propositions pour rappels échus, devis en attente, signatures et ventes à transmettre ou préparer.
+- Espace personnel dans Mes ventes et supervision globale selon les droits existants.
+- Brouillon, approbation humaine, compte rendu manuel et rejet ; versions, propriétaire et restrictions revérifiés à chaque étape.
+- Aucun message, paiement ou rendez-vous exécuté par ce module ; migration additive et aucune nouvelle clé API.
+- Voir OMEGA_SUIVIS_VENTES.md pour les limites et le déploiement.

@@ -120,3 +120,8 @@ Validation : 60 tests serveur, compilation de production, 41 vérifications navi
 Les filtres de carte natifs et compteurs sont maintenant calculés côté PostgreSQL sur tous les résultats autorisés. La recherche atteint les portes absentes de la première page, conserve la pagination et refuse l'accès à d'autres vendeurs sans map.all. Les pins natifs chargés peuvent être regroupés au dézoom et ouverts individuellement au zoom 18 ; le regroupement ne représente pas les portes encore non chargées. Aucun géocodage, itinéraire ou suivi continu des vendeurs. Rotor reste un calque distinct.
 
 Validation : compilation de production, 62 tests serveur et 19 vérifications navigateur réussis. Voir CARTE_FILTRES_GROUPES.md. Publication du code et statut Vercel Ready restent distincts ; aucun statut de production vérifié depuis cet environnement.
+## Suite : suivis de ventes supervisés — 13 octobre 2026
+
+OMEGA propose des suivis à partir des dossiers natifs existants, avec vue personnelle dans Mes ventes et supervision globale selon les permissions. Chaque proposition exige une approbation humaine et un compte rendu manuel ; le dossier, sa version et les restrictions sont revérifiés. Aucun envoi, paiement, transmission ou planification automatique. Voir OMEGA_SUIVIS_VENTES.md pour les limites de volume et les dates historiques inconnues.
+
+Validation : compilation de production, 63 tests serveur et 25 vérifications navigateur réussis sans erreur de page. Serveur redémarré et base connectée. Le statut Vercel Ready et les connexions fournisseurs restent non vérifiés.

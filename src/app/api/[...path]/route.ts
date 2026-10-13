@@ -1,3 +1,4 @@
+import {SalesFollowUps} from '@/omega/sales-followups';
 import {SellerQuotes} from '@/sales/seller-quotes';
 import {providerStatus} from '@/providers/config';
 import {Communications} from '@/providers/twilio';
@@ -111,6 +112,7 @@ export async function GET(request: NextRequest) {
     const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
+    if(path==='sales/followups'||path==='omega/sales-followups')return NextResponse.json(await new SalesFollowUps(prisma).board(actor));
     if(path==='sales/options')return NextResponse.json(await agreements.sellerOptions(actor));
     if(path==='sales/contracts')return NextResponse.json(await agreements.sellerList(actor));
     if(path==='sales/quotes')return NextResponse.json(await new SellerQuotes(prisma).list(actor));
@@ -207,6 +209,8 @@ async function mutate(request: NextRequest) {
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
     if(/^sales\/contracts\/[^/]+$/.test(path)&&request.method==='PATCH')return NextResponse.json(await agreements.updateDraft(path.split('/')[2],input,actor));
     if(/^sales\/contracts\/[^/]+\/revoke$/.test(path)&&request.method==='POST')return NextResponse.json(await agreements.revoke(path.split('/')[2],actor));
+    if(['sales/followups','omega/sales-followups'].includes(path)&&request.method==='POST')return NextResponse.json(await new SalesFollowUps(prisma).propose(input,actor),{status:201});
+    if(/^(sales\/followups|omega\/sales-followups)\/[^/]+$/.test(path)&&request.method==='PATCH')return NextResponse.json(await new SalesFollowUps(prisma).review(path.split('/')[2],input,actor));
     if(path==='sales/contracts'&&request.method==='POST')return NextResponse.json(await agreements.createFromLead(input,actor),{status:201});
     if(path==='sales/quotes'&&request.method==='POST')return NextResponse.json(await new SellerQuotes(prisma).create(input,actor),{status:201});
     if(/^sales\/quotes\/[^/]+\/issue$/.test(path)&&request.method==='POST')return NextResponse.json(await new SellerQuotes(prisma).issue(path.split('/')[2],input,actor));

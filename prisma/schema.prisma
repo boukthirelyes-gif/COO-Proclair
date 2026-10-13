@@ -367,6 +367,7 @@ model ClientLink {
 }
 
 model AppUser {
+ salesFollowUps SalesFollowUp[]
  salesQuotes Quote[]
  territories SalesTerritory[]
  agreements ServiceAgreement[]
@@ -568,6 +569,7 @@ model RotorCustomerMapping {
  @@index([customerId])
 }
 model ServiceAgreement {
+ issuedAt DateTime?
  sourceLeadId String?
  sourceLead Lead? @relation(fields:[sourceLeadId],references:[id])
  sourceQuoteId String? @unique
@@ -678,4 +680,26 @@ model StripeCheckout {
  idempotencyKey String @unique
  createdAt DateTime @default(now())
  @@index([invoiceId])
+}
+
+model SalesFollowUp {
+ owner AppUser? @relation(fields:[ownerId],references:[id])
+ id String @id @default(cuid())
+ sourceKind String
+ sourceId String
+ reason String
+ sourceFingerprint String
+ ownerId String?
+ createdBy String
+ draft String
+ dueAt DateTime
+ status String @default("DRAFT")
+ version Int @default(1)
+ dedupeKey String @unique
+ approvedBy String?
+ approvedAt DateTime?
+ completionNote String?
+ closedAt DateTime?
+ createdAt DateTime @default(now())
+ @@index([ownerId,status,dueAt])
 }

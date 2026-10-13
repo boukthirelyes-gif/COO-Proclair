@@ -1,5 +1,11 @@
 # Validation du CRM Proclair
 
+## Suivis commerciaux OMEGA — 13 octobre 2026
+
+Compilation de production et TypeScript réussis. Suite serveur : 63 tests réussis, zéro échec ou test ignoré. Chromium sur base séparée : 5 contrôles des suivis, 6 du parcours vendeur, 8 V30 et 6 des contrats, soit 25 vérifications réussies sans erreur de page. Le parcours mobile vérifie l'absence de débordement horizontal ; les contrôles couvrent l'approbation, le compte rendu, l'isolement des vendeurs et l'interdiction de traiter un prospect devenu Ne pas contacter. Aucun contact externe ni paiement déclenché.
+
+Le serveur redémarré répond avec une base connectée. Migration additive appliquée aux bases locales principale et navigateur. La compilation et les tests locaux ne certifient pas le déploiement Vercel ni les comptes fournisseurs. Voir OMEGA_SUIVIS_VENTES.md.
+
 Validation initiale le 9 octobre 2026, complétée le 12 octobre pour Vercel. Résultats de cette instance ; aucune publication Vercel, restauration dans une nouvelle tâche ou fidélité Rotor certifiée.
 
 | Contrôle | Résultat réel |
