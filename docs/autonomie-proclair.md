@@ -18,12 +18,13 @@ Le site public Rotor annonce notamment prospects, pipelines, territoires, plans 
 | Rotor | Connecteur facultatif | OAuth/mirror conservés ; aucun blocage des opérations natives sans OAuth |
 | Prospects/pipelines avancés | Partiel dans le prototype historique | Module commercial Next.js complet à construire |
 | SMS/courriels/campagnes | Pas de connecteurs actifs | Fournisseurs, autorisations et suivi d’envoi à établir |
-| Carte/territoires/routes | À construire | Géocodage, fournisseur de carte et contraintes routières |
+| Carte porte-à-porte | Native Proclair | Pins, affectations, statuts, rappels et historique ; territoires polygonaux, géocodage et routes restants |
 | Portail client | Natif Proclair | Consultation de devis/facture par lien privé, accord client consigné, expiration et révocation |
 | Signature certifiée/paiement en ligne | À connecter | Aucun certificat de signature ou encaissement bancaire simulé |
 | Identité entreprise | Natif Proclair | Coordonnées/mentions saisies, versions et identité figée à émission |
 | Paie/commissions | À construire | Règles Proclair V10 non fournies ; aucun barème inventé |
-| Identités et IA générale | Mono-administrateur / sans modèle connecté | Ne pas présenter OMEGA comme un agent IA général déployé |
+| Comptes et permissions | Multi-utilisateur natif | Rôles, restrictions serveur, désactivation et révocation des sessions |
+| IA générale | Sans modèle connecté | OMEGA reste un moteur de propositions déterministe |
 
 ## Devis natifs
 
@@ -50,3 +51,7 @@ Un administrateur peut partager un document émis via un lien privé valable de 
 Le portail montre un document sélectionné et son émetteur ; notes internes, mots de passe, références de paiement et clés sont exclus. Un devis émis non expiré peut être accepté avec nom saisi et consentement explicite. L’accord est audité sous le rôle CLIENT, avec horodatage et protections de concurrence/idempotence. Ce parcours n’est pas une signature électronique certifiée ni une vérification forte d’identité. Un lien donne accès à son destinataire ou à toute personne à qui il serait transmis : partager uniquement avec le client concerné.
 
 L’administrateur peut désactiver tous les liens d’un document. Révocation et acceptation sont sérialisées en base. Les liens expirés/désactivés sont refusés ; un lien facture n’autorise pas une acceptation de devis ou un accès à l’administration. Paiement en ligne non connecté : les paiements reçus continuent d’être consignés dans le registre natif.
+
+## Comptes d’équipe et carte de prospection
+
+Proclair dispose maintenant de comptes d’équipe avec rôles, permissions restreignables, désactivation et révocation des sessions, ainsi que d’une carte native de portes avec affectations, neuf statuts, rappels Toronto et historique. Les territoires polygonaux, le géocodage et les itinéraires restent à développer. Voir [le guide](utilisateurs-prospection.md).

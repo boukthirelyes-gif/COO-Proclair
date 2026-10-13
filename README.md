@@ -92,3 +92,5 @@ Améliorations OMEGA : compteurs persistés de la file, traitement manuel avec r
 Les opérations natives fonctionnent sans compte Rotor. Devis locaux (émission, décisions auditées, conversion unique en facture), impression/PDF et export JSON métier sont disponibles. Voir [l’état d’autonomie](docs/autonomie-proclair.md) pour les fonctions livrées et les fonctions restantes. Les données du miroir Rotor restent séparées des données natives.
 
 La page Entreprise permet de gérer votre identité d’émetteur. Le portail client natif partage un devis ou une facture par lien privé expirant/révocable, affiche uniquement le document ciblé et consigne l’accord sur un devis. Identité de l’émetteur figée à émission ; aucun compte Rotor ni fournisseur de messagerie requis. Aucun paiement en ligne ni signature certifiée revendiqués.
+
+Les comptes d’équipe, rôles et restrictions ainsi que la carte porte-à-porte sont natifs : consultez [le guide utilisateurs et prospection](docs/utilisateurs-prospection.md). Les vendeurs accèdent uniquement à leurs portes affectées ; les autorisations sont vérifiées côté serveur.

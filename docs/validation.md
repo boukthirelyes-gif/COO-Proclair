@@ -94,3 +94,14 @@ Types et compilation réussis. Les 27 étapes CRM/OMEGA, 17 financières et 9 In
 Identité entreprise et portail ajoutés à la validation PostgreSQL : version de fiche, snapshot d’émetteur conservé après changement du profil, partage refusé pour brouillons/OMEGA, jeton hashé, lien ciblé, consentement obligatoire, acceptation concurrente unique sous rôle CLIENT, idempotence, expiry et révocation. Aucun token de lien client inclus dans l’export. Les 37 tests restent réussis.
 
 Parcours natifs supplémentaires sur build production : 8 étapes devis/PDF/conversion/export et 6 étapes identité/partage/client anonyme/accord/révocation, zéro pageerror. La requête anonyme vers l’administration est refusée (401), les notes internes ne sont pas rendues et la révocation est constatée après rechargement (410). Le parcours financier de 17 étapes reste réussi après ces ajouts. Données uniquement dans la base de test séparée.
+
+## Utilisateurs et porte-à-porte (2026-10-13)
+
+- 39 tests Node exécutés, 39 réussis, aucun ignoré : nouveaux contrôles des rôles, absence d’élévation de privilèges, hachage salé des mots de passe, révocation des sessions après désactivation/réactivation/réinitialisation, restrictions sur les pins, historique, conflit de version et protection « Ne pas contacter ».
+- Correction d’une collision de création de préparation OMEGA détectée lors des tests concurrents ; huit mises en file simultanées retrouvent la même préparation.
+- Migration additive appliquée sans réinitialisation des bases locale et navigateur. Compilation de production et vérification TypeScript réussies.
+- Nouveau parcours Chromium utilisateurs/carte : huit contrôles réussis (création par l’interface, affectation, vendeur sur mobile, absence de débordement horizontal, refus des routes sensibles, clic sur pin, rappel Toronto, désactivation et révocation).
+- Portal client : six contrôles réussis ; intégrations : neuf contrôles réussis, dont cinq avec cycle Rotor simulé. Le contexte OAuth est signé, limité au callback en SameSite=Lax, et les droits actuels sont revérifiés sans dépendre du cookie de session SameSite=Strict lors du retour externe.
+- Contrôle visuel desktop/mobile réalisé. Les tuiles `tile.openstreetmap.org` répondent 403 via le proxy Codex : fond de rues non validé dans cet environnement. Ajouter ce domaine aux destinations autorisées sans remplacer la liste existante. Les pins, filtres, fiches et restrictions restent testables sans tuiles ; aucun substitut de fond fictif utilisé.
+- Installation `npm ci --include=dev --ignore-scripts --cache /workspace/.npm-cache` puis génération Prisma vérifiées avec le lockfile actuel.
+- Régression complète sur le build final : CRM/OMEGA 27, finances 17, devis 8, portail 6, intégrations 9, utilisateurs/carte 8, soit **75 contrôles navigateur réussis**, aucune erreur JavaScript relevée.

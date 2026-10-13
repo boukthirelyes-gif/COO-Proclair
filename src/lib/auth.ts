@@ -12,8 +12,8 @@ export function checkPassword(password: string): boolean {
   if (!expected || expected.length < 12) throw new Error('PROCLAIR_ADMIN_PASSWORD doit contenir au moins 12 caractères.');
   return timingSafeEqual(scryptSync(password, secret(), 32), scryptSync(expected, secret(), 32));
 }
-export function issueSession() {
-  const body = Buffer.from(JSON.stringify({id:'admin',role:'ADMIN',expires:Date.now()+8*60*60*1000,nonce:randomBytes(16).toString('hex')})).toString('base64url');
+export function issueSession(identity: {id:string;role:string;sessionVersion?:number}={id:'admin',role:'ADMIN'},durationMs=8*60*60*1000) {
+  const body = Buffer.from(JSON.stringify({...identity,expires:Date.now()+durationMs,nonce:randomBytes(16).toString('hex')})).toString('base64url');
   return body + '.' + createHmac('sha256', secret()).update(body).digest('base64url');
 }
 export function actorFor(request: NextRequest): {id:string;role:'ADMIN'} | null {
@@ -37,3 +37,11 @@ export function sameOrigin(request: NextRequest) {
   return origin === expected;
 }
 export const sessionCookie = COOKIE;
+
+export function readSession(request:NextRequest,cookieName=COOKIE):{id:string;role:string;sessionVersion?:number}|null {
+ const token=request.cookies.get(cookieName)?.value;if(!token||token.length>2048)return null;
+ const [body,signature,extra]=token.split('.');if(!body||!signature||extra)return null;
+ const expected=createHmac('sha256',secret()).update(body).digest(),actual=Buffer.from(signature,'base64url');
+ if(actual.length!==expected.length||!timingSafeEqual(actual,expected))return null;
+ try{const value=JSON.parse(Buffer.from(body,'base64url').toString());return typeof value.id==='string'&&typeof value.role==='string'&&Number.isFinite(value.expires)&&value.expires>Date.now()?value:null}catch{return null}
+}

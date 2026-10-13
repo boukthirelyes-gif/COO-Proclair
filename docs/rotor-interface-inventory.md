@@ -38,13 +38,13 @@ Ordre ci-dessous : catégories de la directive V20, **pas un ordre Rotor vérifi
 | Contracts | V1 PostgreSQL avec édition versionnée | Oui, local | Tests TypeScript + Chromium | Passages restants, client/propriété/job distincts |
 | Invoices | Brouillons, édition, émission, annulation et CSV | Oui, PostgreSQL | Tests métier et Chromium | Impression et PDF navigateur livrés ; PDF serveur et envoi externe restants ; Rotor non observé |
 | Payments | Paiements manuels et contrepassations auditées | Oui, ledger local | Tests métier et Chromium | Aucun encaissement ou remboursement bancaire connecté |
-| Team | Trois techniciens V1 | Oui, local | Tests TypeScript liés au planning | Damien, Ricardo, Lucas demandés; rôles applicatifs détaillés restants |
+| Team | Trois techniciens V1 | Oui, local | Tests TypeScript liés au planning | Techniciens distincts des comptes applicatifs ; rôles et restrictions natifs livrés |
 | Communications | À construire | Aucun envoi externe | Non | Connecteurs et permissions absents |
 | Reports | Totaux facturés, paiements nets, soldes et CSV | Oui, snapshot PostgreSQL cohérent | Tests export et Chromium | Dépenses payées et trésorerie enregistrée livrées ; profitabilité et rapports fiscaux complets restants |
-| Settings | Configuration opérationnelle V1 limitée | À valider | À consigner | Horaires/capacité; gestion fine des permissions restante |
+| Settings | Configuration opérationnelle V1 limitée | À valider | À consigner | Horaires/capacité ; comptes, rôles, permissions et identité entreprise natifs |
 | OMEGA AI | Initial : règles de suivi; V1 : dispatch déterministe | Prévisualisation/approbation/application locales | Tests TypeScript | Exécution backend explicable, distincte de génération de texte |
-| Maps | À construire | Non | Non | Géocodage, trajets, licences et carte clients nécessaires |
-| Sales Territories | À construire | Non | Non | Territoires, historique mobile et représentants nécessaires |
+| Maps | Carte porte-à-porte native | Pins et historique PostgreSQL | Tests métier et Chromium ; tuiles bloquées par le réseau Codex | Géocodage et trajets restants |
+| Sales Territories | À construire | Non | Non | Polygones de territoire restants ; pins mobiles, historique et vendeurs affectés livrés |
 | Automations | Fill contrôlé et worker PostgreSQL | Propositions persistées; désactivé par défaut | Tests worker PostgreSQL | Pas de communication ni réservation autonome |
 
 ## Champs, interactions et composants prioritaires
@@ -91,7 +91,7 @@ Inbox trois panneaux, classification bilingue, autoreply, désabonnement, pièce
 | Synchronisation Rotor | MCP non joignable | Pas de sync vérifiée | Inconnue | Aucune | Bloquée réseau avant origine | Auth et capabilities inconnues | Critique |
 | Communications | Aucune | Pas de connecteur | Inconnue | Brouillon initial uniquement | Aucun envoi | Accès fournisseurs à établir | Haute |
 | Finance / commissions | Fonctions annoncées publiquement, aucun écran du compte | Factures, paiements manuels, dépenses et impression locaux | Inconnue | Commissions absentes | 26 tests métier et 17 étapes financières navigateur | V10 et connexion compte manquants | Haute |
-| Routes / cartes / territoires | Aucune | Absents | Inconnue | Aucune | Aucun | Géocodage et optimisation à fournir | Haute |
+| Routes / cartes / territoires | Aucune | Carte porte-à-porte et affectations | Inconnue | Pins, rappels et historique | Tests PostgreSQL et Chromium ; tuiles Codex non accessibles | Polygones, géocodage et optimisation à fournir | Haute |
 | Rapports / workflows 24/7 | Fonctions annoncées publiquement | Worker de propositions et rapports financiers locaux | Inconnue | Jobs persistés, locks, retry, kill switch ; totaux et CSV | Tests worker et parcours financier | Désactivé par défaut ; supervision production restante | Haute |
 
 **Score global de parité Rotor : non calculable.** Le dénominateur des fonctionnalités observées est vide; publier un pourcentage serait trompeur. Après accès autorisé : attribuer un poids à chaque workflow observé (critique 5, haute 3, standard 1), définir des critères reproductibles, puis calculer `somme(poids × critères validés / critères attendus) / somme(poids)`. Conserver séparément couverture V20, fidélité visuelle et intégration; pas de score basé sur des pages de navigation seules.

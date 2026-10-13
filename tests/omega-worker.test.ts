@@ -16,7 +16,7 @@ test('durable Omega queue requires activation, deduplicates, records plans, retr
  await assert.rejects(()=>worker.enqueue('2027-01-07',admin),{code:'WORKER_DISABLED'});
  await assert.rejects(()=>worker.configure({enabled:true},{id:'dispatcher',role:'DISPATCHER'}),{code:'FORBIDDEN'});
  await worker.configure({enabled:true},admin);
- const now=new Date('2027-01-04T12:00:00Z');const first=await worker.enqueue('2027-01-07',admin,now);const second=await worker.enqueue('2027-01-07',admin,now);assert.equal(first.id,second.id);
+ const now=new Date('2027-01-04T12:00:00Z');const first=await worker.enqueue('2027-01-07',admin,now);const second=await worker.enqueue('2027-01-07',admin,now);assert.equal(first.id,second.id);const concurrent=await Promise.all(Array.from({length:8},()=>worker.enqueue('2027-01-08',admin,now)));assert.equal(new Set(concurrent.map(j=>j.id)).size,1);
  const [a,b]=await Promise.all([worker.tick(now),worker.tick(now)]);assert.ok(a.processed+b.processed>=1);
  const job=await db.workerJob.findUniqueOrThrow({where:{id:first.id}});assert.equal(job.status,'COMPLETED');assert.ok(job.planId);assert.equal(job.attempts,1);assert.equal((await db.omegaPlan.findUniqueOrThrow({where:{id:job.planId!}})).status,'PREVIEW');
  const broken=await db.workerJob.create({data:{key:`broken-${randomUUID()}`,date:'impossible',availableAt:now}});

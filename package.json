@@ -19,11 +19,13 @@
     "test:integrations:e2e": "node --env-file=.env tests/browser-integrations.mjs",
     "check:secrets": "python3 scripts/check-secrets.py",
     "test:quotes:e2e": "node --env-file=.env tests/browser-quotes.mjs",
-    "test:portal:e2e": "node --env-file=.env tests/browser-portal.mjs"
+    "test:portal:e2e": "node --env-file=.env tests/browser-portal.mjs",
+    "test:users-map:e2e": "node --env-file=.env tests/browser-users-map.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "6.19.3",
     "@prisma/client": "6.19.3",
+    "leaflet": "^1.9.4",
     "next": "16.4.0",
     "pg": "8.16.3",
     "react": "19.2.4",
@@ -32,6 +34,7 @@
   },
   "devDependencies": {
     "@prisma/internals": "^6.19.3",
+    "@types/leaflet": "^1.9.21",
     "@types/node": "24.10.0",
     "@types/pg": "^8.15.5",
     "@types/react": "19.2.14",

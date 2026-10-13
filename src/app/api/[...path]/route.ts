@@ -1,10 +1,13 @@
+import {resolveActor,authenticate} from '@/lib/user-session';
+import {UserService,routePermission,requirePermission} from '@/lib/access';
+import {ProspectingService} from '@/prospecting/service';
 import {beginRotor,completeRotor,rotorStatus,rotorTools,disconnectRotor,renewRotor,revokeRotor} from '@/lib/rotor';
 import {cronAuthorized,takeLoginAttempt} from '@/lib/production-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { ZodError, z } from 'zod';
 import {previewRotorMirror,applyRotorMirror,listRotorMirror} from '@/lib/rotor-mirror';
 import { prisma } from '@/lib/db';
-import { actorFor, checkPassword, issueSession, sameOrigin, sessionCookie } from '@/lib/auth';
+import { issueSession, sameOrigin, sessionCookie } from '@/lib/auth';
 import { CRMService } from '@/domain/service';
 import { DomainError } from '@/domain/rules';
 import { OmegaWorker } from '@/omega/worker';
@@ -22,6 +25,8 @@ const worker = new OmegaWorker(prisma);
 const finance = new FinanceService(prisma);
 const quotes=new QuoteService(prisma);
 const portal=new ClientPortal(prisma);
+const users=new UserService(prisma);
+const prospecting=new ProspectingService(prisma);
 const rotorSyncInput=z.object({page:z.number().int().min(1).max(2000),start:z.string().datetime({offset:true}),end:z.string().datetime({offset:true})}).strict();
 function errorResponse(error: unknown) {
   if (error instanceof ZodError) return NextResponse.json({error:'Champs invalides.',details:error.flatten()}, {status:400});
@@ -68,13 +73,20 @@ export async function GET(request: NextRequest) {
     if (path === 'health') { await prisma.$queryRaw`SELECT 1`; return NextResponse.json({status:'ok',database:'connected'}); }
     if(path==='integrations/rotor/callback') {
       const cookie=request.cookies.get('rotor_oauth')?.value;
+      // OAuth redirects are cross-site: the normal Strict session cookie is absent.
+      // A separate signed Lax context, scoped to this callback, rechecks current access.
+      const callbackActor=await resolveActor(prisma,request,'rotor_actor');if(!callbackActor)throw new DomainError('UNAUTHORIZED','Connexion requise.',401);requirePermission(callbackActor,'integrations');
       if(!cookie)throw new DomainError('OAUTH_STATE','Session de connexion absente.',400);
       await completeRotor(cookie,request.nextUrl.searchParams.get('state')||'',request.nextUrl.searchParams.get('code')||'');
-      await prisma.auditEvent.create({data:{actorId:'admin',actorRole:'ADMIN',action:'ROTOR_CONNECTED',entityType:'Integration',entityId:'rotor',after:{access:'READ_ONLY'}}});
-      const response=NextResponse.redirect(new URL('/?view=integrations',process.env.PROCLAIR_PUBLIC_ORIGIN!));response.cookies.set('rotor_oauth','',{path:'/api/integrations/rotor/callback',maxAge:0});return response;
+      await prisma.auditEvent.create({data:{actorId:callbackActor.id,actorRole:callbackActor.role,action:'ROTOR_CONNECTED',entityType:'Integration',entityId:'rotor',after:{access:'READ_ONLY'}}});
+      const response=NextResponse.redirect(new URL('/?view=integrations',process.env.PROCLAIR_PUBLIC_ORIGIN!));response.cookies.set('rotor_oauth','',{path:'/api/integrations/rotor/callback',maxAge:0});response.cookies.set('rotor_actor','',{path:'/api/integrations/rotor/callback',maxAge:0});return response;
     }
-    const actor = actorFor(request);
+    const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
+    const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
+    if(path==='users')return NextResponse.json(await users.list(actor));
+    if(path==='prospecting')return NextResponse.json(await prospecting.list(actor));
+    if(/^prospecting\/[^/]+\/history$/.test(path))return NextResponse.json(await prospecting.history(path.split('/')[1],actor));
     if(path==='settings/business')return NextResponse.json(await prisma.businessProfile.findUnique({where:{id:'proclair'}}));
     if(path==='export/native')return new NextResponse(await nativeExport(prisma),{headers:{'Content-Type':'application/json; charset=utf-8','Content-Disposition':'attachment; filename="proclair-export-'+new Date().toISOString().slice(0,10)+'.json"','Cache-Control':'private, no-store'}});
     if (path === 'integrations/rotor') return NextResponse.json(await rotorStatus(),{headers:{'Cache-Control':'no-store'}});
@@ -106,8 +118,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({...plan,limitations:['Planificateur déterministe ; seules les visites déjà confirmées sont admissibles.','Marge fixe de 30 minutes : trajet routier et contraintes du client à vérifier.']});
     }
     if (path === 'state') {
-      const [customers,properties,contracts,jobs,visits,technicians,audits,plans] = await Promise.all([service.listCustomers(),service.listProperties(),service.listContracts(),service.listJobs(),service.listVisits(),service.listTechnicians(),service.listAudit(),prisma.omegaPlan.findMany({orderBy:{createdAt:'desc'},take:30})]);
-      return NextResponse.json({customers,properties,contracts,jobs,visits,technicians,audits,plans});
+      const capabilities={actor,permissions:actor.permissions};
+      if(!actor.permissions.includes('crm.read'))return NextResponse.json({...capabilities,customers:[],properties:[],contracts:[],jobs:[],visits:[],technicians:[],audits:[],plans:[]});
+      const [customers,properties,contracts,jobs,visits,technicians,audits,plans] = await Promise.all([service.listCustomers(),service.listProperties(),service.listContracts(),service.listJobs(),service.listVisits(),service.listTechnicians(),actor.permissions.includes('audit')?service.listAudit():Promise.resolve([]),actor.permissions.includes('omega')?prisma.omegaPlan.findMany({orderBy:{createdAt:'desc'},take:30}):Promise.resolve([])]);
+      return NextResponse.json({...capabilities,customers,properties,contracts,jobs,visits,technicians,audits:actor.permissions.includes('audit')?audits:[],plans:actor.permissions.includes('omega')?plans:[]});
     }
     if (path.startsWith('customers/')) return NextResponse.json(await service.getCustomer(path.split('/')[1]));
     return NextResponse.json({error:'Route introuvable.'},{status:404});
@@ -122,19 +136,22 @@ async function mutate(request: NextRequest) {
     try { input = JSON.parse(text || '{}'); } catch { return NextResponse.json({error:'JSON invalide.'},{status:400}); }
     const path = request.nextUrl.pathname.slice('/api/'.length);
     if (path === 'session' && request.method === 'POST') {
-      if (!await takeLoginAttempt(prisma)) return NextResponse.json({error:'Trop de tentatives. Réessayez dans une minute.'},{status:429});
-      if (!input || typeof input !== 'object' || !('password' in input) || typeof input.password !== 'string' || input.password.length > 256 || !checkPassword(input.password)) {
-        return NextResponse.json({error:'Identifiants invalides.'},{status:401});
-      }
-      const response = NextResponse.json({actor:{id:'admin',role:'ADMIN'}});
-      response.cookies.set(sessionCookie, issueSession(), {httpOnly:true,sameSite:'strict',secure:request.nextUrl.protocol==='https:'||Boolean(process.env.PROCLAIR_PUBLIC_ORIGIN?.startsWith('https://')),path:'/',maxAge:8*60*60});
+      const loginName=input&&typeof input==='object'&&'username'in input&&typeof input.username==='string'?input.username.trim().toLowerCase().slice(0,100):'admin';
+      if (!await takeLoginAttempt(prisma,Date.now(),loginName)) return NextResponse.json({error:'Trop de tentatives. Réessayez dans une minute.'},{status:429});
+      const identity=await authenticate(prisma,input);
+      if(!identity)return NextResponse.json({error:'Identifiants invalides.'},{status:401});
+      const response = NextResponse.json({actor:identity});
+      response.cookies.set(sessionCookie, issueSession({id:identity.id,role:identity.accountRole,sessionVersion:identity.sessionVersion}), {httpOnly:true,sameSite:'strict',secure:request.nextUrl.protocol==='https:'||Boolean(process.env.PROCLAIR_PUBLIC_ORIGIN?.startsWith('https://')),path:'/',maxAge:8*60*60});
       return response;
     }
     if(path==='portal/read'&&request.method==='POST')return NextResponse.json(await portal.read(input));
     if(path==='portal/accept'&&request.method==='POST')return NextResponse.json(await portal.accept(input));
-    const actor = actorFor(request);
+    const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
+    const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
     if (path === 'session/logout') { const response = NextResponse.json({ok:true}); response.cookies.set(sessionCookie,'',{path:'/',maxAge:0}); return response; }
+    if(request.method==='PATCH'&&/^users\/[^/]+$/.test(path))return NextResponse.json(await users.update(path.split('/')[1],input,actor));
+    if(request.method==='PATCH'&&/^prospecting\/[^/]+$/.test(path))return NextResponse.json(await prospecting.save(path.split('/')[1],input,actor));
     if (request.method === 'PATCH' && /^visits\/[^/]+$/.test(path)) return NextResponse.json(await service.updateVisit(path.split('/')[1],input,actor));
     if (request.method === 'PATCH' && /^customers\/[^/]+$/.test(path)) return NextResponse.json(await service.updateCustomer(path.split('/')[1],input,actor));
     if (request.method === 'PATCH' && /^contracts\/[^/]+$/.test(path)) return NextResponse.json(await service.updateContract(path.split('/')[1],input,actor));
@@ -150,8 +167,10 @@ async function mutate(request: NextRequest) {
     if(/^quotes\/[^/]+\/(issue|accept|decline|void)$/.test(path))return NextResponse.json(await quotes.decide(path.split('/')[1],path.split('/')[2],input,actor));
     if(/^quotes\/[^/]+\/convert$/.test(path))return NextResponse.json(await quotes.convert(path.split('/')[1],input,actor));
     switch(path) {
+      case 'users':return NextResponse.json(await users.create(input,actor),{status:201});
+      case 'prospecting':return NextResponse.json(await prospecting.save(null,input,actor),{status:201});
       case 'integrations/rotor/connect': {
-        const flow=await beginRotor();const response=NextResponse.json({url:flow.url});response.cookies.set('rotor_oauth',flow.cookie,{httpOnly:true,secure:true,sameSite:'lax',path:'/api/integrations/rotor/callback',maxAge:600});return response;
+        const flow=await beginRotor();const response=NextResponse.json({url:flow.url});response.cookies.set('rotor_actor',issueSession({id:actor.id,role:actor.accountRole,sessionVersion:actor.sessionVersion},600000),{httpOnly:true,secure:true,sameSite:'lax',path:'/api/integrations/rotor/callback',maxAge:600});response.cookies.set('rotor_oauth',flow.cookie,{httpOnly:true,secure:true,sameSite:'lax',path:'/api/integrations/rotor/callback',maxAge:600});return response;
       }
       case 'integrations/rotor/renew': {const state=await renewRotor();await prisma.auditEvent.create({data:{actorId:actor.id,actorRole:actor.role,action:'ROTOR_RENEWED',entityType:'Integration',entityId:'rotor',after:{access:'READ_ONLY'}}});return NextResponse.json(state);}
       case 'integrations/rotor/revoke': {const result=await revokeRotor();await prisma.auditEvent.create({data:{actorId:actor.id,actorRole:actor.role,action:'ROTOR_REVOKED',entityType:'Integration',entityId:'rotor',after:result}});return NextResponse.json(result);}
