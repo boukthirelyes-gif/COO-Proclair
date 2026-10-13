@@ -30,7 +30,8 @@
     "test:territories:e2e": "node --env-file=.env tests/browser-territories.mjs",
     "test:providers:e2e": "node --env-file=.env tests/browser-providers.mjs",
     "test:providers:webhooks": "node --env-file=.env tests/provider-webhooks.mjs",
-    "test:usability:e2e": "node --env-file=.env tests/browser-usability.mjs"
+    "test:usability:e2e": "node --env-file=.env tests/browser-usability.mjs",
+    "test:seller-sales:e2e": "node --env-file=.env tests/browser-seller-sales.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",

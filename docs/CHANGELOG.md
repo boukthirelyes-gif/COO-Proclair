@@ -1,3 +1,12 @@
+## Parcours vendeur natif — 2026-10-13
+
+- Mes ventes : devis et contrats depuis ses propres prospects, droit sales.write distinct de l'accès global CRM.
+- Portails existants pour acceptation du devis, signature mobile et PDF archivé du contrat ; liaison au devis accepté avec conservation des totaux.
+- Création client/site transactionnelle sans écrasement ; correspondances nécessitant le rapprochement d'un gestionnaire.
+- Transmission explicite des ventes signées, étape Gagné et pin Made Sale sous contrôle du propriétaire ; passages créés séparément par un responsable.
+- Migration additive ; comptes non administrateurs existants sans élévation automatique de permissions.
+- Voir PARCOURS_VENDEUR.md pour l'utilisation et les limites.
+
 ## Ergonomie CRM et accès — 2026-10-13
 
 - Carte native paginée par lots de 100 : le volume global supérieur à 2 000 portes ne bloque plus son ouverture ; compteurs limités aux portes chargées et actualisation dédiée.

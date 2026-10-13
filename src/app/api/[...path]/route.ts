@@ -1,3 +1,4 @@
+import {SellerQuotes} from '@/sales/seller-quotes';
 import {providerStatus} from '@/providers/config';
 import {Communications} from '@/providers/twilio';
 import {StripePayments} from '@/providers/stripe';
@@ -110,6 +111,10 @@ export async function GET(request: NextRequest) {
     const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
+    if(path==='sales/options')return NextResponse.json(await agreements.sellerOptions(actor));
+    if(path==='sales/contracts')return NextResponse.json(await agreements.sellerList(actor));
+    if(path==='sales/quotes')return NextResponse.json(await new SellerQuotes(prisma).list(actor));
+    if(/^sales\/contracts\/[^/]+\/pdf$/.test(path)){const pdf=await agreements.pdf(path.split('/')[2],actor);return new NextResponse(new Uint8Array(pdf.pdfBytes!),{headers:{'Content-Type':'application/pdf','Content-Disposition':'inline; filename=proclair-contract.pdf','Cache-Control':'private, no-store'}});}
     if(path==='integrations/providers')return NextResponse.json(providerStatus());
     if(path==='integrations/communications')return NextResponse.json(await new Communications(prisma).list(actor));
     if(path==='finance/stripe')return NextResponse.json(await new StripePayments(prisma).list(actor));
@@ -200,6 +205,13 @@ async function mutate(request: NextRequest) {
     const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
+    if(/^sales\/contracts\/[^/]+$/.test(path)&&request.method==='PATCH')return NextResponse.json(await agreements.updateDraft(path.split('/')[2],input,actor));
+    if(/^sales\/contracts\/[^/]+\/revoke$/.test(path)&&request.method==='POST')return NextResponse.json(await agreements.revoke(path.split('/')[2],actor));
+    if(path==='sales/contracts'&&request.method==='POST')return NextResponse.json(await agreements.createFromLead(input,actor),{status:201});
+    if(path==='sales/quotes'&&request.method==='POST')return NextResponse.json(await new SellerQuotes(prisma).create(input,actor),{status:201});
+    if(/^sales\/quotes\/[^/]+\/issue$/.test(path)&&request.method==='POST')return NextResponse.json(await new SellerQuotes(prisma).issue(path.split('/')[2],input,actor));
+    if(/^sales\/contracts\/[^/]+\/issue$/.test(path)&&request.method==='POST')return NextResponse.json(await agreements.issue(path.split('/')[2],input,actor));
+    if(/^sales\/contracts\/[^/]+\/submit$/.test(path)&&request.method==='POST')return NextResponse.json(await agreements.submit(path.split('/')[2],input,actor));
     if(path==='integrations/communications/consent'&&request.method==='POST')return NextResponse.json(await new Communications(prisma).consent(input,actor));
     if(path==='integrations/communications/send'&&request.method==='POST')return NextResponse.json(await new Communications(prisma).send(input,actor));
     if(path==='finance/stripe/checkout'&&request.method==='POST')return NextResponse.json(await new StripePayments(prisma).checkout(input,actor));

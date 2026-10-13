@@ -311,6 +311,12 @@ model RotorMirrorRecord {
 }
 
 model Quote {
+ salesOwner AppUser? @relation(fields:[salesOwnerId],references:[id])
+ salesOwnerId String?
+ sourceLeadId String?
+ sourceLead Lead? @relation(fields:[sourceLeadId],references:[id])
+ salesAgreement ServiceAgreement?
+ @@index([salesOwnerId,sourceLeadId])
  issuerSnapshot Json?
  id String @id @default(cuid())
  customerId String
@@ -361,6 +367,7 @@ model ClientLink {
 }
 
 model AppUser {
+ salesQuotes Quote[]
  territories SalesTerritory[]
  agreements ServiceAgreement[]
  leads Lead[]
@@ -377,6 +384,8 @@ model AppUser {
  pins ProspectPin[]
 }
 model ProspectPin {
+ @@index([createdAt,id])
+ @@index([ownerId,createdAt,id])
  territoryId String?
  territory SalesTerritory? @relation(fields:[territoryId],references:[id])
  @@index([territoryId])
@@ -471,6 +480,8 @@ model SalesStage {
  @@unique([pipelineId, position])
 }
 model Lead {
+ salesAgreements ServiceAgreement[]
+ salesQuotes Quote[]
  id String @id @default(cuid())
  name String
  email String?
@@ -557,6 +568,12 @@ model RotorCustomerMapping {
  @@index([customerId])
 }
 model ServiceAgreement {
+ sourceLeadId String?
+ sourceLead Lead? @relation(fields:[sourceLeadId],references:[id])
+ sourceQuoteId String? @unique
+ sourceQuote Quote? @relation(fields:[sourceQuoteId],references:[id])
+ submittedAt DateTime?
+ @@index([salesOwnerId,sourceLeadId])
  id String @id @default(cuid())
  contractId String @unique
  contract Contract @relation(fields:[contractId],references:[id])

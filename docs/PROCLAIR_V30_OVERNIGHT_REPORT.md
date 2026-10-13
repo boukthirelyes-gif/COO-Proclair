@@ -106,3 +106,11 @@ La lecture native de la carte est paginée par lots de 100, avec total autorisé
 Toutes les rubriques autorisées sont accessibles par un menu mobile. La recherche globale se pilote avec les flèches et Entrée. Le formulaire des utilisateurs respecte les dépendances des permissions. Un compte possédant OMEGA sans dispatch ne peut plus appliquer une affectation ; le décompte des passages terminés utilise une agrégation PostgreSQL.
 
 Validation de cette tranche : 59 tests serveur, compilation de production et 27 vérifications navigateur réussis, sans erreur de page. Les tests de volume et parcours utilisent des données synthétiques séparées. La connexion aux fournisseurs, les imports Rotor réels et le statut Vercel de production demeurent non vérifiés depuis cette instance.
+
+## Suite : ventes personnelles depuis la porte — 13 octobre 2026
+
+Nouvel espace Mes ventes et droit sales.write : devis depuis son prospect, acceptation dans le portail existant, contrat prérempli du devis accepté, signature mobile et archive PDF existantes, puis transmission explicite à la planification. Étape Gagné et pin Made Sale actualisés sous contrôle de propriété. Aucun paiement, commission, confirmation ni rendez-vous attribué automatiquement. Les correspondances client exigent le rapprochement par un gestionnaire, sans écrasement de fiche.
+
+Comptes non administrateurs existants sans droit supplémentaire automatique. Activer le droit dans Utilisateurs pour un vendeur existant. Deux migrations additives ; anciens contrats, devis et API CRM conservés. Correction du curseur de carte pour préserver l'affichage des portes récentes. Voir PARCOURS_VENDEUR.md pour les limites, dont transferts coordonnés non proposés et listes de documents personnelles bornées à 100.
+
+Validation : 60 tests serveur, compilation de production, 41 vérifications navigateur distinctes, zéro erreur de page sur les parcours réussis. Aucune connexion fournisseur ni statut Vercel Ready vérifié ; publication GitHub et déploiement Vercel restent deux états distincts.
