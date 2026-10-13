@@ -36,8 +36,13 @@ L'archive ne crée ni facture ni paiement dans le registre comptable Proclair ; 
 
 L'import client exige `integrations` et `crm.write`. L'import financier exige `integrations` et `finance`. Consulter l'archive exige `finance`. L'historique d'exports masque les lots financiers aux comptes sans `finance`. Aucun droit supplémentaire n'est accordé aux vendeurs.
 
-Migration additive : `20261014010000_rotor_file_import`. Générer Prisma et appliquer les migrations avant de servir le build. Aucune clé Stripe ou Twilio n'est requise pour cette archive. L'origine publique a été proposée dans le brouillon de configuration cloud ; enregistrer/publier ce brouillon ne remplace pas la configuration du projet Vercel.
+Migrations additives : `20261014010000_rotor_file_import` et `20261014011000_rotor_annual_import`. Générer Prisma et appliquer les migrations avant de servir le build. Aucune clé Stripe ou Twilio n'est requise pour cette archive. L'origine publique a été proposée dans le brouillon de configuration cloud ; enregistrer/publier ce brouillon ne remplace pas la configuration du projet Vercel.
 
 ## Périmètre restant
 
 Les adaptateurs OAuth existants lisent clients, jobs et visites en staging ; les pins conservent leur parcours distinct. Cette livraison n'importe pas automatiquement tous les objets Rotor : contrats, lignes de factures, documents, communications, consentements, équipes, commissions, historique d'audit et opérations comptables nécessitent leurs exports ou schémas vérifiés et des rapprochements adaptés. Un client rapproché ne certifie pas le transfert complet de son dossier.
+
+
+## Import annuel en lecture OAuth
+
+La période des imports reprenables peut atteindre 366 jours. La validation du service, du lecteur MCP et la contrainte PostgreSQL utilisent la même limite ; la migration annuelle conserve tous les imports existants. La période sélectionnée est transmise pour les visites ; clients et jobs restent paginés indépendamment de cette période. Les schémas annoncés par Rotor restent vérifiés et peuvent imposer des restrictions supplémentaires. Cette capacité ne prouve pas qu'une année de données réelle a été transférée.

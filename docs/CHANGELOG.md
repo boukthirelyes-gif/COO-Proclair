@@ -1,3 +1,13 @@
+## Interface de migration Rotor et vérification des fournisseurs — 2026-10-13
+
+- Centre de transfert CSV en tête d'Intégrations, étapes visibles, association explicite des colonnes, aperçu et conflits bloquants.
+- Clients en staging puis rapprochement natif approuvé ; coordonnées et notes existantes conservées.
+- Archives de factures/paiements consultables et paginées dans Finances, montants signés exacts et références client conservées ; aucun paiement comptable ou prélèvement créé.
+- Contrôles Stripe/Twilio en lecture seule, compte masqué, erreur réseau distincte d'un refus d'identifiants et webhooks non déclarés vérifiés.
+- Autorisations OAuth repliables, cartes fournisseur et interface mobile améliorées.
+- Modifications GitHub de la limite annuelle et diagnostics PostgreSQL conservées ; migration et lecteur alignés à 366 jours.
+- Voir TRANSFERT_ROTOR.md et STRIPE_TWILIO.md. Connexions réelles, import réel et statut Vercel restent non vérifiés.
+
 ## Priorités des suivis OMEGA — 2026-10-13
 
 - Suivis ouverts chargés avant l'historique, classement par échéance et repérage des retards.

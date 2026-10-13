@@ -34,8 +34,8 @@ export async function rotorReadPage(page:number,limit:number,start:string,end:st
  if(!Number.isInteger(page)||page<1||page>2000||!Number.isInteger(limit)||limit<1||limit>50)
   throw new DomainError('ROTOR_PAGE','Pagination Rotor invalide.',400);
  const begin=new Date(start),finish=new Date(end);
- if(!Number.isFinite(begin.getTime())||!Number.isFinite(finish.getTime())||finish<=begin||finish.getTime()-begin.getTime()>32*86400000)
-  throw new DomainError('ROTOR_RANGE','Sélectionnez un intervalle de 32 jours maximum.',400);
+ if(!Number.isFinite(begin.getTime())||!Number.isFinite(finish.getTime())||finish<=begin||finish.getTime()-begin.getTime()>366*86400000)
+  throw new DomainError('ROTOR_RANGE','Sélectionnez un intervalle de 366 jours maximum.',400);
  const token=await usableToken();const granted=new Set(token.scope.split(' '));const required:Record<string,string>={CUSTOMER:'customers:read',JOB:'jobs:read',VISIT:'visits:read'};if(kinds.some(kind=>!granted.has(required[kind])))throw new DomainError('ROTOR_SCOPE','Reconnectez Rotor avec les lectures des catégories sélectionnées.',403);
  const headers:Record<string,string>={Authorization:'Bearer '+token.accessToken,Accept:'application/json, text/event-stream'};
  const init=await remote('/mcp',{jsonrpc:'2.0',id:1,method:'initialize',params:{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'proclair-crm',version:packageInfo.version}}},headers);

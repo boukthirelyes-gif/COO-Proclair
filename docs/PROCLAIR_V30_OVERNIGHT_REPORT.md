@@ -137,3 +137,11 @@ Validation : compilation de production, 64 tests serveur et 12 vérifications na
 Les suivis ouverts sont chargés avant l'historique et triés par échéance. Recherche, filtres d'état et compteurs sur les éléments chargés aident les vendeurs à trouver les suivis à traiter. Le report manuel d'une échéance conserve son approbation et vérifie dossier, droits et version ; échéances avant/après auditées. Les comptes rendus sont consultables dans les suivis clôturés. Voir OMEGA_SUIVIS_VENTES.md pour les limites.
 
 Validation : compilation de production, 65 tests serveur et 13 vérifications navigateur réussis sans erreur de page. Aucun contact externe, paiement ou rendez-vous exécuté par ces actions. Aucune migration ou nouvelle clé. Publication GitHub et statut Vercel Ready restent distincts.
+
+## Suite : transfert Rotor, interface et connexions fournisseur — 13 octobre 2026
+
+Centre de transfert CSV natif en tête d'Intégrations : colonnes associées explicitement, aperçu, conflits bloquants, reprise sans doublon et rapprochement client approuvé. Archives de factures et paiements consultables dans Finances, avec montants signés exacts et références source, sans changement du registre comptable. Interface mobile et cartes fournisseur améliorées ; contrôles Stripe/Twilio en lecture seule, erreurs privées masquées et webhooks non déclarés vérifiés.
+
+Les changements GitHub de la période annuelle et des diagnostics PostgreSQL sont conservés. Le lecteur et une migration additive alignent toutes les limites de staging à 366 jours. Voir TRANSFERT_ROTOR.md et STRIPE_TWILIO.md pour les permissions, variables et limites.
+
+Validation : compilation, 74 tests serveur et 62 contrôles navigateur distincts réussis sur cette tranche ; les 17 contrôles CSV/fournisseurs sont répétés sur le build final. Aucun contact, prélèvement ou paiement natif créé par ces imports. Migration locale appliquée et serveur redémarré. Aucun import réel ni compte fournisseur vérifié. L'accès à Vercel reste refusé par le proxy : publication GitHub et production Ready demeurent distinctes.

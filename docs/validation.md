@@ -1,5 +1,17 @@
 # Validation du CRM Proclair
 
+## Centre de transfert Rotor et connexions Stripe/Twilio — 13 octobre 2026
+
+Compilation de production et TypeScript réussis après intégration des trois commits GitHub apparus pendant le travail. Suite finale : 74 tests serveur réussis, zéro échec ou test ignoré. Tests ajoutés : CSV et colonnes sélectionnées, montants signés exacts, dates Toronto, permissions, doublons/reprises, conflits atomiques, rapprochement client, pagination, export métier, vérification des fournisseurs sans fuite de secrets, refus d'identifiants distinct des pannes réseau, période annuelle de 366 jours et garde PostgreSQL.
+
+62 vérifications navigateur distinctes réussies sur cette tranche : 6 imports CSV, 11 fournisseurs, 17 finance, 7 vendeur, 8 V30, 9 connexion Rotor et 4 ancien parcours d'import. Les 17 contrôles CSV/fournisseurs ont été répétés sur le build final avec succès. Aucune erreur de page sur les parcours terminés. Interface mobile 390×844 et capture inspectées. Les comptes fournisseurs et la connexion Rotor sont simulés dans les tests concernés ; aucun appel Rotor réel, prélèvement ou SMS effectué.
+
+Les premiers essais ont révélé une période technique vide refusée par la contrainte d'import, corrigée avant publication. Une assertion CSV utilisant les totaux globaux d'une base de tests partagée a été limitée au client de sa fixture ; le parcours vendeur a été validé séparément après un premier échec de lecture en parallèle. Une exécution complète simultanée avec le build a atteint son délai dans le test financier ; ce test a passé isolément, puis la suite finale entière a passé sans build concurrent. Aucun test ni assertion métier désactivé.
+
+Migrations additives `20261014010000_rotor_file_import` et `20261014011000_rotor_annual_import` appliquées aux bases locales principale et navigateur. La seconde conserve la modification GitHub de la limite annuelle et corrige les limites encore présentes dans le lecteur et PostgreSQL, sans altérer les anciennes migrations.
+
+Serveur redémarré et base connectée. Base locale principale vérifiée sans client, paiement, import de fichier ou archive financière : aucune donnée synthétique de ces tests dans cette base. Rotor, Stripe et Twilio restent non configurés dans cette instance. La cible publique fournie est https://coo-proclair.vercel.app ; accès réseau refusé par le proxy (CONNECT 403), y compris après nouvelle tentative autorisée. Statut Vercel, connexion de production et transfert réel non vérifiés. Origine publique proposée dans le brouillon cloud, dont l'enregistrement/publication reste distinct de Vercel. Voir TRANSFERT_ROTOR.md et STRIPE_TWILIO.md.
+
 ## Priorités des suivis OMEGA — 13 octobre 2026
 
 Compilation de production et contrôle TypeScript réussis. 65 tests serveur réussis, zéro échec ou test ignoré. Les tests ajoutés vérifient le report, les limites d'échéance, les droits, les versions, les restrictions, le maintien de l'approbation et la présence d'un suivi ouvert malgré 101 entrées clôturées. Un premier contrôle a été corrigé pour comparer les dates ISO normalisées avec leurs millisecondes ; la suite complète passe.

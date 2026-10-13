@@ -67,7 +67,7 @@ test('Rotor mirror normalizes actual customer/job/visit record shapes and preser
 }));
 test('Rotor mirror validates page and date range before any network request',async()=>{
  await assert.rejects(()=>rotorReadPage(0,25,'2026-10-01','2026-10-02'),{code:'ROTOR_PAGE'});
- await assert.rejects(()=>rotorReadPage(1,25,'2026-10-01','2026-12-01'),{code:'ROTOR_RANGE'});
+ await assert.rejects(()=>rotorReadPage(1,25,'2026-10-01','2027-10-03'),{code:'ROTOR_RANGE'});
 });
 test('Read-only preview does not import; repeated confirmation is idempotent',async()=>setup(async()=>{
  const rows=new Map<string,any>(),audits:any[]=[];
@@ -91,3 +91,5 @@ test('Rotor numbered pages reject absent completion metadata rather than silentl
  const provider=globalThis.fetch;globalThis.fetch=async(...args:any[])=>{const response=await (provider as any)(...args);if(response.status===202)return response;const payload=await response.json();if(payload.result?.content){const data=JSON.parse(payload.result.content[0].text);delete data.pagination.has_more;payload.result.content[0].text=JSON.stringify(data)}return Response.json(payload)};
  await assert.rejects(()=>rotorReadPage(1,25,'2026-10-01T00:00:00Z','2026-10-20T00:00:00Z'),{code:'ROTOR_PROTOCOL'});
 }));
+
+test('Rotor annual reads accept 366 days and retain the selected visit-only scope',async()=>setup(async()=>{const batch=await rotorReadPage(1,25,'2026-01-01T00:00:00Z','2027-01-02T00:00:00Z',['VISIT']);assert.equal(batch.visits.data.length,1);assert.equal(batch.customers.data.length,0);assert.equal(batch.jobs.data.length,0)}));
