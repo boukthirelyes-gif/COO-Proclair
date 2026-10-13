@@ -1,4 +1,5 @@
 import {providerStatus} from '@/providers/config';
+import {RotorInboxService} from '@/lib/rotor-inbox';
 import {Communications} from '@/providers/twilio';
 import {StripePayments} from '@/providers/stripe';
 import {TerritoryService} from '@/prospecting/territories';
@@ -49,6 +50,7 @@ const rotorImports=new RotorImportService(prisma);
 const registry=new RotorCapabilityRegistry(prisma);
 const rotorMap=new RotorMapService(prisma);
 const rotorMonitor=new RotorMonitor(prisma);
+const rotorInbox=new RotorInboxService(prisma);
 const users=new UserService(prisma);
 const territories=new TerritoryService(prisma);
 const prospecting=new ProspectingService(prisma);
@@ -110,6 +112,7 @@ export async function GET(request: NextRequest) {
     const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
+    if(path==='integrations/rotor/messages')return NextResponse.json(await rotorInbox.list(actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='integrations/providers')return NextResponse.json(providerStatus());
     if(path==='integrations/communications')return NextResponse.json(await new Communications(prisma).list(actor));
     if(path==='finance/stripe')return NextResponse.json(await new StripePayments(prisma).list(actor));
@@ -200,6 +203,7 @@ async function mutate(request: NextRequest) {
     const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
+    if(path==='integrations/rotor/messages/sync'&&request.method==='POST')return NextResponse.json(await rotorInbox.sync(input,actor));
     if(path==='integrations/communications/consent'&&request.method==='POST')return NextResponse.json(await new Communications(prisma).consent(input,actor));
     if(path==='integrations/communications/send'&&request.method==='POST')return NextResponse.json(await new Communications(prisma).send(input,actor));
     if(path==='finance/stripe/checkout'&&request.method==='POST')return NextResponse.json(await new StripePayments(prisma).checkout(input,actor));
