@@ -312,6 +312,12 @@ model RotorMirrorRecord {
 }
 
 model Quote {
+ salesOwner AppUser? @relation(fields:[salesOwnerId],references:[id])
+ salesOwnerId String?
+ sourceLeadId String?
+ sourceLead Lead? @relation(fields:[sourceLeadId],references:[id])
+ salesAgreement ServiceAgreement?
+ @@index([salesOwnerId,sourceLeadId])
  issuerSnapshot Json?
  id String @id @default(cuid())
  customerId String
@@ -362,6 +368,8 @@ model ClientLink {
 }
 
 model AppUser {
+ salesFollowUps SalesFollowUp[]
+ salesQuotes Quote[]
  territories SalesTerritory[]
  agreements ServiceAgreement[]
  leads Lead[]
@@ -378,6 +386,8 @@ model AppUser {
  pins ProspectPin[]
 }
 model ProspectPin {
+ @@index([createdAt,id])
+ @@index([ownerId,createdAt,id])
  territoryId String?
  territory SalesTerritory? @relation(fields:[territoryId],references:[id])
  @@index([territoryId])
@@ -472,6 +482,8 @@ model SalesStage {
  @@unique([pipelineId, position])
 }
 model Lead {
+ salesAgreements ServiceAgreement[]
+ salesQuotes Quote[]
  id String @id @default(cuid())
  name String
  email String?
@@ -558,6 +570,13 @@ model RotorCustomerMapping {
  @@index([customerId])
 }
 model ServiceAgreement {
+ issuedAt DateTime?
+ sourceLeadId String?
+ sourceLead Lead? @relation(fields:[sourceLeadId],references:[id])
+ sourceQuoteId String? @unique
+ sourceQuote Quote? @relation(fields:[sourceQuoteId],references:[id])
+ submittedAt DateTime?
+ @@index([salesOwnerId,sourceLeadId])
  id String @id @default(cuid())
  contractId String @unique
  contract Contract @relation(fields:[contractId],references:[id])
@@ -664,6 +683,28 @@ model StripeCheckout {
  @@index([invoiceId])
 }
 
+model SalesFollowUp {
+ owner AppUser? @relation(fields:[ownerId],references:[id])
+ id String @id @default(cuid())
+ sourceKind String
+ sourceId String
+ reason String
+ sourceFingerprint String
+ ownerId String?
+ createdBy String
+ draft String
+ dueAt DateTime
+ status String @default("DRAFT")
+ version Int @default(1)
+ dedupeKey String @unique
+ approvedBy String?
+ approvedAt DateTime?
+ completionNote String?
+ closedAt DateTime?
+ createdAt DateTime @default(now())
+ @@index([ownerId,status,dueAt])
+}
+
 model RotorInboxMessage {
  customerId String?
  customer Customer? @relation(fields:[customerId],references:[id])
@@ -684,7 +725,6 @@ model RotorInboxMessage {
  @@index([phone,messageAt])
  @@index([customerId,messageAt])
 }
-
 model RotorSmsSyncControl {
  id String @id @default("rotor-sms")
  enabled Boolean @default(false)

@@ -1,5 +1,23 @@
 # Validation du CRM Proclair
 
+## Priorités des suivis OMEGA — 13 octobre 2026
+
+Compilation de production et contrôle TypeScript réussis. 65 tests serveur réussis, zéro échec ou test ignoré. Les tests ajoutés vérifient le report, les limites d'échéance, les droits, les versions, les restrictions, le maintien de l'approbation et la présence d'un suivi ouvert malgré 101 entrées clôturées. Un premier contrôle a été corrigé pour comparer les dates ISO normalisées avec leurs millisecondes ; la suite complète passe.
+
+Chromium sur la base séparée : 6 contrôles des suivis (recherche, échéance dépassée, report, filtres, compte rendu et accès compris) et 7 du parcours vendeur, soit 13 vérifications réussies sans erreur de page. Aucun contact externe ou paiement déclenché. Le serveur redémarré répond avec la base connectée. Aucune nouvelle migration ; statut Vercel et comptes fournisseurs non vérifiés.
+
+## Corrections des devis personnels — 13 octobre 2026
+
+Compilation de production réussie (contrôle TypeScript inclus). 64 tests serveur réussis, zéro échec ou test ignoré. Nouveau test : arrondis fiscaux exacts, champs interdits, permissions, restrictions de contact, réattribution, corrections concurrentes et course avec émission. Chromium : 7 contrôles du parcours vendeur et 5 des suivis OMEGA, soit 12 vérifications réussies sans erreur de page. Le prix corrigé est conservé jusqu'au contrat signé et son PDF ; aucun paiement déclenché. L'attente du rafraîchissement après émission a été ajoutée au test mobile après un premier échec d'assertion prématurée.
+
+Serveur redémarré, état de santé et connexion PostgreSQL vérifiés. Aucun changement de schéma. Le statut Vercel de production n'est pas vérifié depuis cette instance.
+
+## Suivis commerciaux OMEGA — 13 octobre 2026
+
+Compilation de production et TypeScript réussis. Suite serveur : 63 tests réussis, zéro échec ou test ignoré. Chromium sur base séparée : 5 contrôles des suivis, 6 du parcours vendeur, 8 V30 et 6 des contrats, soit 25 vérifications réussies sans erreur de page. Le parcours mobile vérifie l'absence de débordement horizontal ; les contrôles couvrent l'approbation, le compte rendu, l'isolement des vendeurs et l'interdiction de traiter un prospect devenu Ne pas contacter. Aucun contact externe ni paiement déclenché.
+
+Le serveur redémarré répond avec une base connectée. Migration additive appliquée aux bases locales principale et navigateur. La compilation et les tests locaux ne certifient pas le déploiement Vercel ni les comptes fournisseurs. Voir OMEGA_SUIVIS_VENTES.md.
+
 Validation initiale le 9 octobre 2026, complétée le 12 octobre pour Vercel. Résultats de cette instance ; aucune publication Vercel, restauration dans une nouvelle tâche ou fidélité Rotor certifiée.
 
 | Contrôle | Résultat réel |
@@ -152,3 +170,15 @@ Compilation finale Next.js et TypeScript réussis. Trois tests fournisseur passe
 ### Ergonomie générale, grande carte et supervision — 13 octobre 2026
 
 Suite serveur complète : **59 tests réussis, zéro ignoré**. Compilation finale Next.js et TypeScript réussis. Tests de pagination sur **2 201 portes d'un vendeur**, plus une porte étrangère, avec parcours complet sans doublon ni fuite d'affectation. Vérifications navigateur : **6 ergonomie**, **8 utilisateurs/carte**, **5 territoires**, **8 V30**, soit **27** ; aucune erreur de page. Le parcours ergonomie contrôle un compte OMEGA sans droit dispatch (application refusée HTTP 403), le choix cohérent des permissions, les liens mobiles autorisés, l'ouverture d'un client par recherche au clavier et le chargement de 101 pins en deux pages. Les fixtures de pagination navigateur sont supprimées par le test, dans sa base séparée uniquement. Contrôle des secrets, intégrité de la matrice 512 et `git diff --check` réussis. Aucun compte fournisseur activé, aucun autopilot et aucun import Rotor réel.
+
+### Parcours vendeur complet — 13 octobre 2026
+
+Suite serveur complète : **60 tests réussis, zéro ignoré**. Compilation finale de production et TypeScript réussis. Vérifications navigateur : **6 ventes vendeur**, **8 utilisateurs/carte**, **6 ergonomie**, **6 contrats existants**, **8 devis administratifs**, **7 prospects**, soit **41** vérifications distinctes réussies sans erreur de page. Le scénario vendeur sur téléphone part d'une porte, enregistre son prospect, émet un devis accepté dans le portail, préremplit le contrat avec les prix du devis, consigne sa signature, télécharge le PDF, transmet la vente et vérifie la création des visites PENDING par un responsable. Il contrôle également le pin Made Sale, le refus du CRM/registre financier pour le vendeur et le refus du PDF d'un autre vendeur.
+
+Les premiers essais ont révélé un bouton de rafraîchissement de carte dupliqué (retiré) et un classement par identifiant qui cachait une porte récente après la première page de 100. Le curseur utilise maintenant la date de création immuable et l'identifiant, avec index globaux et par propriétaire ; les tests de volume et utilisateurs ont été rejoués avec succès. Le test de navigation vendeur a été adapté pour contrôler explicitement ses trois rubriques autorisées, dont le nouvel espace Mes ventes. Aucun contrôle d'accès n'a été désactivé.
+
+Le test serveur vérifie le rapprochement de doublons sans création partielle, la reprise idempotente, la conservation des montants du devis accepté, l'interdiction Never Knock, le PDF privé, le transfert coordonné obligatoire, la signature avant transmission et la supervision avant création de passages. Après le dernier garde-fou contre le changement isolé du propriétaire d'un contrat lié, ce test ciblé et la compilation ont été rejoués avec succès. Santé locale après redémarrage : PostgreSQL connecté. Contrôle des secrets, intégrité des 512 capacités et diff Git réussis. Deux migrations additives appliquées aux bases locales concernées. Aucun mouvement d'argent, fournisseur contacté, import Rotor réel ou activation d'autopilot.
+
+### Carte : filtres serveur et groupes — 13 octobre 2026
+
+Compilation de production et TypeScript réussis. Suite serveur complète : **62 tests réussis, zéro ignoré**. Tests navigateur : **6 filtres/groupes**, **5 territoires**, **8 utilisateurs/carte**, soit **19** vérifications distinctes réussies, sans erreur de page. Le nouveau scénario recherche une porte hors des 100 premiers résultats, vérifie les statistiques filtrées, les dates, le chargement de la seconde page et l'agrandissement d'un groupe sans ouverture d'une nouvelle fiche. Le test PostgreSQL contrôle les propriétaires, les recherches littérales avec % et _, les catégories et la recherche hors première page. Calendrier testé sur le changement d'heure de Toronto. Données synthétiques dans des bases séparées, nettoyées pour le nouveau test navigateur. Aucun appel fournisseur, migration, changement de rôle ou d'argent.

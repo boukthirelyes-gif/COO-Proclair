@@ -106,3 +106,34 @@ La lecture native de la carte est paginée par lots de 100, avec total autorisé
 Toutes les rubriques autorisées sont accessibles par un menu mobile. La recherche globale se pilote avec les flèches et Entrée. Le formulaire des utilisateurs respecte les dépendances des permissions. Un compte possédant OMEGA sans dispatch ne peut plus appliquer une affectation ; le décompte des passages terminés utilise une agrégation PostgreSQL.
 
 Validation de cette tranche : 59 tests serveur, compilation de production et 27 vérifications navigateur réussis, sans erreur de page. Les tests de volume et parcours utilisent des données synthétiques séparées. La connexion aux fournisseurs, les imports Rotor réels et le statut Vercel de production demeurent non vérifiés depuis cette instance.
+
+## Suite : ventes personnelles depuis la porte — 13 octobre 2026
+
+Nouvel espace Mes ventes et droit sales.write : devis depuis son prospect, acceptation dans le portail existant, contrat prérempli du devis accepté, signature mobile et archive PDF existantes, puis transmission explicite à la planification. Étape Gagné et pin Made Sale actualisés sous contrôle de propriété. Aucun paiement, commission, confirmation ni rendez-vous attribué automatiquement. Les correspondances client exigent le rapprochement par un gestionnaire, sans écrasement de fiche.
+
+Comptes non administrateurs existants sans droit supplémentaire automatique. Activer le droit dans Utilisateurs pour un vendeur existant. Deux migrations additives ; anciens contrats, devis et API CRM conservés. Correction du curseur de carte pour préserver l'affichage des portes récentes. Voir PARCOURS_VENDEUR.md pour les limites, dont transferts coordonnés non proposés et listes de documents personnelles bornées à 100.
+
+Validation : 60 tests serveur, compilation de production, 41 vérifications navigateur distinctes, zéro erreur de page sur les parcours réussis. Aucune connexion fournisseur ni statut Vercel Ready vérifié ; publication GitHub et déploiement Vercel restent deux états distincts.
+
+## Suite : filtres serveur et groupes de pins — 13 octobre 2026
+
+Les filtres de carte natifs et compteurs sont maintenant calculés côté PostgreSQL sur tous les résultats autorisés. La recherche atteint les portes absentes de la première page, conserve la pagination et refuse l'accès à d'autres vendeurs sans map.all. Les pins natifs chargés peuvent être regroupés au dézoom et ouverts individuellement au zoom 18 ; le regroupement ne représente pas les portes encore non chargées. Aucun géocodage, itinéraire ou suivi continu des vendeurs. Rotor reste un calque distinct.
+
+Validation : compilation de production, 62 tests serveur et 19 vérifications navigateur réussis. Voir CARTE_FILTRES_GROUPES.md. Publication du code et statut Vercel Ready restent distincts ; aucun statut de production vérifié depuis cet environnement.
+## Suite : suivis de ventes supervisés — 13 octobre 2026
+
+OMEGA propose des suivis à partir des dossiers natifs existants, avec vue personnelle dans Mes ventes et supervision globale selon les permissions. Chaque proposition exige une approbation humaine et un compte rendu manuel ; le dossier, sa version et les restrictions sont revérifiés. Aucun envoi, paiement, transmission ou planification automatique. Voir OMEGA_SUIVIS_VENTES.md pour les limites de volume et les dates historiques inconnues.
+
+Validation : compilation de production, 63 tests serveur et 25 vérifications navigateur réussis sans erreur de page. Serveur redémarré et base connectée. Le statut Vercel Ready et les connexions fournisseurs restent non vérifiés.
+
+## Suite : correction des devis personnels — 13 octobre 2026
+
+Les vendeurs peuvent corriger leurs devis brouillons dans Mes ventes, avec recalcul serveur des taxes et montants, audit et contrôle du propriétaire actuel. Les devis émis restent figés ; émission, accord, contrat, signature et transmission conservent leurs actions distinctes. Aucune migration ou nouvelle clé. Voir DEVIS_PERSONNELS_CORRECTIONS.md.
+
+Validation : compilation de production, 64 tests serveur et 12 vérifications navigateur réussis, sans erreur de page sur les parcours terminés. Serveur redémarré et base connectée. La publication GitHub ne certifie pas le déploiement Vercel.
+
+## Suite : priorités et échéances OMEGA — 13 octobre 2026
+
+Les suivis ouverts sont chargés avant l'historique et triés par échéance. Recherche, filtres d'état et compteurs sur les éléments chargés aident les vendeurs à trouver les suivis à traiter. Le report manuel d'une échéance conserve son approbation et vérifie dossier, droits et version ; échéances avant/après auditées. Les comptes rendus sont consultables dans les suivis clôturés. Voir OMEGA_SUIVIS_VENTES.md pour les limites.
+
+Validation : compilation de production, 65 tests serveur et 13 vérifications navigateur réussis sans erreur de page. Aucun contact externe, paiement ou rendez-vous exécuté par ces actions. Aucune migration ou nouvelle clé. Publication GitHub et statut Vercel Ready restent distincts.

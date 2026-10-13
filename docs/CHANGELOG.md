@@ -1,3 +1,35 @@
+## Priorités des suivis OMEGA — 2026-10-13
+
+- Suivis ouverts chargés avant l'historique, classement par échéance et repérage des retards.
+- Recherche sans distinction de casse ou accents, filtres d'état et compteurs explicites sur la liste chargée.
+- Report manuel d'échéance conservant l'approbation, contrôlé par version, dossier et permissions ; audit avant/après.
+- Consultation des comptes rendus clôturés. Aucun envoi, paiement ou rendez-vous automatique.
+- Aucune migration ou nouvelle clé API. Voir OMEGA_SUIVIS_VENTES.md.
+
+## Corrections des devis personnels — 2026-10-13
+
+- Édition des services, quantités, prix, taxes et validité d'un brouillon dans Mes ventes.
+- Recalcul serveur en cents, versions concurrentes et propriétaire actuel contrôlés, historique avant/après.
+- Devis émis immuables ; émission, accord, contrat et signature restent des actions distinctes.
+- Aucune migration ou nouvelle variable d'environnement. Voir DEVIS_PERSONNELS_CORRECTIONS.md.
+
+## Carte : recherche serveur et groupes de portes — 2026-10-13
+
+- Filtres PostgreSQL avant pagination : recherche, état, catégorie, vendeur, territoire et dates de Toronto.
+- Compteurs exacts pour tous les résultats autorisés ; réponses de filtres précédents ignorées.
+- Regroupement des pins natifs chargés au dézoom, agrandissement au clic et retour aux portes individuelles au zoom 18.
+- Aucun changement des droits, contrats, règles Never Knock ou calques Rotor.
+- Voir CARTE_FILTRES_GROUPES.md pour l'utilisation et les limites.
+
+## Parcours vendeur natif — 2026-10-13
+
+- Mes ventes : devis et contrats depuis ses propres prospects, droit sales.write distinct de l'accès global CRM.
+- Portails existants pour acceptation du devis, signature mobile et PDF archivé du contrat ; liaison au devis accepté avec conservation des totaux.
+- Création client/site transactionnelle sans écrasement ; correspondances nécessitant le rapprochement d'un gestionnaire.
+- Transmission explicite des ventes signées, étape Gagné et pin Made Sale sous contrôle du propriétaire ; passages créés séparément par un responsable.
+- Migration additive ; comptes non administrateurs existants sans élévation automatique de permissions.
+- Voir PARCOURS_VENDEUR.md pour l'utilisation et les limites.
+
 ## Ergonomie CRM et accès — 2026-10-13
 
 - Carte native paginée par lots de 100 : le volume global supérieur à 2 000 portes ne bloque plus son ouverture ; compteurs limités aux portes chargées et actualisation dédiée.
@@ -53,3 +85,10 @@ Code de branche, sans preuve de publication distante. Voir PROCLAIR_V30_OVERNIGH
 - Surveillance quotidienne de découverte MCP, désactivée par défaut, avec bail PostgreSQL. PR de dépendances proposées par Dependabot.
 
 Cette entrée décrit le code de branche. Elle ne constitue pas une preuve de fusion ou de production. Les accès réels Rotor, Stripe, SMS, le fond de carte dans Codex et la fidélité des écrans privés demeurent limités comme indiqué dans INTEGRATION_LIMITATIONS.md.
+## OMEGA : suivis commerciaux supervisés — 2026-10-13
+
+- Propositions pour rappels échus, devis en attente, signatures et ventes à transmettre ou préparer.
+- Espace personnel dans Mes ventes et supervision globale selon les droits existants.
+- Brouillon, approbation humaine, compte rendu manuel et rejet ; versions, propriétaire et restrictions revérifiés à chaque étape.
+- Aucun message, paiement ou rendez-vous exécuté par ce module ; migration additive et aucune nouvelle clé API.
+- Voir OMEGA_SUIVIS_VENTES.md pour les limites et le déploiement.

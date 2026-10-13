@@ -1,5 +1,7 @@
-import {providerStatus} from '@/providers/config';
+import {SalesFollowUps} from '@/omega/sales-followups';
+import {SellerQuotes} from '@/sales/seller-quotes';
 import {RotorInboxService} from '@/lib/rotor-inbox';
+import {providerStatus} from '@/providers/config';
 import {Communications} from '@/providers/twilio';
 import {StripePayments} from '@/providers/stripe';
 import {TerritoryService} from '@/prospecting/territories';
@@ -49,8 +51,8 @@ const rotorPromotion=new RotorCustomerPromotion(prisma);
 const rotorImports=new RotorImportService(prisma);
 const registry=new RotorCapabilityRegistry(prisma);
 const rotorMap=new RotorMapService(prisma);
-const rotorMonitor=new RotorMonitor(prisma);
 const rotorInbox=new RotorInboxService(prisma);
+const rotorMonitor=new RotorMonitor(prisma);
 const users=new UserService(prisma);
 const territories=new TerritoryService(prisma);
 const prospecting=new ProspectingService(prisma);
@@ -113,6 +115,11 @@ export async function GET(request: NextRequest) {
     const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
+    if(path==='sales/followups'||path==='omega/sales-followups')return NextResponse.json(await new SalesFollowUps(prisma).board(actor));
+    if(path==='sales/options')return NextResponse.json(await agreements.sellerOptions(actor));
+    if(path==='sales/contracts')return NextResponse.json(await agreements.sellerList(actor));
+    if(path==='sales/quotes')return NextResponse.json(await new SellerQuotes(prisma).list(actor));
+    if(/^sales\/contracts\/[^/]+\/pdf$/.test(path)){const pdf=await agreements.pdf(path.split('/')[2],actor);return new NextResponse(new Uint8Array(pdf.pdfBytes!),{headers:{'Content-Type':'application/pdf','Content-Disposition':'inline; filename=proclair-contract.pdf','Cache-Control':'private, no-store'}});}
     if(path==='integrations/rotor/messages/auto')return NextResponse.json(await rotorInbox.autoStatus(actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='integrations/rotor/messages/followups')return NextResponse.json(await rotorInbox.followups(actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='integrations/rotor/messages')return NextResponse.json(await rotorInbox.list(actor,{phone:request.nextUrl.searchParams.get('phone')||undefined,q:request.nextUrl.searchParams.get('q')||undefined,page:Number(request.nextUrl.searchParams.get('page')||1)}),{headers:{'Cache-Control':'private, no-store'}});
@@ -137,7 +144,7 @@ export async function GET(request: NextRequest) {
     if(path==='integrations/rotor/pins'){const rows=await prisma.rotorMapPin.findMany({take:2000,orderBy:{syncedAt:'desc'}}),ids=rows.map(p=>p.customerExternalId).filter((v):v is string=>Boolean(v));const [native,mirrored]=await Promise.all([prisma.customer.findMany({where:{rotorExternalId:{in:ids}},select:{id:true,name:true,rotorExternalId:true}}),prisma.rotorMirrorRecord.findMany({where:{kind:'CUSTOMER',externalId:{in:ids}},select:{externalId:true,name:true}})]);const pins=rows.map(p=>({...p,customerReference:p.customerExternalId?{externalId:p.customerExternalId,nativeId:native.find(c=>c.rotorExternalId===p.customerExternalId)?.id??null,name:native.find(c=>c.rotorExternalId===p.customerExternalId)?.name??mirrored.find(c=>c.externalId===p.customerExternalId)?.name??null}:null}));if(Buffer.byteLength(JSON.stringify(pins))>3500000)throw new DomainError('MAP_TOO_LARGE','Le miroir nécessite une recherche paginée plus précise.',413);return NextResponse.json(pins);}
     if(path==='territories')return NextResponse.json(await territories.list(actor));
     if(path==='users')return NextResponse.json(await users.list(actor));
-    if(path==='prospecting')return NextResponse.json(await prospecting.list(actor,request.nextUrl.searchParams.get('after')));
+    if(path==='prospecting')return NextResponse.json(await prospecting.list(actor,request.nextUrl.searchParams.get('after'),Object.fromEntries([...request.nextUrl.searchParams].filter(([name])=>name!=='after'))));
     if(/^prospecting\/[^/]+\/history$/.test(path))return NextResponse.json(await prospecting.history(path.split('/')[1],actor));
     if(path==='settings/business')return NextResponse.json(await prisma.businessProfile.findUnique({where:{id:'proclair'}}));
     if(path==='export/native')return new NextResponse(await nativeExport(prisma),{headers:{'Content-Type':'application/json; charset=utf-8','Content-Disposition':'attachment; filename="proclair-export-'+new Date().toISOString().slice(0,10)+'.json"','Cache-Control':'private, no-store'}});
@@ -206,6 +213,16 @@ async function mutate(request: NextRequest) {
     const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
+    if(/^sales\/contracts\/[^/]+$/.test(path)&&request.method==='PATCH')return NextResponse.json(await agreements.updateDraft(path.split('/')[2],input,actor));
+    if(/^sales\/contracts\/[^/]+\/revoke$/.test(path)&&request.method==='POST')return NextResponse.json(await agreements.revoke(path.split('/')[2],actor));
+    if(['sales/followups','omega/sales-followups'].includes(path)&&request.method==='POST')return NextResponse.json(await new SalesFollowUps(prisma).propose(input,actor),{status:201});
+    if(/^(sales\/followups|omega\/sales-followups)\/[^/]+$/.test(path)&&request.method==='PATCH')return NextResponse.json(await new SalesFollowUps(prisma).review(path.split('/')[2],input,actor));
+    if(path==='sales/contracts'&&request.method==='POST')return NextResponse.json(await agreements.createFromLead(input,actor),{status:201});
+    if(path==='sales/quotes'&&request.method==='POST')return NextResponse.json(await new SellerQuotes(prisma).create(input,actor),{status:201});
+    if(/^sales\/quotes\/[^/]+$/.test(path)&&request.method==='PATCH')return NextResponse.json(await new SellerQuotes(prisma).edit(path.split('/')[2],input,actor));
+    if(/^sales\/quotes\/[^/]+\/issue$/.test(path)&&request.method==='POST')return NextResponse.json(await new SellerQuotes(prisma).issue(path.split('/')[2],input,actor));
+    if(/^sales\/contracts\/[^/]+\/issue$/.test(path)&&request.method==='POST')return NextResponse.json(await agreements.issue(path.split('/')[2],input,actor));
+    if(/^sales\/contracts\/[^/]+\/submit$/.test(path)&&request.method==='POST')return NextResponse.json(await agreements.submit(path.split('/')[2],input,actor));
     if(path==='integrations/rotor/messages/auto'&&request.method==='POST')return NextResponse.json(await rotorInbox.configureAuto(input,actor));
     if(path==='integrations/rotor/messages/sync'&&request.method==='POST')return NextResponse.json(await rotorInbox.sync(input,actor));
     if(path==='integrations/communications/consent'&&request.method==='POST')return NextResponse.json(await new Communications(prisma).consent(input,actor));
