@@ -13,12 +13,15 @@ export async function omegaAssistant(db:PrismaClient,input:unknown,actor:AccessA
  else if(/restant|non servi/.test(q)){const contracts=await db.contract.findMany({where:{active:true},take:1001,select:{id:true,name:true,totalVisits:true,customerId:true,_count:{select:{visits:{where:{status:'COMPLETED'}}}}}});if(contracts.length>1000)throw new DomainError('OMEGA_SCOPE_TOO_LARGE','Filtrez les contrats avant cette analyse.',413);const rows=contracts.map(c=>({...c,remaining:Math.max(0,c.totalVisits-c._count.visits)})).filter(c=>c.remaining>0);response={...response,intent:'REMAINING_VISITS',answer:`${rows.length} contrat(s) actif(s) ont des passages restants selon les réalisations enregistrées. Ce calcul n’indique pas un encaissement.`,rows:rows.slice(0,20).map(c=>({id:c.id,label:c.name,detail:c.remaining+' passage(s) restant(s)',view:'contracts',customerId:c.customerId})),limited:rows.length>20}}
  else if(/rempl|route|planif/.test(q)){response={...response,intent:'PREPARE_PLAN',answer:'Je peux préparer une proposition pour les visites déjà confirmées. Le plan respecte les capacités et horaires ; les trajets utilisent encore une marge fixe, sans fournisseur de routage. Choisissez la date puis préparez le plan ci-dessous. L’application exigera votre approbation.',rows:[],action:'PREVIEW_PLAN'}}
  else if(/sms|texto|message texte|messages? clients?|suivis? sms/.test(q)){
-   requirePermission(actor,'integrations');
+   if(!actor.permissions.includes('integrations')){
+    response={...response,intent:'NOT_CONNECTED',answer:'Accès aux SMS Rotor non autorisé pour ce rôle. Aucune conversation consultée ni réponse envoyée.',rows:[]};
+   }else{
    const review=await new RotorInboxService(db).followups(actor);
    response={...response,intent:'ROTOR_SMS_FOLLOWUPS',
     answer:review.items.length+' conversation(s) dont le dernier SMS importé est entrant. Vérifiez le contexte dans Rotor avant toute réponse. Ces propositions ne confirment pas une visite et aucun SMS n’a été envoyé.',
     rows:review.items.map(item=>({id:item.customerId||item.externalId,label:item.customerName||item.phone||'Numéro non fourni',detail:item.body.slice(0,140),view:item.customerId?'customers':'integrations',customerId:item.customerId||undefined})),
     limited:review.partial||review.items.length>=20};
+   }
  }
  else if(/sms|appel|courriel|commission|retouche/.test(q)){response={...response,intent:'NOT_CONNECTED',answer:'Cette demande nécessite un module ou un fournisseur qui n’est pas connecté pour cette action. Aucun message, appel, paiement ou calcul de commission exécuté.',rows:[]}}
  else response={...response,intent:'HELP',answer:'Choisissez une demande ci-dessous. Cet assistant utilise des requêtes métier déterministes sur les données réelles ; aucun modèle de langage n’est connecté.',rows:[]};
