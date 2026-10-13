@@ -145,3 +145,9 @@ Centre de transfert CSV natif en tête d'Intégrations : colonnes associées exp
 Les changements GitHub de la période annuelle et des diagnostics PostgreSQL sont conservés. Le lecteur et une migration additive alignent toutes les limites de staging à 366 jours. Voir TRANSFERT_ROTOR.md et STRIPE_TWILIO.md pour les permissions, variables et limites.
 
 Validation : compilation, 74 tests serveur et 62 contrôles navigateur distincts réussis sur cette tranche ; les 17 contrôles CSV/fournisseurs sont répétés sur le build final. Aucun contact, prélèvement ou paiement natif créé par ces imports. Migration locale appliquée et serveur redémarré. Aucun import réel ni compte fournisseur vérifié. L'accès à Vercel reste refusé par le proxy : publication GitHub et production Ready demeurent distinctes.
+
+## Suite : contrôle du transfert et historique par client — 13 octobre 2026
+
+Le centre de transfert affiche les clients en staging, rapprochés, à rapprocher et modifiés depuis la correspondance. Les statistiques financières réservées aux comptes autorisés repèrent les références client non résolues et les factures source absentes de l'archive. Les fiches clients autorisées disposent d'un onglet Historique Rotor, avec leur pagination et leurs correspondances existantes. Aucun paiement comptable ou transfert de fonds effectué ; compteurs limités aux données enregistrées, sans certification de complétude Rotor.
+
+Validation : compilation, 74 tests serveur et 25 contrôles navigateur réussis, zéro erreur de page. Serveur redémarré et base connectée. Aucune nouvelle migration ou clé requise ; production Vercel et connexion réelle Rotor non vérifiées.

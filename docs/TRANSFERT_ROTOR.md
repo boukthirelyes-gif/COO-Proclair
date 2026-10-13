@@ -46,3 +46,13 @@ Les adaptateurs OAuth existants lisent clients, jobs et visites en staging ; les
 ## Import annuel en lecture OAuth
 
 La période des imports reprenables peut atteindre 366 jours. La validation du service, du lecteur MCP et la contrainte PostgreSQL utilisent la même limite ; la migration annuelle conserve tous les imports existants. La période sélectionnée est transmise pour les visites ; clients et jobs restent paginés indépendamment de cette période. Les schémas annoncés par Rotor restent vérifiés et peuvent imposer des restrictions supplémentaires. Cette capacité ne prouve pas qu'une année de données réelle a été transférée.
+
+## Contrôle de la migration et dossier client
+
+Le centre de transfert affiche les compteurs de tous les clients présents dans le miroir : identifiants en staging, correspondances approuvées, clients restant à rapprocher et sources modifiées depuis la dernière correspondance. Ces compteurs proviennent d'une lecture PostgreSQL cohérente, sans limitation aux vingt derniers exports ou à une page d'échantillon. Le rapprochement d'un client depuis le centre actualise le tableau ; un bouton permet aussi une actualisation manuelle.
+
+Avec le droit Finances, un contrôle séparé compte les factures et paiements archivés, les références client sans correspondance native, les identifiants client manquants et les paiements dont la facture source n'est pas présente dans l'archive. Sans Finances, aucune de ces statistiques financières n'est renvoyée. Les correspondances directes d'anciens clients natifs portant l'identifiant Rotor sont également reconnues dans ce contrôle financier.
+
+Dans une fiche client, l'onglet **Historique Rotor** affiche ses factures et paiements archivés, par les identifiants Rotor directement attachés à la fiche ou les correspondances approuvées. Cet onglet exige le droit Finances et conserve la pagination de cinquante références. Les rubriques du dossier sont désormais libellées en français. Les montants demeurent historiques et ne changent pas le registre comptable.
+
+Le rapport précise sa date de calcul à Toronto. Un lot terminé ou tous les clients rapprochés ne certifient pas que tous les objets et toutes les périodes de Rotor ont été transférés. Aucune nouvelle migration ou clé n'est nécessaire pour ce contrôle.

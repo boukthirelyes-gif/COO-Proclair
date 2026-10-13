@@ -1,5 +1,11 @@
 # Validation du CRM Proclair
 
+## Contrôle de la migration et historique client — 13 octobre 2026
+
+Compilation de production et TypeScript réussis. Suite finale : 74 tests serveur réussis, zéro échec ou test ignoré. Le test d'import couvre désormais les compteurs sur les données stockées, les sources modifiées, les références financières manquantes, les correspondances natives et le masquage des statistiques financières sans permission. La qualification des tables SQL a été corrigée après un premier échec dans le schéma de test isolé ; production publique et schémas de tests sont explicitement séparés.
+
+Chromium : 8 contrôles d'import CSV et dossier client, 8 V30 et 9 de connexion Rotor, soit 25 vérifications réussies sans erreur de page. Le rapprochement actualise les compteurs ; le dossier affiche ses deux paiements historiques en conservant zéro facture et paiement natifs pour cette fixture. Tests uniquement sur base navigateur séparée. Serveur redémarré et base connectée ; aucun nouveau schéma ou secret requis. Connexions réelles et statut Vercel restent non vérifiés.
+
 ## Centre de transfert Rotor et connexions Stripe/Twilio — 13 octobre 2026
 
 Compilation de production et TypeScript réussis après intégration des trois commits GitHub apparus pendant le travail. Suite finale : 74 tests serveur réussis, zéro échec ou test ignoré. Tests ajoutés : CSV et colonnes sélectionnées, montants signés exacts, dates Toronto, permissions, doublons/reprises, conflits atomiques, rapprochement client, pagination, export métier, vérification des fournisseurs sans fuite de secrets, refus d'identifiants distinct des pannes réseau, période annuelle de 366 jours et garde PostgreSQL.

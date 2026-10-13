@@ -10,6 +10,7 @@ import {parseExportCsv,mapExportRows} from '../src/lib/rotor-export-file';
 import {RotorFileImports} from '../src/lib/rotor-file-import';
 import {RotorCustomerPromotion} from '../src/lib/rotor-customer-promotion';
 import {nativeExport} from '../src/lib/native-export';
+import {rotorMigrationOverview} from '../src/lib/rotor-migration-overview';
 const {Client}=createRequire(import.meta.url)('pg');
 test('mapped CSV preserves quotes and source IDs while excluding unselected sensitive columns',()=>{
  const file=parseExportCsv('\uFEFFid;name;email;notes;auth_token\r\n001;"Alpha; buyer";alpha@example.test;"Two\nlines and ""quotes""";private-value\r\n',';');
@@ -53,5 +54,10 @@ test('file migration stages reviewed customers and immutable financial history w
   const limited=await service.history({...actor,permissions:actor.permissions.filter(p=>p!=='finance')});assert.ok(limited.batches.every(b=>b.kind==='CUSTOMER'));
   const exported=JSON.parse(await nativeExport(db));assert.equal(exported.data.rotorFinancialArchives.length,58);assert.equal(exported.data.rotorFileImports.length,4);
   assert.equal(await db.invoice.count(),0);assert.equal(await db.payment.count(),0);assert.equal(await db.visit.count(),0);assert.equal(await db.auditEvent.count({where:{action:'ROTOR_FILE_IMPORTED'}}),4);
+  let overview=await rotorMigrationOverview(db,actor,schema);assert.deepEqual(overview.customers,{staged:2,linked:1,pendingReview:1,sourceConflicts:0});assert.equal(overview.scope,'STORED_DATA_ONLY');assert.equal(overview.transferComplete,false);assert.equal(overview.runs.COMPLETE,1);assert.equal(overview.financial!.PAYMENT.total,57);assert.equal(overview.financial!.PAYMENT.unmatchedCustomers,1);assert.equal(overview.financial!.PAYMENT.missingCustomerReference,0);assert.equal(overview.financial!.PAYMENT.missingInvoice,0);assert.equal(overview.financial!.INVOICE.total,1);
+  const withoutFinance=await rotorMigrationOverview(db,{...actor,permissions:actor.permissions.filter(p=>p!=='finance')},schema);assert.equal(withoutFinance.financial,null);await assert.rejects(()=>rotorMigrationOverview(db,{...actor,permissions:presets.SELLER},schema),{code:'FORBIDDEN'});
+  await db.rotorMirrorRecord.update({where:{kind_externalId:{kind:'CUSTOMER',externalId:'0001'}},data:{contentHash:'changed-fixture'}});overview=await rotorMigrationOverview(db,actor,schema);assert.equal(overview.customers.sourceConflicts,1);assert.equal(overview.customers.linked,1);assert.equal((await db.customer.findUniqueOrThrow({where:{id:native.customerId}})).name,customer.name);
+  await db.rotorFinancialArchive.update({where:{kind_externalId:{kind:'PAYMENT',externalId:'pay-2'}},data:{invoiceExternalId:'missing-invoice'}});await db.rotorFinancialArchive.update({where:{kind_externalId:{kind:'PAYMENT',externalId:'bulk-0'}},data:{customerExternalId:null}});overview=await rotorMigrationOverview(db,actor,schema);assert.equal(overview.financial!.PAYMENT.missingInvoice,1);assert.equal(overview.financial!.PAYMENT.missingCustomerReference,1);assert.equal(overview.financial!.PAYMENT.unmatchedCustomers,1);
+
  }finally{await db.$disconnect();await setup.query(`DROP SCHEMA "${schema}" CASCADE`);await setup.end()}
 });

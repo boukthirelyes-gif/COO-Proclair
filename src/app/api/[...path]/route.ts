@@ -1,3 +1,4 @@
+import {rotorMigrationOverview} from '@/lib/rotor-migration-overview';
 import {verifyProvider} from '@/providers/verification';
 import {RotorFileImports} from '@/lib/rotor-file-import';
 import {SalesFollowUps} from '@/omega/sales-followups';
@@ -145,6 +146,7 @@ export async function GET(request: NextRequest) {
     if(/^prospecting\/[^/]+$/.test(path))return NextResponse.json(await prospecting.get(path.split('/')[1],actor));
     if(path==='system/health')return NextResponse.json(await systemHealth(prisma));
     if(path==='system/parity')return NextResponse.json(parity);
+    if(path==='integrations/rotor/migration-overview')return NextResponse.json(await rotorMigrationOverview(prisma,actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='integrations/rotor/files')return NextResponse.json(await new RotorFileImports(prisma).history(actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='finance/rotor/archive')return NextResponse.json(await new RotorFileImports(prisma).archive(actor,Object.fromEntries(request.nextUrl.searchParams)),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='integrations/rotor/imports')return NextResponse.json(await rotorImports.list(actor),{headers:{'Cache-Control':'private, no-store'}});

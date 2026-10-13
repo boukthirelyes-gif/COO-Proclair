@@ -1,3 +1,11 @@
+## Contrôle de la migration et historique client — 2026-10-13
+
+- Compteurs PostgreSQL cohérents sur tous les clients du miroir : staging, rapprochements, attente et sources modifiées.
+- Contrôle des archives financières selon les droits : références client non rapprochées, identifiants absents et factures source manquantes.
+- Actualisation après rapprochement et onglet Historique Rotor dans les fiches clients autorisées à consulter les finances.
+- Rubriques du dossier en français. Aucun changement du registre comptable ou des droits, aucune migration ou clé supplémentaire.
+- Voir TRANSFERT_ROTOR.md ; les compteurs ne certifient pas le transfert complet des données de la source.
+
 ## Interface de migration Rotor et vérification des fournisseurs — 2026-10-13
 
 - Centre de transfert CSV en tête d'Intégrations, étapes visibles, association explicite des colonnes, aperçu et conflits bloquants.
