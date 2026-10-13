@@ -68,3 +68,11 @@ Tests : `tests/providers.test.ts` (signatures et stockage PostgreSQL) et `tests/
 La carte de connexion signale les formats SID/numéro incorrects et les clés Stripe incompatibles, sans exposer leurs valeurs. Un bouton actualise le diagnostic et les adresses de webhooks peuvent être copiées. L'état d'activation SMS exige une configuration complète ; une destination vocale incorrecte désactive le transfert affiché sans désactiver le diagnostic SMS. Cette validation de forme ne prouve pas une authentification auprès du fournisseur.
 
 L'historique affiche les dates dans le fuseau America/Toronto et les états en français. La recherche filtre aussi les appels. Le retrait explicite du consentement est disponible avec une preuve saisie ; la protection STOP demeure applicable.
+
+### Vérification des comptes depuis le CRM
+
+Dans Intégrations, **Tester la connexion Stripe** lit le compte propriétaire de la clé `sk_test_…` avec le SDK officiel. **Tester la connexion Twilio** lit l'état du compte et, si un numéro valide est configuré, vérifie sa présence dans ce compte. Ces lectures ne créent aucun Checkout, SMS, appel ou débit. Aucun identifiant complet, jeton ni contenu d'erreur du SDK n'est renvoyé au navigateur.
+
+La vérification nécessite `integrations`. Elle peut fonctionner avant la configuration du webhook ou de l'origine publique si les identifiants nécessaires sont présents. Son résultat est daté dans le fuseau Toronto et ne remplace pas la réception d'un événement signé : les webhooks restent affichés comme non vérifiés. L'état suspendu/fermé et un numéro absent sont signalés sans activer automatiquement les envois. Le résultat visible est effacé à l'actualisation de la configuration.
+
+Une réponse 401/403 signifie un refus d'identifiants ; une erreur réseau ou fournisseur ne confirme aucun résultat d'authentification. Les journaux contiennent uniquement le fournisseur, l'issue et l'acteur, sans erreur privée. Sans clés, le contrôle reste indisponible et les noms de variables à configurer sont affichés. Les clés doivent être ajoutées dans Vercel, puis le projet redéployé. Les comptes réels n'ont pas été vérifiés dans cet environnement.

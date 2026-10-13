@@ -1,0 +1,19 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {bootstrapActor,presets} from '../src/lib/access';
+import {verifyProvider,type ProviderReader} from '../src/providers/verification';
+const names=['STRIPE_SECRET_KEY','TWILIO_ACCOUNT_SID','TWILIO_AUTH_TOKEN','TWILIO_PHONE_NUMBER'];
+function environment(values:Record<string,string>){const old=Object.fromEntries(names.map(n=>[n,process.env[n]]));for(const n of names)delete process.env[n];Object.assign(process.env,values);return()=>{for(const n of names)if(old[n]===undefined)delete process.env[n];else process.env[n]=old[n]}}
+test('connection checks enforce access and never read accounts with missing or live Stripe credentials',async()=>{
+ const restore=environment({});let calls=0;const reader:ProviderReader=async()=>{calls++;return {reference:'acct_fixture'}};
+ try{await assert.rejects(()=>verifyProvider({provider:'stripe'},{...bootstrapActor,permissions:presets.SELLER},reader),{code:'FORBIDDEN'});assert.equal((await verifyProvider({provider:'stripe'},bootstrapActor,reader)).outcome,'NOT_CONFIGURED');assert.equal((await verifyProvider({provider:'twilio'},bootstrapActor,reader)).outcome,'NOT_CONFIGURED');process.env.STRIPE_SECRET_KEY='sk_live_fixture_not_real';assert.equal((await verifyProvider({provider:'stripe'},bootstrapActor,reader)).outcome,'NOT_CONFIGURED');assert.equal(calls,0);await assert.rejects(()=>verifyProvider({provider:'stripe',secret:'unwanted'},bootstrapActor,reader));}finally{restore()}
+});
+test('Stripe authentication is distinct from webhook verification and never exposes account details or secrets',async()=>{
+ const restore=environment({STRIPE_SECRET_KEY:'sk_test_fixture_not_real'});try{const result=await verifyProvider({provider:'stripe'},bootstrapActor,async()=>({reference:'acct_fixture1234'}));assert.equal(result.authenticated,true);assert.equal(result.outcome,'VERIFIED');assert.equal(result.accountReference,'…1234');assert.equal(result.webhooksVerified,false);assert.equal(result.externalEffects,false);assert.equal(result.mode,'TEST_ONLY');assert.ok(!JSON.stringify(result).includes('sk_test_'));assert.ok(!JSON.stringify(result).includes('acct_fixture'));}finally{restore()}
+});
+test('Twilio account verification preserves sender ownership and suspended account status without enabling sends',async()=>{
+ const restore=environment({TWILIO_ACCOUNT_SID:'AC'+'a'.repeat(32),TWILIO_AUTH_TOKEN:'fixture-token-not-real'});try{const result=await verifyProvider({provider:'twilio'},bootstrapActor,async()=>({reference:process.env.TWILIO_ACCOUNT_SID!,status:'suspended',senderVerified:false}));assert.equal(result.authenticated,true);assert.equal(result.accountStatus,'suspended');assert.equal(result.senderVerified,false);assert.equal(result.externalEffects,false);assert.equal(result.webhooksVerified,false);assert.ok(!JSON.stringify(result).includes('fixture-token'));}finally{restore()}
+});
+test('authentication refusals and transient failures return safe, distinct outcomes',async()=>{
+ const restore=environment({STRIPE_SECRET_KEY:'sk_test_fixture_not_real'});try{const refused=await verifyProvider({provider:'stripe'},bootstrapActor,async()=>{throw Object.assign(Error('private SDK payload sk_test_fixture_not_real'),{statusCode:401})});assert.equal(refused.outcome,'REJECTED');assert.equal(refused.authenticated,false);const unavailable=await verifyProvider({provider:'stripe'},bootstrapActor,async()=>{throw Error('private SDK payload sk_test_fixture_not_real')});assert.equal(unavailable.outcome,'UNAVAILABLE');assert.equal(unavailable.authenticated,null);const malformed=await verifyProvider({provider:'stripe'},bootstrapActor,async()=>({reference:'not-an-account'}));assert.equal(malformed.outcome,'UNAVAILABLE');assert.ok(!JSON.stringify([refused,unavailable,malformed]).includes('private SDK payload'));assert.ok(!JSON.stringify([refused,unavailable,malformed]).includes('sk_test_fixture'));}finally{restore()}
+});

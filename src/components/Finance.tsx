@@ -1,6 +1,7 @@
 'use client';
 import ClientLink from './ClientLink';
 import Expenses from './Expenses';
+import RotorFinancialHistory from './RotorFinancialHistory';
 import { useEffect, useRef, useState } from 'react';
 type Row = Record<string, any>;
 type Item = {description:string;quantity:string;unitPriceCents:string;taxRateBps:string};
@@ -24,7 +25,7 @@ export default function Finance({customers,contracts,view='invoices',onChange,cu
  const customerName=(id:string)=>customers.find(c=>c.id===id)?.name||id;
  const invoice=eligible.find(i=>i.id===selected);
  const draftTotal=(()=>{try{let total=0n;for(const i of items){if(!/^\d+$/.test(i.quantity)||!/^\d+$/.test(i.unitPriceCents)||!/^\d+(?:\.\d{1,3})?$/.test(i.taxRateBps))return null;const q=BigInt(i.quantity),price=BigInt(i.unitPriceCents),tax=BigInt(Math.round(Number(i.taxRateBps)*1000));if(q<1n||q>2147483647n||price>2147483647n||tax>10000000n)return null;const base=q*price;total+=base+(base*tax+5000000n)/10000000n;if(total>2147483647n)return null;}return Number(total)}catch{return null}})();
- return <div aria-busy={busy||loading}>{error&&<div className="notice" role="alert">{error}</div>}{success&&<div className="notice success" role="status">{success}</div>}{loading?<section className="panel"><p role="status">Chargement des finances…</p></section>:<>
+ return <div aria-busy={busy||loading}>{!loading&&['invoices','payments'].includes(view)&&<RotorFinancialHistory kind={view==='payments'?'PAYMENT':'INVOICE'} customerId={customerFilterId}/>}{error&&<div className="notice" role="alert">{error}</div>}{success&&<div className="notice success" role="status">{success}</div>}{loading?<section className="panel"><p role="status">Chargement des finances…</p></section>:<>
  {focused&&<section className="panel" aria-label="Facture sélectionnée"><h2>{focused.number||'Facture brouillon'}</h2><p>{focused.customer?.name} · {labels[focused.status]}</p><strong>{money(focused.totalCents)} · Solde {money(focused.balanceCents)}</strong><p><a href={'/api/invoices/'+focused.id+'/print'} target="_blank" rel="noopener noreferrer">Ouvrir le document de cette facture</a></p></section>}
  {customerFilterId&&<p role="status">Factures du client : <strong>{customerName(customerFilterId)}</strong>. Pour afficher tous les clients, ouvrez Factures dans le menu.</p>}
  <div className="toolbar"><p>CAD · Les paiements sont enregistrés manuellement. Aucun débit bancaire ni envoi de facture.</p><button disabled={busy} onClick={()=>refresh().catch(e=>setError(e.message))}>Actualiser les finances</button></div>

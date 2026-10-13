@@ -70,8 +70,7 @@ export default function Home() {
  {tab==='settings'&&<BusinessSettings/>}
  {tab==='data'&&<DataPortability/>}
  {tab==='quotes'&&<Quotes customers={customers} onChange={refresh}/>}
- {tab==='integrations'&&<><ProviderConnections/>{grants.includes('crm.read')&&<CommunicationsInbox canWrite={grants.includes('crm.write')}/>}</>}
- {tab==='integrations'&&<Integrations/>}
+ {tab==='integrations'&&<><Integrations canCustomers={grants.includes('crm.write')} canFinance={grants.includes('finance')}/><ProviderConnections/>{grants.includes('crm.read')&&<CommunicationsInbox canWrite={grants.includes('crm.write')}/>}</>}
  {tab==='audit'&&<section className="panel"><h2>Historique des actions</h2>{(state.audit||state.auditLogs||[]).map((r:Row)=><div className="audit" key={r.id}><strong>{r.action||r.type}</strong><span>{r.entityType||r.entity||''}<small>Par {r.actorId||'système'} · {r.actorRole||''}</small></span><span>{r.after?.status?statuses[r.after.status]||r.after.status:''}<small>{r.entityId}</small></span><small>{r.createdAt?torontoParts(r.createdAt).replace('T',' '):''}</small></div>)}{!(state.audit||[]).length&&<p className="empty">Les actions effectuées seront enregistrées ici.</p>}</section>}
  </>}{modal&&<Editor key={`${modal.entity}-${modal.row?.id||'new'}-${modal.row?.version||0}`} modal={modal} customers={customers} properties={state.properties||[]} contracts={state.contracts} jobs={state.jobs} techs={techs} busy={busy} readOnly={!grants.includes(modal.entity==='visits'?'dispatch':'crm.write')} close={()=>setModal(null)} save={(body)=>mutate(`/api/${modal.entity}${modal.row?.id?'/'+modal.row.id:''}`,body,modal.row?.id?'PATCH':'POST')}/>}</main></div>
 }

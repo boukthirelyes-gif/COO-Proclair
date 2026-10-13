@@ -1,3 +1,5 @@
+import {verifyProvider} from '@/providers/verification';
+import {RotorFileImports} from '@/lib/rotor-file-import';
 import {SalesFollowUps} from '@/omega/sales-followups';
 import {SellerQuotes} from '@/sales/seller-quotes';
 import {providerStatus} from '@/providers/config';
@@ -131,6 +133,8 @@ export async function GET(request: NextRequest) {
     if(/^prospecting\/[^/]+$/.test(path))return NextResponse.json(await prospecting.get(path.split('/')[1],actor));
     if(path==='system/health')return NextResponse.json(await systemHealth(prisma));
     if(path==='system/parity')return NextResponse.json(parity);
+    if(path==='integrations/rotor/files')return NextResponse.json(await new RotorFileImports(prisma).history(actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='finance/rotor/archive')return NextResponse.json(await new RotorFileImports(prisma).archive(actor,Object.fromEntries(request.nextUrl.searchParams)),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='integrations/rotor/imports')return NextResponse.json(await rotorImports.list(actor),{headers:{'Cache-Control':'private, no-store'}});
     if(/^integrations\/rotor\/imports\/[^/]+\/customers$/.test(path)){const runId=path.split('/')[3],after=request.nextUrl.searchParams.get('after')||'';if(after.length>128)throw new DomainError('INVALID_CURSOR','Curseur trop long.');const rows=await prisma.rotorImportItem.findMany({where:{runId,kind:'CUSTOMER',...(after?{externalId:{gt:after}}:{})},orderBy:{externalId:'asc'},take:21,select:{externalId:true,normalized:true,contentHash:true,change:true}});return NextResponse.json({rows:rows.slice(0,20),nextCursor:rows.length>20?rows[19].externalId:null},{headers:{'Cache-Control':'private, no-store'}});}
     if(/^integrations\/rotor\/imports\/[^/]+$/.test(path))return NextResponse.json(await rotorImports.report(path.split('/')[3],actor),{headers:{'Cache-Control':'private, no-store'}});
@@ -186,7 +190,7 @@ async function mutate(request: NextRequest) {
   try {
     if (!sameOrigin(request)) return NextResponse.json({error:'Origine non autorisée.'},{status:403});
     const text = await request.text();
-    if (Buffer.byteLength(text) > 65536) return NextResponse.json({error:'Requête trop volumineuse.'},{status:413});
+    if (Buffer.byteLength(text) > (['/api/integrations/rotor/files/preview','/api/integrations/rotor/files/apply'].includes(request.nextUrl.pathname)?750000:65536)) return NextResponse.json({error:'Requête trop volumineuse.'},{status:413});
     let input: unknown;
     try { input = JSON.parse(text || '{}'); } catch { return NextResponse.json({error:'JSON invalide.'},{status:400}); }
     const path = request.nextUrl.pathname.slice('/api/'.length);
@@ -211,6 +215,9 @@ async function mutate(request: NextRequest) {
     if(/^sales\/contracts\/[^/]+\/revoke$/.test(path)&&request.method==='POST')return NextResponse.json(await agreements.revoke(path.split('/')[2],actor));
     if(['sales/followups','omega/sales-followups'].includes(path)&&request.method==='POST')return NextResponse.json(await new SalesFollowUps(prisma).propose(input,actor),{status:201});
     if(/^(sales\/followups|omega\/sales-followups)\/[^/]+$/.test(path)&&request.method==='PATCH')return NextResponse.json(await new SalesFollowUps(prisma).review(path.split('/')[2],input,actor));
+    if(path==='integrations/providers/verify'&&request.method==='POST'){const result=await verifyProvider(input,actor);await prisma.auditEvent.create({data:{actorId:actor.id,actorRole:actor.accountRole,action:'PROVIDER_CONNECTION_CHECKED',entityType:'Integration',entityId:result.provider,after:{outcome:result.outcome,externalEffects:false}}});return NextResponse.json(result)}
+    if(path==='integrations/rotor/files/preview'&&request.method==='POST')return NextResponse.json(await new RotorFileImports(prisma).preview(input,actor));
+    if(path==='integrations/rotor/files/apply'&&request.method==='POST')return NextResponse.json(await new RotorFileImports(prisma).apply(input,actor));
     if(path==='sales/contracts'&&request.method==='POST')return NextResponse.json(await agreements.createFromLead(input,actor),{status:201});
     if(path==='sales/quotes'&&request.method==='POST')return NextResponse.json(await new SellerQuotes(prisma).create(input,actor),{status:201});
     if(/^sales\/quotes\/[^/]+$/.test(path)&&request.method==='PATCH')return NextResponse.json(await new SellerQuotes(prisma).edit(path.split('/')[2],input,actor));

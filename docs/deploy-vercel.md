@@ -101,3 +101,7 @@ Voir [le rapport V30](PROCLAIR_V30_OVERNIGHT_REPORT.md) pour les limites et vér
 ### Stripe et Twilio
 
 Les intégrations sont facultatives pour le démarrage. Configurer les variables serveur et les webhooks décrits dans [STRIPE_TWILIO.md](STRIPE_TWILIO.md), puis redéployer. L'envoi SMS et le transfert vocal restent désactivés par défaut. Stripe est limité au mode test : aucune clé ou opération de paiement réel n'est acceptée.
+
+## Centre de transfert CSV Rotor
+
+La migration additive `20261014010000_rotor_file_import` ajoute les lots de fichiers et l'archive financière. Appliquer les migrations et générer Prisma avec le build habituel avant de servir cette version. Aucune nouvelle clé. L'origine cible reste `https://coo-proclair.vercel.app` ; connexion OAuth, imports réels et statut Ready restent à vérifier en production. Voir TRANSFERT_ROTOR.md pour le parcours, les permissions et la distinction entre archives financières et registre comptable.

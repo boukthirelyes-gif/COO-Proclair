@@ -516,6 +516,7 @@ model Lead {
 }
 
 model RotorImportRun {
+ fileImports RotorFileImport[]
  customerMappings RotorCustomerMapping[]
  id String @id @default(cuid())
  status String @default("READY")
@@ -535,6 +536,37 @@ model RotorImportRun {
  completedAt DateTime?
  items RotorImportItem[]
  @@index([createdAt])
+}
+model RotorFileImport {
+ id String @id @default(cuid())
+ checksum String @unique
+ kind String
+ rowCount Int
+ createdBy String
+ runId String?
+ run RotorImportRun? @relation(fields:[runId],references:[id])
+ createdAt DateTime @default(now())
+ financialRecords RotorFinancialArchive[]
+}
+model RotorFinancialArchive {
+ id String @id @default(cuid())
+ kind String
+ externalId String
+ customerExternalId String?
+ invoiceExternalId String?
+ amountCents Int
+ currency String
+ status String
+ occurredAt DateTime
+ reference String?
+ method String?
+ contentHash String
+ importId String
+ fileImport RotorFileImport @relation(fields:[importId],references:[id])
+ createdAt DateTime @default(now())
+ @@unique([kind,externalId])
+ @@index([customerExternalId,occurredAt])
+ @@index([kind,occurredAt,id])
 }
 model RotorImportItem {
  runId String
