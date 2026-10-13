@@ -33,6 +33,10 @@ export class UserService {
 }
 // Every authenticated route has an explicit grant. Unknown routes default to denial.
 export function routePermission(path:string,method:string):Permission|null {
+ if(path==='agreements/options')return 'crm.write';
+ if(path==='agreements'||path.startsWith('agreements/'))return method==='GET'?'crm.read':path.endsWith('/schedule')?'dispatch':'crm.write';
+ if(path==='dashboard/metrics')return 'crm.read';
+ if(path==='search')return null;
  if(path==='session'||path==='session/logout'||path==='state')return null;
  if(path==='leads'||path.startsWith('leads/'))return method==='GET'?'leads.read':'leads.write';
  if(path==='users'||path.startsWith('users/'))return 'users';

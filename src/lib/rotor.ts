@@ -30,13 +30,13 @@ async function rpcResult(response:Response,id:number){const text=await boundedTe
 export async function rotorTools(){const token=await usableToken();const deadline=Date.now()+30000;const headers:Record<string,string>={Authorization:'Bearer '+token.accessToken,Accept:'application/json, text/event-stream'};const init=await remote('/mcp',{jsonrpc:'2.0',id:1,method:'initialize',params:{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'proclair-crm',version:packageInfo.version}}},headers);const info=await rpcResult(init,1);if(!['2025-03-26','2025-06-18','2025-11-25'].includes(info.protocolVersion))throw new DomainError('ROTOR_PROTOCOL','Version MCP invalide.',502);const session=init.headers.get('mcp-session-id');if(session)headers['Mcp-Session-Id']=session;headers['MCP-Protocol-Version']=info.protocolVersion;await remote('/mcp',{jsonrpc:'2.0',method:'notifications/initialized'},headers);const tools:any[]=[],names=new Set<string>(),cursors=new Set<string>();let cursor:string|undefined;for(let page=0;page<20;page++){if(Date.now()>deadline)throw new DomainError('ROTOR_TIMEOUT','La découverte dépasse le temps autorisé.',504);const id=page+2;const result=await rpcResult(await remote('/mcp',{jsonrpc:'2.0',id,method:'tools/list',params:cursor?{cursor}:{}},headers),id);if(!Array.isArray(result.tools)||result.tools.length>500||tools.length+result.tools.length>1000)throw new DomainError('ROTOR_PROTOCOL','Liste d’outils invalide ou trop volumineuse.',502);for(const tool of result.tools){if(typeof tool.name!=='string'||!(/^[A-Za-z0-9_.:-]{1,160}$/).test(tool.name)||names.has(tool.name))throw new DomainError('ROTOR_PROTOCOL','Nom d’outil invalide ou dupliqué.',502);names.add(tool.name);tools.push({name:tool.name,description:typeof tool.description==='string'?tool.description:'',inputSchema:tool.inputSchema??null,outputSchema:tool.outputSchema??null,annotations:tool.annotations??null})}if(result.nextCursor===undefined)return {tools,hasMore:false,readOnly:true,protocolVersion:info.protocolVersion,scopes:token.scope.split(' ')};if(typeof result.nextCursor!=='string'||!result.nextCursor||cursors.has(result.nextCursor))throw new DomainError('ROTOR_PROTOCOL','Pagination Rotor incohérente.',502);cursor=result.nextCursor as string;cursors.add(cursor)}return {tools,hasMore:true,readOnly:true,protocolVersion:info.protocolVersion,scopes:token.scope.split(' ')}}
 
 /** Perform fixed, explicitly allowed read-only MCP operations on a single page. */
-export async function rotorReadPage(page:number,limit:number,start:string,end:string){
+export async function rotorReadPage(page:number,limit:number,start:string,end:string,kinds:('CUSTOMER'|'JOB'|'VISIT')[]=['CUSTOMER','JOB','VISIT']){
  if(!Number.isInteger(page)||page<1||page>2000||!Number.isInteger(limit)||limit<1||limit>50)
   throw new DomainError('ROTOR_PAGE','Pagination Rotor invalide.',400);
  const begin=new Date(start),finish=new Date(end);
  if(!Number.isFinite(begin.getTime())||!Number.isFinite(finish.getTime())||finish<=begin||finish.getTime()-begin.getTime()>32*86400000)
   throw new DomainError('ROTOR_RANGE','Sélectionnez un intervalle de 32 jours maximum.',400);
- const token=await usableToken();
+ const token=await usableToken();const granted=new Set(token.scope.split(' '));const required:Record<string,string>={CUSTOMER:'customers:read',JOB:'jobs:read',VISIT:'visits:read'};if(kinds.some(kind=>!granted.has(required[kind])))throw new DomainError('ROTOR_SCOPE','Reconnectez Rotor avec les lectures des catégories sélectionnées.',403);
  const headers:Record<string,string>={Authorization:'Bearer '+token.accessToken,Accept:'application/json, text/event-stream'};
  const init=await remote('/mcp',{jsonrpc:'2.0',id:1,method:'initialize',params:{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'proclair-crm',version:packageInfo.version}}},headers);
  const info=await rpcResult(init,1);
@@ -54,17 +54,18 @@ export async function rotorReadPage(page:number,limit:number,start:string,end:st
    if(typeof text!=='string'||text.length>1000000)throw new DomainError('ROTOR_PROTOCOL','Réponse de lecture Rotor invalide.',502);
    try{payload=JSON.parse(text)}catch{throw new DomainError('ROTOR_PROTOCOL','Données Rotor invalides.',502)}
   }
-  if(!payload||!Array.isArray(payload.data)||payload.data.length>limit||!payload.pagination||typeof payload.pagination!=='object')
+  if(!payload||!Array.isArray(payload.data)||payload.data.length>limit||!payload.pagination||typeof payload.pagination!=='object'||typeof payload.pagination.has_more!=='boolean'||(payload.pagination.page!==undefined&&payload.pagination.page!==page)||(payload.pagination.next_page!==undefined&&payload.pagination.next_page!==null&&payload.pagination.next_page!==page+1)||(payload.pagination.has_more&&payload.data.length===0))
    throw new DomainError('ROTOR_PROTOCOL','Pagination Rotor invalide.',502);
-  return {data:payload.data as Record<string,unknown>[],pagination:{
+  return {raw:payload as unknown,data:payload.data as Record<string,unknown>[],pagination:{
    page,
    hasMore:payload.pagination.has_more===true,
    total:Number.isSafeInteger(payload.pagination.total)?payload.pagination.total:null,
   }};
  }
- const customers=await read('list_customers',{page,limit},2);
- const jobs=await read('list_jobs',{page,limit},3);
- const visits=await read('list_visits',{page,limit,start,end},4);
+ const skipped={raw:undefined as unknown,data:[] as Record<string,unknown>[],pagination:{page,hasMore:false,total:null as number|null}};
+ const customers=kinds.includes('CUSTOMER')?await read('list_customers',{page,limit},2):skipped;
+ const jobs=kinds.includes('JOB')?await read('list_jobs',{page,limit},3):skipped;
+ const visits=kinds.includes('VISIT')?await read('list_visits',{page,limit,start,end},4):skipped;
  return {customers,jobs,visits,page,limit,start,end};
 }
 

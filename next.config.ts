@@ -7,6 +7,7 @@ const config: NextConfig = {
  // Without them, requests can fail with Prisma code ENOENT after a successful build.
  outputFileTracingIncludes: {
   '/*': [
+   './public/fonts/OpenSans-Regular.ttf',
    './node_modules/.prisma/client/**/*',
    './node_modules/@prisma/client/runtime/*.wasm',
   ],

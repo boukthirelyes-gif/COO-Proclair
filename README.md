@@ -96,3 +96,7 @@ La page Entreprise permet de gérer votre identité d’émetteur. Le portail cl
 Les comptes d’équipe, rôles et restrictions ainsi que la carte porte-à-porte sont natifs : consultez [le guide utilisateurs et prospection](docs/utilisateurs-prospection.md). Les vendeurs accèdent uniquement à leurs portes affectées ; les autorisations sont vérifiées côté serveur.
 
 La livraison 0.2.0 ajoute le registre de capacités Rotor, le consentement progressif en lecture, les cinq catégories de pins Proclair et la page **Santé et compatibilité**. La [matrice de 512 capacités candidates](docs/ROTOR_PARITY_MATRIX.md) décrit la couverture réelle ; les [limites d’intégration](docs/INTEGRATION_LIMITATIONS.md) précisent les chemins non connectés. Le [modèle métier](docs/PROCLAIR_DATA_MODEL.md) identifie les écarts Service Plan → Job → Visit restant à corriger.
+
+## Première tranche Proclair V30
+
+La version 0.3.0 ajoute l’espace sombre regroupé, la recherche globale, les dossiers clients, l’import Rotor reprenable avec promotion client explicite et le parcours Service / Agree / Schedule. L’assistant OMEGA utilise des requêtes métier sur PostgreSQL. Aucun fournisseur Stripe/Twilio/courriel ni AUTOPILOT n’est connecté par cette livraison. [Rapport complet et point de reprise](docs/PROCLAIR_V30_OVERNIGHT_REPORT.md).

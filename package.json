@@ -1,13 +1,13 @@
 {
   "name": "proclair-os",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1",
     "build": "next build --webpack",
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit",
-    "test": "node --env-file-if-exists=.env --import tsx --test tests/*.test.ts",
+    "test": "node --env-file-if-exists=.env --import tsx --test --test-concurrency=1 tests/*.test.ts",
     "db:generate": "node scripts/generate-client.cjs",
     "db:migrate": "node --env-file-if-exists=.env scripts/migrate.cjs",
     "db:seed": "node --env-file-if-exists=.env --import tsx scripts/seed.ts",
@@ -23,15 +23,20 @@
     "test:users-map:e2e": "node --env-file=.env tests/browser-users-map.mjs",
     "test:compatibility:e2e": "node --env-file=.env tests/browser-compatibility.mjs",
     "check:parity": "node scripts/render-parity.mjs --check",
-    "test:leads:e2e": "node --env-file=.env tests/browser-leads.mjs"
+    "test:leads:e2e": "node --env-file=.env tests/browser-leads.mjs",
+    "test:v30:e2e": "node --env-file=.env tests/browser-v30.mjs",
+    "test:v30-import:e2e": "node --env-file=.env --import tsx tests/browser-v30-import.mjs",
+    "test:agreements:e2e": "node --env-file=.env tests/browser-agreements.mjs"
   },
   "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
     "@prisma/adapter-pg": "6.19.3",
     "@prisma/client": "6.19.3",
-    "ajv": "^8.17.1",
+    "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "leaflet": "^1.9.4",
     "next": "16.4.0",
+    "pdf-lib": "^1.17.1",
     "pg": "8.16.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",

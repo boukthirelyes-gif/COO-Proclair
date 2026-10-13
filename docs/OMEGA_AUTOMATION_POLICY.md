@@ -9,3 +9,7 @@ Appliquer une proposition requiert une approbation et une revalidation transacti
 La surveillance Rotor est un second chemin de lecture explicitement activable : snapshots des outils et alerte d’incompatibilité. Elle n’approuve pas de schéma changé, ne change pas le code et ne met pas à jour la production. Elle ne doit pas être présentée comme un OMEGA Maintenance autonome complet.
 
 Les futurs agents Sales, Finance, Router, Customer Care et Supervisor exigent des règles précises, des adaptateurs autorisés et des preuves d’exécution. La grille de commission candidate 20/25/30/35/40 % n’est pas appliquée sans approbation et règles de calcul. Le nombre de pins « Made Sale » ne sert jamais à calculer une commission encaissée.
+
+## Assistant V30
+
+Les demandes de contrats actifs, visites non confirmées, passages restants et factures impayées sont des requêtes métier déterministes. Elles consultent PostgreSQL et émettent un événement d’audit sans mutation des dossiers. Finance reste un droit distinct. La demande de route conduit au choix de date et à une proposition ; l’application reprend les approbations et protections existantes. SMS, appels, courriels et commissions sont déclarés non connectés pour ces actions. Aucun AUTOPILOT ou modèle IA de langage activé.

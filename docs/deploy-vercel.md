@@ -70,7 +70,7 @@ Si des jetons existent déjà dans l’ancien dossier `.local/rotor`, utiliser *
 - Dans Intégrations, le retour OAuth utilise le domaine stable ; vérifier la connexion au compte autorisé puis la découverte des outils.
 - Factures : impression/PDF navigateur ; aucune banque ou communication externe n’est simulée.
 
-Le contrôle local de compilation ne vaut pas un déploiement distant réussi. La publication Vercel et le test OAuth réel nécessitent le compte Vercel, la base distante, les variables et le compte Rotor autorisé. L’application utilise encore un seul compte administrateur ; identité multi-utilisateurs et modèle IA ne sont pas livrés par ce déploiement.
+Le contrôle local de compilation ne vaut pas un déploiement distant réussi. La publication Vercel et le test OAuth réel nécessitent le compte Vercel, la base distante, les variables et le compte Rotor autorisé. Les comptes multiples et restrictions sont disponibles ; aucun modèle IA de langage n’est connecté.
 
 Note de la version fusionnée : le correctif runtime présent sur la branche distante privilégie actuellement DIRECT_DATABASE_URL en Production et limite le pool à une connexion par instance. DATABASE_URL reste utilisée hors Production. Les actifs WASM du client Prisma sont inclus explicitement dans le tracing Next.js. Ce correctif est conservé ; le retour au pooler runtime nécessite une validation de la connexion du fournisseur.
 
@@ -89,3 +89,11 @@ Pour la carte Rotor : sélectionner `pins:read` dans Intégrations, reconnecter 
 ### Migrations commerciales de cette branche
 
 `20261013030000_native_sales` et `20261013031000_contact_normalization` sont additives. Elles créent le pipeline/prospects et des colonnes client calculées avec index ; aucune donnée métier supprimée. Sauvegarder avant la migration de production. Aucune nouvelle variable Vercel n’est nécessaire pour ces fonctions natives. Les droits des comptes non administrateurs existants restent explicites.
+
+### Première tranche V30 — 0.3.0
+
+Trois migrations additives ajoutent import/checkpoints, correspondances clients et accords de service (`20261013040000_rotor_import_runs`, `20261013041000_rotor_customer_mappings`, `20261013042000_service_agreements`). Préparer une Preview avec base séparée avant la revue. Aucun secret Vercel supplémentaire requis. Les archives PDF sont en PostgreSQL ; la police Open Sans est versionnée sous Apache-2.0 et incluse dans le tracing. Ne pas partager une base Production avec Preview.
+
+Le retour OAuth reste `/api/integrations/rotor/callback` sur l’origine stable de chaque environnement. La page `/agreement` utilise un jeton de document privé dans le fragment URL, hashé en base. Configurer l’identité Entreprise avant émission. Un accord client active le contrat ; les passages sont ensuite créés explicitement en PENDING, sans prélèvement ni rendez-vous confirmé. Révoquer un lien ne supprime pas le document signé.
+
+Voir [le rapport V30](PROCLAIR_V30_OVERNIGHT_REPORT.md) pour les limites et vérifications. Cette branche ne doit pas être présentée comme déjà publiée.

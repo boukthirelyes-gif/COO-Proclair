@@ -99,7 +99,7 @@ export async function applyRotorMirror(db:PrismaClient,page:number,start:string,
    await tx.rotorMirrorRecord.upsert({
     where:{kind_externalId:{kind,externalId}},
     create:{kind,externalId,...fields},
-    update:{...fields,syncedAt:new Date()},
+    update:{...fields,contentHash:null,lastImportRunId:null,syncedAt:new Date()},
    });
   }
   await tx.auditEvent.create({data:{

@@ -87,3 +87,7 @@ test('Read-only preview does not import; repeated confirmation is idempotent',as
  assert.equal(audits.length,2);
  assert.equal(audits[0].after.readOnly,true);
 }));
+test('Rotor numbered pages reject absent completion metadata rather than silently declaring the import complete',async()=>setup(async()=>{
+ const provider=globalThis.fetch;globalThis.fetch=async(...args:any[])=>{const response=await (provider as any)(...args);if(response.status===202)return response;const payload=await response.json();if(payload.result?.content){const data=JSON.parse(payload.result.content[0].text);delete data.pagination.has_more;payload.result.content[0].text=JSON.stringify(data)}return Response.json(payload)};
+ await assert.rejects(()=>rotorReadPage(1,25,'2026-10-01T00:00:00Z','2026-10-20T00:00:00Z'),{code:'ROTOR_PROTOCOL'});
+}));

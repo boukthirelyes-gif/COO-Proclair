@@ -21,6 +21,7 @@ enum VisitStatus {
  NEEDS_FOLLOWUP
 }
 model Customer {
+ rotorMappings RotorCustomerMapping[]
  normalizedEmail String? @default(dbgenerated())
  normalizedPhone String? @default(dbgenerated())
  @@index([normalizedEmail])
@@ -61,6 +62,7 @@ model Property {
  visits Visit[]
 }
 model Contract {
+ agreement ServiceAgreement?
  id String @id @default(cuid())
  customerId String
  propertyId String
@@ -286,6 +288,9 @@ model LoginBucket {
  * The compound ID makes re-imports idempotent.
  */
 model RotorMirrorRecord {
+ rawPayload Json?
+ contentHash String?
+ lastImportRunId String?
  kind String
  externalId String
  name String
@@ -355,6 +360,7 @@ model ClientLink {
 }
 
 model AppUser {
+ agreements ServiceAgreement[]
  leads Lead[]
  id String @id @default(cuid())
  username String @unique
@@ -490,4 +496,98 @@ model Lead {
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
  @@index([ownerId, status, followUpAt])
+}
+
+model RotorImportRun {
+ customerMappings RotorCustomerMapping[]
+ id String @id @default(cuid())
+ status String @default("READY")
+ start DateTime
+ end DateTime
+ kinds String[]
+ checkpoints Json
+ createdBy String
+ leaseToken String?
+ leaseUntil DateTime?
+ nextRetryAt DateTime?
+ errorCode String?
+ attempts Int @default(0)
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ completedAt DateTime?
+ items RotorImportItem[]
+ @@index([createdAt])
+}
+model RotorImportItem {
+ runId String
+ run RotorImportRun @relation(fields:[runId],references:[id])
+ kind String
+ externalId String
+ page Int
+ contentHash String
+ rawPayload Json
+ normalized Json
+ previousMirror Json?
+ change String
+ createdAt DateTime @default(now())
+ @@id([runId,kind,externalId])
+ @@index([runId,kind,page])
+}
+model RotorCustomerMapping {
+ externalId String @id
+ customerId String
+ customer Customer @relation(fields:[customerId],references:[id])
+ sourceSystem String @default("ROTOR")
+ sourceHash String
+ runId String
+ run RotorImportRun @relation(fields:[runId],references:[id])
+ decision String
+ reviewNote String?
+ createdBy String
+ lastSyncedAt DateTime @default(now())
+ syncStatus String @default("REVIEWED")
+ syncError String?
+ createdAt DateTime @default(now())
+ @@index([customerId])
+}
+model ServiceAgreement {
+ id String @id @default(cuid())
+ contractId String @unique
+ contract Contract @relation(fields:[contractId],references:[id])
+ salesOwnerId String?
+ salesOwner AppUser? @relation(fields:[salesOwnerId],references:[id])
+ status String @default("DRAFT")
+ frequency String
+ startDate String
+ lines Json
+ terms Json
+ subtotalCents Int
+ taxCents Int
+ totalCents Int
+ snapshot Json?
+ documentHash String?
+ signer String?
+ signedAt DateTime?
+ signatureHash String?
+ pdfBytes Bytes?
+ pdfSha256 String?
+ scheduledAt DateTime?
+ visitIds String[] @default([])
+ idempotencyKey String @unique
+ payloadHash String
+ createdBy String
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ access AgreementAccess[]
+ @@index([status,createdAt])
+}
+model AgreementAccess {
+ tokenHash String @id
+ agreementId String
+ agreement ServiceAgreement @relation(fields:[agreementId],references:[id])
+ expiresAt DateTime
+ revoked Boolean @default(false)
+ createdAt DateTime @default(now())
+ @@index([agreementId])
 }

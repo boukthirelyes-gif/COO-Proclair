@@ -13,3 +13,11 @@ Les exports privés peuvent contenir des renseignements clients et doivent être
 ## Accès commercial natif
 
 Les routes de prospects exigent les permissions commerciales et limitent les vendeurs à leur affectation. Le rattachement à une porte exige son accès carte. La conversion en client est réservée aux droits leads.all + leads.write + crm.write. Clé idempotente, verrou transactionnel, version et audit protègent les créations et conversions concurrentes. Les colonnes de normalisation client sont calculées par PostgreSQL et servent uniquement à la recherche de doublons.
+
+## Première tranche V30
+
+Recherche globale : chaque catégorie est filtrée par permission et les pins/prospects par propriétaire. OMEGA ne révèle les factures qu’avec Finance. La liste d’employés reste protégée. Les résultats et PDF sont privés, no-store.
+
+Les accords exigent crm.write ; les passages exigent dispatch. Les routes publiques de document n’ouvrent pas le CRM : jeton aléatoire 32 octets dans un fragment, hash en base, expiration, révocation, projection du snapshot, consentement explicite et signature idempotente. Les données de carte et autorisations de paiement ne font pas partie de ce flux. PDF archivé et empreintes restent en PostgreSQL ; le binaire n’est pas copié dans l’export métier. Les conditions émises sont protégées contre l’édition historique.
+
+L’import contrôle les schémas actifs, baux, checkpoints, doublons et comptages. Les secrets/token/carte sont filtrés de la source de staging. Les contacts candidats nécessitent une décision explicite ; aucune promotion financière. Les tokens OAuth, leases internes et corps de requêtes ne sont pas journalisés ou retournés comme secrets.

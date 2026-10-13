@@ -1,3 +1,10 @@
+import {ServiceAgreements} from '@/sales/service-agreements';
+import {dashboardMetrics} from '@/lib/dashboard-metrics';
+import {RotorCustomerPromotion} from '@/lib/rotor-customer-promotion';
+import {customerDossier} from '@/lib/customer-dossier';
+import {omegaAssistant} from '@/omega/assistant';
+import {RotorImportService} from '@/lib/rotor-import';
+import {globalSearch} from '@/lib/global-search';
 import {LeadService} from '@/sales/leads';
 import parity from '@/data/rotor-parity.json';
 import {systemHealth} from '@/lib/system-health';
@@ -30,8 +37,11 @@ const service = new CRMService(prisma);
 const worker = new OmegaWorker(prisma);
 const finance = new FinanceService(prisma);
 const quotes=new QuoteService(prisma);
+const agreements=new ServiceAgreements(prisma);
 const portal=new ClientPortal(prisma);
 const leads=new LeadService(prisma);
+const rotorPromotion=new RotorCustomerPromotion(prisma);
+const rotorImports=new RotorImportService(prisma);
 const registry=new RotorCapabilityRegistry(prisma);
 const rotorMap=new RotorMapService(prisma);
 const rotorMonitor=new RotorMonitor(prisma);
@@ -95,12 +105,20 @@ export async function GET(request: NextRequest) {
     const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
+    if(path==='dashboard/metrics')return NextResponse.json(await dashboardMetrics(prisma,actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='agreements')return NextResponse.json(await agreements.list(actor));
+    if(path==='agreements/options')return NextResponse.json(await agreements.options(actor));
+    if(/^agreements\/[^/]+\/pdf$/.test(path)){const pdf=await agreements.pdf(path.split('/')[1],actor);return new NextResponse(new Uint8Array(pdf.pdfBytes!),{headers:{'Content-Type':'application/pdf','Content-Disposition':'inline; filename=proclair-contract.pdf','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});}
+    if(path==='search')return NextResponse.json(await globalSearch(prisma,request.nextUrl.searchParams.get('q'),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='leads')return NextResponse.json(await leads.list(actor));
     if(/^leads\/[^/]+\/history$/.test(path))return NextResponse.json(await leads.history(path.split('/')[1],actor));
     if(/^leads\/[^/]+$/.test(path))return NextResponse.json(await leads.get(path.split('/')[1],actor));
     if(/^prospecting\/[^/]+$/.test(path))return NextResponse.json(await prospecting.get(path.split('/')[1],actor));
     if(path==='system/health')return NextResponse.json(await systemHealth(prisma));
     if(path==='system/parity')return NextResponse.json(parity);
+    if(path==='integrations/rotor/imports')return NextResponse.json(await rotorImports.list(actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(/^integrations\/rotor\/imports\/[^/]+\/customers$/.test(path)){const runId=path.split('/')[3],after=request.nextUrl.searchParams.get('after')||'';if(after.length>128)throw new DomainError('INVALID_CURSOR','Curseur trop long.');const rows=await prisma.rotorImportItem.findMany({where:{runId,kind:'CUSTOMER',...(after?{externalId:{gt:after}}:{})},orderBy:{externalId:'asc'},take:21,select:{externalId:true,normalized:true,contentHash:true,change:true}});return NextResponse.json({rows:rows.slice(0,20),nextCursor:rows.length>20?rows[19].externalId:null},{headers:{'Cache-Control':'private, no-store'}});}
+    if(/^integrations\/rotor\/imports\/[^/]+$/.test(path))return NextResponse.json(await rotorImports.report(path.split('/')[3],actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='integrations/rotor/capabilities')return NextResponse.json(await registry.state());
     if(path==='integrations/rotor/pins'){const rows=await prisma.rotorMapPin.findMany({take:2000,orderBy:{syncedAt:'desc'}}),ids=rows.map(p=>p.customerExternalId).filter((v):v is string=>Boolean(v));const [native,mirrored]=await Promise.all([prisma.customer.findMany({where:{rotorExternalId:{in:ids}},select:{id:true,name:true,rotorExternalId:true}}),prisma.rotorMirrorRecord.findMany({where:{kind:'CUSTOMER',externalId:{in:ids}},select:{externalId:true,name:true}})]);const pins=rows.map(p=>({...p,customerReference:p.customerExternalId?{externalId:p.customerExternalId,nativeId:native.find(c=>c.rotorExternalId===p.customerExternalId)?.id??null,name:native.find(c=>c.rotorExternalId===p.customerExternalId)?.name??mirrored.find(c=>c.externalId===p.customerExternalId)?.name??null}:null}));if(Buffer.byteLength(JSON.stringify(pins))>3500000)throw new DomainError('MAP_TOO_LARGE','Le miroir nécessite une recherche paginée plus précise.',413);return NextResponse.json(pins);}
     if(path==='users')return NextResponse.json(await users.list(actor));
@@ -142,6 +160,8 @@ export async function GET(request: NextRequest) {
       const [customers,properties,contracts,jobs,visits,technicians,audits,plans] = await Promise.all([service.listCustomers(),service.listProperties(),service.listContracts(),service.listJobs(),service.listVisits(),service.listTechnicians(),actor.permissions.includes('audit')?service.listAudit():Promise.resolve([]),actor.permissions.includes('omega')?prisma.omegaPlan.findMany({orderBy:{createdAt:'desc'},take:30}):Promise.resolve([])]);
       return NextResponse.json({...capabilities,customers,properties,contracts,jobs,visits,technicians,audits:actor.permissions.includes('audit')?audits:[],plans:actor.permissions.includes('omega')?plans:[]});
     }
+    if(/^(contracts|visits)\/[^/]+$/.test(path)){const [kind,id]=path.split('/');const row=kind==='contracts'?await prisma.contract.findUnique({where:{id}}):await prisma.visit.findUnique({where:{id}});if(!row)throw new DomainError('NOT_FOUND','Dossier introuvable.',404);return NextResponse.json(row,{headers:{'Cache-Control':'private, no-store'}});}
+    if(/^customers\/[^/]+\/dossier$/.test(path))return NextResponse.json(await customerDossier(prisma,path.split('/')[1],actor),{headers:{'Cache-Control':'private, no-store'}});
     if (path.startsWith('customers/')) return NextResponse.json(await service.getCustomer(path.split('/')[1]));
     return NextResponse.json({error:'Route introuvable.'},{status:404});
   } catch(error) { return errorResponse(error); }
@@ -163,12 +183,22 @@ async function mutate(request: NextRequest) {
       response.cookies.set(sessionCookie, issueSession({id:identity.id,role:identity.accountRole,sessionVersion:identity.sessionVersion}), {httpOnly:true,sameSite:'strict',secure:request.nextUrl.protocol==='https:'||Boolean(process.env.PROCLAIR_PUBLIC_ORIGIN?.startsWith('https://')),path:'/',maxAge:8*60*60});
       return response;
     }
+    if(path==='agreements/portal/read'&&request.method==='POST')return NextResponse.json(await agreements.portalRead(input));
+    if(path==='agreements/portal/accept'&&request.method==='POST')return NextResponse.json(await agreements.accept(input));
+    if(path==='agreements/portal/pdf'&&request.method==='POST'){const pdf=await agreements.portalPdf(input);return new NextResponse(new Uint8Array(pdf.pdfBytes),{headers:{'Content-Type':'application/pdf','Content-Disposition':'attachment; filename=proclair-contract.pdf','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});}
     if(path==='portal/read'&&request.method==='POST')return NextResponse.json(await portal.read(input));
     if(path==='portal/accept'&&request.method==='POST')return NextResponse.json(await portal.accept(input));
     const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
     if (path === 'session/logout') { const response = NextResponse.json({ok:true}); response.cookies.set(sessionCookie,'',{path:'/',maxAge:0}); return response; }
+    if(request.method==='PATCH'&&/^agreements\/[^/]+$/.test(path))return NextResponse.json(await agreements.updateDraft(path.split('/')[1],input,actor));
+    if(request.method==='POST'&&/^agreements\/[^/]+\/issue$/.test(path))return NextResponse.json(await agreements.issue(path.split('/')[1],input,actor));
+    if(request.method==='POST'&&/^agreements\/[^/]+\/schedule$/.test(path))return NextResponse.json(await agreements.schedule(path.split('/')[1],input,actor));
+    if(request.method==='POST'&&/^agreements\/[^/]+\/revoke$/.test(path))return NextResponse.json(await agreements.revoke(path.split('/')[1],actor));
+    if(request.method==='POST'&&/^prospecting\/[^/]+\/status$/.test(path))return NextResponse.json(await prospecting.quickStatus(path.split('/')[1],input,actor));
+    if(request.method==='POST'&&/^integrations\/rotor\/imports\/[^/]+\/step$/.test(path))return NextResponse.json(await rotorImports.step(path.split('/')[3],actor));
+    if(path==='integrations/rotor/imports'&&request.method==='POST')return NextResponse.json(await rotorImports.create(input,actor),{status:201});
     if(request.method==='PATCH'&&/^leads\/[^/]+$/.test(path))return NextResponse.json(await leads.update(path.split('/')[1],input,actor));
     if(request.method==='PATCH'&&/^users\/[^/]+$/.test(path))return NextResponse.json(await users.update(path.split('/')[1],input,actor));
     if(request.method==='PATCH'&&/^prospecting\/[^/]+$/.test(path))return NextResponse.json(await prospecting.save(path.split('/')[1],input,actor));
@@ -218,6 +248,10 @@ async function mutate(request: NextRequest) {
       case 'portal/revoke': return NextResponse.json(await portal.revoke(input,actor));
       case 'settings/business': return NextResponse.json(await saveBusinessProfile(prisma,input,actor));
       case 'quotes': return NextResponse.json(await quotes.create(input,actor),{status:201});
+      case 'integrations/rotor/promotion/preview': return NextResponse.json(await rotorPromotion.preview(input,actor));
+      case 'integrations/rotor/promotion/apply': return NextResponse.json(await rotorPromotion.apply(input,actor));
+      case 'agreements': return NextResponse.json(await agreements.create(input,actor),{status:201});
+      case 'omega/assistant': return NextResponse.json(await omegaAssistant(prisma,input,actor));
       case 'customers': return NextResponse.json(await service.createCustomer(input,actor),{status:201});
       case 'properties': return NextResponse.json(await service.createProperty(input,actor),{status:201});
       case 'contracts': return NextResponse.json(await service.createContract(input,actor),{status:201});

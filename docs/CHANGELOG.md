@@ -1,5 +1,16 @@
 # Historique des livraisons
 
+## 0.3.0 — première tranche V30 — 2026-10-13
+
+- Reprise vérifiée du thème sombre de la branche design, navigation regroupée, icônes SVG, barre mobile et actions directes.
+- Recherche serveur par permissions, dossiers Details / Service / Activity et synthèse financière issue du ledger.
+- Staging Rotor reprenable, rapports de progression et promotion client explicitement rapprochée. Aucun import réel dans cette instance.
+- Contrats Service / Agree / Schedule avec lignes par passage, prix en dollars, accord horodaté, PDF archivé et jobs/visites PENDING créés explicitement.
+- Assistant OMEGA déterministe avec consultation des données et liens vers les actions supervisées.
+- AJV 8.20.0, trois migrations additives, PDF Unicode et police Apache-2.0 incluse dans le tracing.
+
+Code de branche, sans preuve de publication distante. Voir PROCLAIR_V30_OVERNIGHT_REPORT.md pour la couverture et les fonctions non livrées.
+
 ## 0.2.0 — branche rotor-capabilities-map — 2026-10-13
 
 - Prospects natifs et pipeline commercial de cinq étapes, lien porte → prospect, affectations et restrictions par vendeur.
