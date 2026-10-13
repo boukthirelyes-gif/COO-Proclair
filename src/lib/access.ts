@@ -46,6 +46,8 @@ export function routePermission(path:string,method:string):Permission|null {
  if(path.startsWith('system/'))return 'integrations';
  if(path==='settings/business')return 'settings';
  if(path==='export/native')return 'export';
+ if(/^integrations\\/rotor\\/live\\/(payments|invoices)$/.test(path))return method==='GET'?'finance':'integrations';
+ if(path==='integrations/rotor/live/sms')return method==='GET'?'crm.read':'integrations';
  if(path.startsWith('integrations/'))return 'integrations';
  if(path.startsWith('omega/')||path.startsWith('worker/'))return 'omega';
  if(path==='quotes'||path.startsWith('quotes/'))return path.endsWith('/convert')?'finance':'quotes';
