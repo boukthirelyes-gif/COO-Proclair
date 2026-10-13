@@ -1,3 +1,11 @@
+## Recherche et filtres de revue Rotor — 2026-10-13
+
+- Recherche serveur dans tous les clients d'un import : nom, coordonnées, adresse et référence, avec compteur exact avant pagination.
+- États À rapprocher, Déjà rapproché et Source à revérifier ; les données sources modifiées bloquent la promotion.
+- Pagination conservant les critères, actualisation après rapprochement et réponses d'anciennes recherches ignorées.
+- Correspondance native masquée sans lecture CRM ; droits de promotion conservés.
+- Aucune migration ou nouvelle clé. Voir TRANSFERT_ROTOR.md.
+
 ## Contrôle de la migration et historique client — 2026-10-13
 
 - Compteurs PostgreSQL cohérents sur tous les clients du miroir : staging, rapprochements, attente et sources modifiées.

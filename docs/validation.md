@@ -1,5 +1,13 @@
 # Validation du CRM Proclair
 
+## Recherche et filtres de revue Rotor — 13 octobre 2026
+
+Compilation de production et TypeScript réussis. Suite serveur : 74 tests réussis, zéro échec ou test ignoré. Le test d'import vérifie désormais 35 clients paginés, une recherche atteignant la dernière fiche, la casse, les caractères littéraux de recherche, les tentatives de syntaxe SQL, les états de revue, les sources modifiées et le masquage des correspondances natives sans lecture CRM. L'API refuse les imports inconnus et les paramètres non reconnus.
+
+Chromium : 6 contrôles du parcours d'import reprenable et 8 du parcours CSV/dossier, soit 14 vérifications réussies sans erreur de page. Le filtre d'état a reçu un libellé accessible explicite après un premier échec du sélecteur exact. Après cette correction, recherche hors première page, filtre des fiches rapprochées, promotion, reprise et historique client passent. Le serveur est redémarré avec la base connectée. Aucun contact Rotor réel ni transaction financière native déclenché par les fixtures.
+
+Environnement restauré vérifié : dépendances et PostgreSQL présents. Aucune nouvelle configuration nécessaire. Connexion Rotor locale absente ; statut Vercel et transfert réel restent non vérifiés.
+
 ## Contrôle de la migration et historique client — 13 octobre 2026
 
 Compilation de production et TypeScript réussis. Suite finale : 74 tests serveur réussis, zéro échec ou test ignoré. Le test d'import couvre désormais les compteurs sur les données stockées, les sources modifiées, les références financières manquantes, les correspondances natives et le masquage des statistiques financières sans permission. La qualification des tables SQL a été corrigée après un premier échec dans le schéma de test isolé ; production publique et schémas de tests sont explicitement séparés.

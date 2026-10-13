@@ -56,3 +56,13 @@ Avec le droit Finances, un contrôle séparé compte les factures et paiements a
 Dans une fiche client, l'onglet **Historique Rotor** affiche ses factures et paiements archivés, par les identifiants Rotor directement attachés à la fiche ou les correspondances approuvées. Cet onglet exige le droit Finances et conserve la pagination de cinquante références. Les rubriques du dossier sont désormais libellées en français. Les montants demeurent historiques et ne changent pas le registre comptable.
 
 Le rapport précise sa date de calcul à Toronto. Un lot terminé ou tous les clients rapprochés ne certifient pas que tous les objets et toutes les périodes de Rotor ont été transférés. Aucune nouvelle migration ou clé n'est nécessaire pour ce contrôle.
+
+## Recherche dans la revue des clients
+
+La revue d'un import dispose d'une recherche serveur sur le nom, courriel, téléphone, adresse et identifiant Rotor. La recherche ne dépend pas des vingt fiches affichées : le compteur indique tous les résultats de cet import avant pagination. La casse est ignorée ; les caractères `%`, `_` et barre oblique inverse sont traités littéralement, sans recherche approximative d'accents ou normalisation automatique des numéros.
+
+Choisir **Tous les clients**, **À rapprocher**, **Déjà rapproché** ou **Source à revérifier**, puis **Appliquer les filtres clients**. La pagination garde ces critères. Après approbation, la liste est rechargée : une fiche rapprochée disparaît de la vue À rapprocher. Les réponses d'une ancienne recherche ou d'un ancien import sont ignorées.
+
+Un changement de hash dans le miroir ou de la correspondance rend la fiche à revérifier et bloque son bouton de promotion. Utiliser l'import de source actuel et la revue adaptée ; aucun écrasement automatique. Les informations de la fiche native associée sont affichées uniquement avec le droit de lecture CRM. La consultation du staging exige toujours Intégrations et la promotion conserve ses contrôles de modification CRM et d'approbation.
+
+Aucune nouvelle migration ni variable d'environnement nécessaire.

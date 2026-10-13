@@ -151,3 +151,9 @@ Validation : compilation, 74 tests serveur et 62 contrôles navigateur distincts
 Le centre de transfert affiche les clients en staging, rapprochés, à rapprocher et modifiés depuis la correspondance. Les statistiques financières réservées aux comptes autorisés repèrent les références client non résolues et les factures source absentes de l'archive. Les fiches clients autorisées disposent d'un onglet Historique Rotor, avec leur pagination et leurs correspondances existantes. Aucun paiement comptable ou transfert de fonds effectué ; compteurs limités aux données enregistrées, sans certification de complétude Rotor.
 
 Validation : compilation, 74 tests serveur et 25 contrôles navigateur réussis, zéro erreur de page. Serveur redémarré et base connectée. Aucune nouvelle migration ou clé requise ; production Vercel et connexion réelle Rotor non vérifiées.
+
+## Suite : recherche et tri de la revue des clients Rotor — 13 octobre 2026
+
+La revue cherche dans tout le lot importé avant pagination et affiche le nombre exact de résultats. Les états de rapprochement et les sources modifiées permettent de cibler les dossiers à examiner, sans écraser les coordonnées natives. La pagination conserve les filtres, les anciennes réponses sont ignorées et la liste est actualisée après approbation. Correspondances natives réservées à la lecture CRM. Aucune nouvelle migration ou variable.
+
+Validation : compilation, 74 tests serveur et 14 contrôles navigateur réussis, sans erreur de page sur les parcours terminés. Serveur redémarré et base connectée. Aucun accès Rotor réel ni paiement natif dans les fixtures ; production et transfert réel restent non vérifiés.
