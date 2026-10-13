@@ -1,3 +1,11 @@
+## Priorités des suivis OMEGA — 2026-10-13
+
+- Suivis ouverts chargés avant l'historique, classement par échéance et repérage des retards.
+- Recherche sans distinction de casse ou accents, filtres d'état et compteurs explicites sur la liste chargée.
+- Report manuel d'échéance conservant l'approbation, contrôlé par version, dossier et permissions ; audit avant/après.
+- Consultation des comptes rendus clôturés. Aucun envoi, paiement ou rendez-vous automatique.
+- Aucune migration ou nouvelle clé API. Voir OMEGA_SUIVIS_VENTES.md.
+
 ## Corrections des devis personnels — 2026-10-13
 
 - Édition des services, quantités, prix, taxes et validité d'un brouillon dans Mes ventes.

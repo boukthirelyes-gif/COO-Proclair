@@ -1,5 +1,11 @@
 # Validation du CRM Proclair
 
+## Priorités des suivis OMEGA — 13 octobre 2026
+
+Compilation de production et contrôle TypeScript réussis. 65 tests serveur réussis, zéro échec ou test ignoré. Les tests ajoutés vérifient le report, les limites d'échéance, les droits, les versions, les restrictions, le maintien de l'approbation et la présence d'un suivi ouvert malgré 101 entrées clôturées. Un premier contrôle a été corrigé pour comparer les dates ISO normalisées avec leurs millisecondes ; la suite complète passe.
+
+Chromium sur la base séparée : 6 contrôles des suivis (recherche, échéance dépassée, report, filtres, compte rendu et accès compris) et 7 du parcours vendeur, soit 13 vérifications réussies sans erreur de page. Aucun contact externe ou paiement déclenché. Le serveur redémarré répond avec la base connectée. Aucune nouvelle migration ; statut Vercel et comptes fournisseurs non vérifiés.
+
 ## Corrections des devis personnels — 13 octobre 2026
 
 Compilation de production réussie (contrôle TypeScript inclus). 64 tests serveur réussis, zéro échec ou test ignoré. Nouveau test : arrondis fiscaux exacts, champs interdits, permissions, restrictions de contact, réattribution, corrections concurrentes et course avec émission. Chromium : 7 contrôles du parcours vendeur et 5 des suivis OMEGA, soit 12 vérifications réussies sans erreur de page. Le prix corrigé est conservé jusqu'au contrat signé et son PDF ; aucun paiement déclenché. L'attente du rafraîchissement après émission a été ajoutée au test mobile après un premier échec d'assertion prématurée.

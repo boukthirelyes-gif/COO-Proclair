@@ -131,3 +131,9 @@ Validation : compilation de production, 63 tests serveur et 25 vérifications na
 Les vendeurs peuvent corriger leurs devis brouillons dans Mes ventes, avec recalcul serveur des taxes et montants, audit et contrôle du propriétaire actuel. Les devis émis restent figés ; émission, accord, contrat, signature et transmission conservent leurs actions distinctes. Aucune migration ou nouvelle clé. Voir DEVIS_PERSONNELS_CORRECTIONS.md.
 
 Validation : compilation de production, 64 tests serveur et 12 vérifications navigateur réussis, sans erreur de page sur les parcours terminés. Serveur redémarré et base connectée. La publication GitHub ne certifie pas le déploiement Vercel.
+
+## Suite : priorités et échéances OMEGA — 13 octobre 2026
+
+Les suivis ouverts sont chargés avant l'historique et triés par échéance. Recherche, filtres d'état et compteurs sur les éléments chargés aident les vendeurs à trouver les suivis à traiter. Le report manuel d'une échéance conserve son approbation et vérifie dossier, droits et version ; échéances avant/après auditées. Les comptes rendus sont consultables dans les suivis clôturés. Voir OMEGA_SUIVIS_VENTES.md pour les limites.
+
+Validation : compilation de production, 65 tests serveur et 13 vérifications navigateur réussis sans erreur de page. Aucun contact externe, paiement ou rendez-vous exécuté par ces actions. Aucune migration ou nouvelle clé. Publication GitHub et statut Vercel Ready restent distincts.
