@@ -80,6 +80,18 @@ function errorResponse(error: unknown) {
     const sqlState = safeCode(meta?.code);
     if (sqlState) diagnostic.sqlState = sqlState;
     const nested = meta?.driverAdapterError;
+    const rootCause = details.cause && typeof details.cause === 'object' ? details.cause as Record<string, unknown> : null;
+    const nestedError = nested && typeof nested === 'object' ? nested as Record<string, unknown> : null;
+    for (const [prefix, source] of [['cause', rootCause], ['adapter', nestedError]] as const) {
+      if (!source) continue;
+      const kind = safeCode(source.name) ?? safeCode(source.kind);
+      const code = safeCode(source.code) ?? safeCode(source.originalCode);
+      if (kind) diagnostic[prefix + 'Kind'] = kind;
+      if (code) diagnostic[prefix + 'Code'] = code;
+      const deeper = source.cause && typeof source.cause === 'object' ? source.cause as Record<string, unknown> : null;
+      const deeperCode = safeCode(deeper?.code) ?? safeCode(deeper?.originalCode);
+      if (deeperCode) diagnostic[prefix + 'InnerCode'] = deeperCode;
+    }
     if (nested && typeof nested === 'object') {
       const adapter = nested as {cause?: unknown};
       if (adapter.cause && typeof adapter.cause === 'object') {
