@@ -662,3 +662,21 @@ model StripeCheckout {
  createdAt DateTime @default(now())
  @@index([invoiceId])
 }
+
+model RotorInboxMessage {
+ externalId String @id
+ channel String
+ direction String
+ body String
+ phone String?
+ contactId String?
+ contactType String?
+ threadId String?
+ subject String?
+ status String?
+ read Boolean @default(false)
+ messageAt DateTime
+ syncedAt DateTime @default(now())
+ @@index([messageAt])
+ @@index([phone,messageAt])
+}
