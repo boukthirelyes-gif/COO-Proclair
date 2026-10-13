@@ -1,0 +1,5 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync,existsSync} from 'node:fs';
+const registry=JSON.parse(readFileSync('src/data/rotor-parity.json','utf8'));
+test('parity catalogue contains 512 distinct candidates, 16 per domain, and no unverified production claims',()=>{assert.equal(registry.capabilities.length,512);assert.equal(new Set(registry.capabilities.map((r:any)=>r.id)).size,512);for(let d=1;d<=32;d++)assert.equal(registry.capabilities.filter((r:any)=>Number(r.id.split('.')[0])===d).length,16);for(const r of registry.capabilities){assert.ok(r.name&&r.domain&&r.priority&&r.owner);assert.notEqual(r.status,'PRODUCTION_VERIFIED');assert.ok(!['VERIFIED_ROTOR_UI','VERIFIED_ROTOR_MCP'].includes(r.classification));if(r.classification==='VERIFIED_ROTOR_DOCS')assert.match(r.source,/^https:\/\/helpcenter\.getrotor\.com\/articles\//);if(r.status==='TESTED')assert.ok(r.tests);if(r.tests)for(const path of r.tests.split(';').map((s:string)=>s.trim()))assert.equal(existsSync(path),true,'Référence de test inexistante : '+path)}});

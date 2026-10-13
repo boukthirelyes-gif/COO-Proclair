@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://helpcenter.getrotor.com/articles/0099754-using-map-updates-filters-territories-and-bulk-assignment",
+    "classification": "VERIFIED_ROTOR_DOCS",
+    "checkedAt": "2026-10-13",
+    "httpStatus": 200,
+    "sha256": "351af727b60d671bad1abf7a36c329f6fb19bb13f3079e65a5d3d36d73d9f570",
+    "verification": "Lecture publique du document officiel ; aucun écran privé inspecté."
+  },
+  {
+    "url": "https://helpcenter.getrotor.com/articles/6128121-visits-vs-jobs-explained",
+    "classification": "VERIFIED_ROTOR_DOCS",
+    "checkedAt": "2026-10-13",
+    "httpStatus": 200,
+    "sha256": "7c387fdb1f5d86677c1decc49c2a0a95428075c447e28cac69a3c8b005051a09",
+    "verification": "Lecture publique du document officiel ; aucun écran privé inspecté."
+  },
+  {
+    "url": "https://helpcenter.getrotor.com/articles/3625554-service-plans",
+    "classification": "VERIFIED_ROTOR_DOCS",
+    "checkedAt": "2026-10-13",
+    "httpStatus": 200,
+    "sha256": "835abbc44432d01ec088e92650f5386b23eb6a144f5f997c42d433270c112d10",
+    "verification": "Lecture publique du document officiel ; aucun écran privé inspecté."
+  },
+  {
+    "url": "https://helpcenter.getrotor.com/articles/7841990-crew-scheduling",
+    "classification": "VERIFIED_ROTOR_DOCS",
+    "checkedAt": "2026-10-13",
+    "httpStatus": 200,
+    "sha256": "51e80a16bd10b0e294588c4992fba1873e7f96720471b708808090a3be661a31",
+    "verification": "Lecture publique du document officiel ; aucun écran privé inspecté."
+  },
+  {
+    "url": "https://helpcenter.getrotor.com/articles/7375539-mobile-maps",
+    "classification": "VERIFIED_ROTOR_DOCS",
+    "checkedAt": "2026-10-13",
+    "httpStatus": 200,
+    "sha256": "452e277e601a9c768aaa099b34098aeebc611eab330a9cc0b3e21b92b55e6835",
+    "verification": "Lecture publique du document officiel ; aucun écran privé inspecté."
+  },
+  {
+    "url": "https://helpcenter.getrotor.com/articles/0758838-pending-jobs",
+    "classification": "VERIFIED_ROTOR_DOCS",
+    "checkedAt": "2026-10-13",
+    "httpStatus": 200,
+    "sha256": "2966354f290e733044607e186319e51b3752daf95208a2c16eef372d2d4f624f",
+    "verification": "Lecture publique du document officiel ; aucun écran privé inspecté."
+  },
+  {
+    "url": "https://helpcenter.getrotor.com/articles/8977819-map-pins-and-territories",
+    "classification": "VERIFIED_ROTOR_DOCS",
+    "checkedAt": "2026-10-13",
+    "httpStatus": 200,
+    "sha256": "32be9d9ec172d620bfbd03e3437fa42ae107e98353d375378f27312dd72be635",
+    "verification": "Lecture publique du document officiel ; aucun écran privé inspecté."
+  },
+  {
+    "url": "https://mcp.getrotor.com/.well-known/oauth-authorization-server",
+    "classification": "VERIFIED_ROTOR_DOCS",
+    "checkedAt": "2026-10-13",
+    "httpStatus": 200,
+    "sha256": "526232a22ba5bfe0e5cf5f9f706256a392536e499fb1d56a3ea800fce97cd28d",
+    "verification": "Métadonnées OAuth publiques ; aucune autorisation de compte attestée."
+  },
+  {
+    "url": "https://mcp.getrotor.com/.well-known/oauth-protected-resource",
+    "classification": "VERIFIED_ROTOR_DOCS",
+    "checkedAt": "2026-10-13",
+    "httpStatus": 200,
+    "sha256": "61a60328db53774b227d957c71c80776e9ad31c50fbd75093a26adfcb641e183",
+    "verification": "Métadonnées OAuth publiques ; aucune autorisation de compte attestée."
+  }
+]

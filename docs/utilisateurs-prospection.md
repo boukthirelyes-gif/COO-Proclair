@@ -35,3 +35,9 @@ Les pins et les métadonnées publiques des comptes sont inclus dans l’export 
 ## Production
 
 La migration additive `20261013010000_users_prospecting` crée les tables sans réinitialiser les données existantes. Le build Vercel de production exécute les migrations avec la configuration existante. Aucune variable d’environnement supplémentaire n’est nécessaire pour ces modules.
+
+## Catégories Proclair — livraison 0.2.0
+
+Les nouvelles portes choisissent parmi **No Home #808080**, **Not interested #FF0000**, **Interested #fbbb09**, **Made Sale #00FF00** et **Never Knock #000000**, avec les UUID fournis dans la directive Proclair. Le statut de suivi local (rappel, en cours, etc.) reste séparé de la catégorie ; aucune ancienne porte ni aucun audit n’est supprimé. Les catégories sont initialement identifiées comme référence utilisateur, puis peuvent être vérifiées par une lecture Rotor autorisée.
+
+La fiche s’ouvre dans un panneau latéral avec fermeture par Échap. Les filtres de date utilisent le jour de Toronto ; les compteurs sont des nombres de pins, pas des revenus ni des commissions. Le calque Rotor est en lecture seule, réservé aux administrateurs, avec un filtre distinct de membre externe. Un lien client n’est affiché que sur correspondance d’identifiant Rotor connue, sans rapprochement automatique par adresse ou nom. Les détails de clients déjà présents dans le miroir peuvent être identifiés par leur référence externe sans créer de client natif.

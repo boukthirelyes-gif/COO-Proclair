@@ -105,3 +105,16 @@ Parcours natifs supplémentaires sur build production : 8 étapes devis/PDF/conv
 - Contrôle visuel desktop/mobile réalisé. Les tuiles `tile.openstreetmap.org` répondent 403 via le proxy Codex : fond de rues non validé dans cet environnement. Ajouter ce domaine aux destinations autorisées sans remplacer la liste existante. Les pins, filtres, fiches et restrictions restent testables sans tuiles ; aucun substitut de fond fictif utilisé.
 - Installation `npm ci --include=dev --ignore-scripts --cache /workspace/.npm-cache` puis génération Prisma vérifiées avec le lockfile actuel.
 - Régression complète sur le build final : CRM/OMEGA 27, finances 17, devis 8, portail 6, intégrations 9, utilisateurs/carte 8, soit **75 contrôles navigateur réussis**, aucune erreur JavaScript relevée.
+
+## Première livraison des directives V6 / OMEGA SUPREME — 2026-10-13
+
+- Départ GitHub main vérifié à `4008fc4`. Branche de fonctionnalité dédiée ; aucune fusion automatique.
+- Sept articles officiels et deux métadonnées OAuth lus en HTTP 200, empreintes conservées dans le registre des sources. App Rotor et health Vercel refusés par le proxy (403), aucune vérification de production attribuée.
+- 44 tests Node réussis, aucun ignoré : snapshots, différences de schémas, pagination partielle sans fausse suppression, guards persistants, refus des outils destructifs, validation JSON Schema, import de pins idempotent, visibilité par rôle, Never Knock, bail de surveillance et consentement progressif.
+- Vérification métier native : deux visites liées au même job ; achèvement d’une visite sans facture ni paiement automatique ; contraintes et calendrier existants couverts par les tests de domaine. Les écarts de prix/facture par job sont explicitement documentés.
+- Matrice : 512 identifiants distincts, 16 par domaine, génération canonique et existence des références de tests contrôlées. Aucun statut PRODUCTION_VERIFIED et aucune preuve MCP privée inventée.
+- Build Next.js et TypeScript réussis. Migration additive appliquée sur les bases locale et navigateur.
+- Sauvegarde locale privée restaurée dans une nouvelle base séparée : cinq catégories et treize migrations retrouvées ; seconde restauration refusée parce que la cible était non vide.
+- Les lectures Rotor métier sont testées avec fixtures et transport simulé. Aucun token du compte n’est enregistré dans cette instance, aucun client réel importé, aucun SMS ou paiement effectué.
+- Build final : 84 contrôles navigateur réussis, aucun pageerror (CRM/OMEGA 27, finances 17, devis 8, portail 6, intégrations 9 dont cinq simulés, utilisateurs/carte 8, compatibilité/catégories 9). Les trois tests Python historiques passent également.
+- L’API GitHub est refusée au CONNECT par le proxy (403) pour REST et GraphQL. Le push Git reste utilisable ; la création de PR doit être achevée depuis l’interface GitHub ou après ajout d’api.github.com aux domaines autorisés.

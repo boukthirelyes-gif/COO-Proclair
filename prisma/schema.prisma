@@ -363,6 +363,8 @@ model AppUser {
  pins ProspectPin[]
 }
 model ProspectPin {
+ typeId String?
+ type MapPinType? @relation(fields: [typeId], references: [id])
  id String @id @default(cuid())
  address String
  latitude Float
@@ -377,4 +379,60 @@ model ProspectPin {
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
  @@index([ownerId, status])
+}
+
+model RotorCapabilitySnapshot {
+ id String @id @default(cuid())
+ protocolVersion String
+ scopes String[]
+ tools Json
+ fingerprint String
+ complete Boolean
+ changes Json
+ createdAt DateTime @default(now())
+ @@index([createdAt])
+}
+model MapPinType {
+ restricted Boolean @default(false)
+ id String @id
+ name String
+ color String
+ position Int
+ active Boolean @default(true)
+ source String @default("USER_PROVIDED_REFERENCE")
+ verifiedAt DateTime?
+ pins ProspectPin[]
+}
+model RotorMapPin {
+ externalId String @id
+ typeId String?
+ typeName String?
+ color String?
+ latitude Float
+ longitude Float
+ address String?
+ notes String?
+ memberId String?
+ customerExternalId String?
+ leadExternalId String?
+ occurredAt DateTime?
+ syncedAt DateTime @default(now())
+ @@index([memberId, occurredAt])
+}
+model RotorCapabilityGuard {
+ name String @id
+ fingerprint String?
+ status String
+ reason String?
+ snapshotId String
+ updatedAt DateTime @updatedAt
+}
+model RotorMonitorControl {
+ id String @id @default("rotor-compatibility")
+ enabled Boolean @default(false)
+ leaseUntil DateTime?
+ nextCheckAt DateTime?
+ lastCheckedAt DateTime?
+ lastCode String?
+ updatedAt DateTime @updatedAt
 }

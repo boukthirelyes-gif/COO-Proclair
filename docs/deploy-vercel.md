@@ -77,3 +77,11 @@ Note de la version fusionnée : le correctif runtime présent sur la branche dis
 Fonctions natives supplémentaires : Devis, Entreprise, Mes données et /portal fonctionnent sans Rotor. Les migrations ajoutent les devis, snapshots d’émetteur et liens client hashés. Les liens clients utilisent le domaine du CRM ; aucune variable de messagerie ou de signature n’est requise pour les partager manuellement. Le fichier JSON métier exclut les secrets et les liens d’accès. Ne jamais publier un lien privé ou un export client.
 
 Les modules **Utilisateurs** et **Carte de prospection** utilisent PostgreSQL et la migration additive `20261013010000_users_prospecting`. Aucune variable supplémentaire n’est requise. Le fond de carte OpenStreetMap est chargé par le navigateur. [Gestion des rôles et portes](utilisateurs-prospection.md).
+
+### Branche 0.2.0 — capacités Rotor et carte
+
+La migration additive `20261013020000_rotor_capabilities` crée snapshots, guards, surveillance, catégories et miroir de pins ; les données métier existantes ne sont pas supprimées. La production cible fournie est `https://coo-proclair.vercel.app` : `PROCLAIR_PUBLIC_ORIGIN` doit correspondre exactement à cette origine pour ce déploiement. Ne réutilisez pas cette origine dans une instance locale destinée aux tests navigateur.
+
+Un second cron appelle `/api/cron/compatibility` à 13:15 UTC avec le même `CRON_SECRET`. Il est inactif fonctionnellement jusqu’à activation dans Santé et compatibilité. Vérifiez que le plan Vercel accepte ces deux crons quotidiens. Les contrôles réseau dans Codex ne permettent pas d’attester le déploiement de cette branche.
+
+Pour la carte Rotor : sélectionner `pins:read` dans Intégrations, reconnecter et consentir depuis le compte Rotor Proclair, découvrir les outils, actualiser les catégories puis prévisualiser/importer une page. Les pins restent dans un miroir distinct réservé aux administrateurs. Les écritures distantes sont désactivées ; Stripe et les fournisseurs de communication restent non connectés. Aucune variable privée supplémentaire n’est nécessaire pour cette livraison.

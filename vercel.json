@@ -3,5 +3,14 @@
   "framework": "nextjs",
   "installCommand": "npm ci --include=dev --ignore-scripts",
   "buildCommand": "npm run vercel:build",
-  "crons": [{"path": "/api/cron/omega", "schedule": "0 13 * * *"}]
+  "crons": [
+    {
+      "path": "/api/cron/omega",
+      "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/compatibility",
+      "schedule": "15 13 * * *"
+    }
+  ]
 }

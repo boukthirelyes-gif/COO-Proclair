@@ -9,3 +9,6 @@ aside{overflow-y:auto}aside .brand,aside nav,aside .side-bottom{flex-shrink:0}
 .prospecting-map{height:440px;border-radius:12px;border:1px solid #d7e2e0;z-index:0}.map-legend{display:flex;flex-wrap:wrap;gap:14px;margin:16px 0;font-size:12px}.map-legend span{display:flex;align-items:center;gap:6px}.map-legend i{width:12px;height:12px;border-radius:50%}.grant{display:flex;align-items:center;gap:8px;margin:10px 0}.grant input{width:auto}fieldset{border:1px solid #d7e2e0;border-radius:8px;margin:16px 0;padding:16px}textarea{width:100%;min-height:100px;border:1px solid #d7e2e0;border-radius:8px;padding:10px;font:inherit}.leaflet-container a{color:#007b71}@media(max-width:600px){.prospecting-map{height:340px}}
 
 .table-wrap{width:100%;overflow-x:auto}.prospecting-map~.toolbar{flex-wrap:wrap}
+.parity-table{max-height:640px;overflow:auto}.parity-table thead{position:sticky;top:0;z-index:1}.parity-table td{min-width:100px}.parity-table td:last-child{min-width:260px}
+
+.prospect-drawer{position:fixed;right:20px;top:90px;width:460px;max-width:calc(100vw - 30px);max-height:calc(100vh - 110px);overflow-y:auto;z-index:15;box-shadow:0 14px 60px #102f3e40}.prospect-drawer .form-grid{grid-template-columns:1fr}.prospect-drawer>h3{margin-top:0}@media(max-width:700px){.prospect-drawer{right:15px;top:20px;max-height:calc(100vh - 40px)}}

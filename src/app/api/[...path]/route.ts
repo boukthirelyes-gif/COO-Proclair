@@ -1,3 +1,8 @@
+import parity from '@/data/rotor-parity.json';
+import {systemHealth} from '@/lib/system-health';
+import {RotorCapabilityRegistry} from '@/lib/rotor-capabilities';
+import {RotorMapService,validateRotorSchema} from '@/lib/rotor-map';
+import {RotorMonitor} from '@/lib/rotor-monitor';
 import {resolveActor,authenticate} from '@/lib/user-session';
 import {UserService,routePermission,requirePermission} from '@/lib/access';
 import {ProspectingService} from '@/prospecting/service';
@@ -25,6 +30,9 @@ const worker = new OmegaWorker(prisma);
 const finance = new FinanceService(prisma);
 const quotes=new QuoteService(prisma);
 const portal=new ClientPortal(prisma);
+const registry=new RotorCapabilityRegistry(prisma);
+const rotorMap=new RotorMapService(prisma);
+const rotorMonitor=new RotorMonitor(prisma);
 const users=new UserService(prisma);
 const prospecting=new ProspectingService(prisma);
 const rotorSyncInput=z.object({page:z.number().int().min(1).max(2000),start:z.string().datetime({offset:true}),end:z.string().datetime({offset:true})}).strict();
@@ -66,6 +74,7 @@ function errorResponse(error: unknown) {
 export async function GET(request: NextRequest) {
   try {
     const path = request.nextUrl.pathname.slice('/api/'.length);
+    if(path==='cron/compatibility'){if(!cronAuthorized(request.headers.get('authorization')))return NextResponse.json({error:'Authentification cron requise.'},{status:401});return NextResponse.json(await rotorMonitor.tick());}
     if (path === 'cron/omega') {
       if(!cronAuthorized(request.headers.get('authorization')))return NextResponse.json({error:'Authentification cron requise.'},{status:401});
       return NextResponse.json(await worker.tick(),{headers:{'Cache-Control':'no-store'}});
@@ -84,6 +93,10 @@ export async function GET(request: NextRequest) {
     const actor = await resolveActor(prisma,request);
     if (!actor) return NextResponse.json({error:'Connexion requise.'},{status:401});
     const grant=routePermission(path,request.method);if(grant)requirePermission(actor,grant);
+    if(path==='system/health')return NextResponse.json(await systemHealth(prisma));
+    if(path==='system/parity')return NextResponse.json(parity);
+    if(path==='integrations/rotor/capabilities')return NextResponse.json(await registry.state());
+    if(path==='integrations/rotor/pins'){const rows=await prisma.rotorMapPin.findMany({take:2000,orderBy:{syncedAt:'desc'}}),ids=rows.map(p=>p.customerExternalId).filter((v):v is string=>Boolean(v));const [native,mirrored]=await Promise.all([prisma.customer.findMany({where:{rotorExternalId:{in:ids}},select:{id:true,name:true,rotorExternalId:true}}),prisma.rotorMirrorRecord.findMany({where:{kind:'CUSTOMER',externalId:{in:ids}},select:{externalId:true,name:true}})]);const pins=rows.map(p=>({...p,customerReference:p.customerExternalId?{externalId:p.customerExternalId,nativeId:native.find(c=>c.rotorExternalId===p.customerExternalId)?.id??null,name:native.find(c=>c.rotorExternalId===p.customerExternalId)?.name??mirrored.find(c=>c.externalId===p.customerExternalId)?.name??null}:null}));if(Buffer.byteLength(JSON.stringify(pins))>3500000)throw new DomainError('MAP_TOO_LARGE','Le miroir nécessite une recherche paginée plus précise.',413);return NextResponse.json(pins);}
     if(path==='users')return NextResponse.json(await users.list(actor));
     if(path==='prospecting')return NextResponse.json(await prospecting.list(actor));
     if(/^prospecting\/[^/]+\/history$/.test(path))return NextResponse.json(await prospecting.history(path.split('/')[1],actor));
@@ -166,21 +179,27 @@ async function mutate(request: NextRequest) {
     if (/^payments\/[^/]+\/reverse$/.test(path)) return NextResponse.json(await finance.reversePayment(path.split('/')[1],input,actor));
     if(/^quotes\/[^/]+\/(issue|accept|decline|void)$/.test(path))return NextResponse.json(await quotes.decide(path.split('/')[1],path.split('/')[2],input,actor));
     if(/^quotes\/[^/]+\/convert$/.test(path))return NextResponse.json(await quotes.convert(path.split('/')[1],input,actor));
+    if(/^integrations\/rotor\/capabilities\/[^/]+\/acknowledge$/.test(path))return NextResponse.json(await registry.acknowledge(path.split('/')[3],input,actor));
     switch(path) {
+      case 'integrations/rotor/monitor':return NextResponse.json(await rotorMonitor.configure(input,actor));
+      case 'integrations/rotor/pin-types':return NextResponse.json(await rotorMap.refreshTypes(actor));
+      case 'integrations/rotor/pins/preview':return NextResponse.json(await rotorMap.preview(input,actor));
+      case 'integrations/rotor/pins/import':return NextResponse.json(await rotorMap.importPage(input,actor));
+      case 'integrations/rotor/pins/activity':return NextResponse.json(await rotorMap.readChecked('summarize_map_pin_activity',input,actor));
       case 'users':return NextResponse.json(await users.create(input,actor),{status:201});
       case 'prospecting':return NextResponse.json(await prospecting.save(null,input,actor),{status:201});
       case 'integrations/rotor/connect': {
-        const flow=await beginRotor();const response=NextResponse.json({url:flow.url});response.cookies.set('rotor_actor',issueSession({id:actor.id,role:actor.accountRole,sessionVersion:actor.sessionVersion},600000),{httpOnly:true,secure:true,sameSite:'lax',path:'/api/integrations/rotor/callback',maxAge:600});response.cookies.set('rotor_oauth',flow.cookie,{httpOnly:true,secure:true,sameSite:'lax',path:'/api/integrations/rotor/callback',maxAge:600});return response;
+        const scopeInput=z.object({scopes:z.array(z.string()).max(30).optional()}).strict().parse(input);const flow=await beginRotor(scopeInput.scopes);const response=NextResponse.json({url:flow.url});response.cookies.set('rotor_actor',issueSession({id:actor.id,role:actor.accountRole,sessionVersion:actor.sessionVersion},600000),{httpOnly:true,secure:true,sameSite:'lax',path:'/api/integrations/rotor/callback',maxAge:600});response.cookies.set('rotor_oauth',flow.cookie,{httpOnly:true,secure:true,sameSite:'lax',path:'/api/integrations/rotor/callback',maxAge:600});return response;
       }
       case 'integrations/rotor/renew': {const state=await renewRotor();await prisma.auditEvent.create({data:{actorId:actor.id,actorRole:actor.role,action:'ROTOR_RENEWED',entityType:'Integration',entityId:'rotor',after:{access:'READ_ONLY'}}});return NextResponse.json(state);}
       case 'integrations/rotor/revoke': {const result=await revokeRotor();await prisma.auditEvent.create({data:{actorId:actor.id,actorRole:actor.role,action:'ROTOR_REVOKED',entityType:'Integration',entityId:'rotor',after:result}});return NextResponse.json(result);}
-      case 'integrations/rotor/tools': return NextResponse.json(await rotorTools());
+      case 'integrations/rotor/tools': {const discovery=await rotorTools();await registry.record(discovery,actor);return NextResponse.json(discovery);}
       case 'integrations/rotor/sync/preview': {
-        const v=rotorSyncInput.parse(input);
+        const v=rotorSyncInput.parse(input);for(const name of ['list_customers','list_jobs','list_visits'])validateRotorSchema((await registry.schema(name)).inputSchema,name==='list_visits'?{page:v.page,limit:25,start:v.start,end:v.end}:{page:v.page,limit:25});
         return NextResponse.json(await previewRotorMirror(v.page,v.start,v.end));
       }
       case 'integrations/rotor/sync/apply': {
-        const v=rotorSyncInput.extend({approved:z.literal(true)}).parse(input);
+        const v=rotorSyncInput.extend({approved:z.literal(true)}).parse(input);for(const name of ['list_customers','list_jobs','list_visits'])validateRotorSchema((await registry.schema(name)).inputSchema,name==='list_visits'?{page:v.page,limit:25,start:v.start,end:v.end}:{page:v.page,limit:25});
         return NextResponse.json(await applyRotorMirror(prisma,v.page,v.start,v.end));
       }
       case 'integrations/rotor/disconnect': {const result=await disconnectRotor();await prisma.auditEvent.create({data:{actorId:actor.id,actorRole:actor.role,action:'ROTOR_DISCONNECTED_LOCAL',entityType:'Integration',entityId:'rotor',after:{connected:false,remoteRevoked:false}}});return NextResponse.json(result);}

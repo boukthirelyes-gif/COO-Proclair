@@ -26,6 +26,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run db:generate
       - run: npm run db:migrate
+      - run: node scripts/render-parity.mjs --check
       - run: npm run typecheck
       - run: npm test
       - run: npm run build

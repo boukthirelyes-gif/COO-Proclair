@@ -36,6 +36,7 @@ export function routePermission(path:string,method:string):Permission|null {
  if(path==='session'||path==='session/logout'||path==='state')return null;
  if(path==='users'||path.startsWith('users/'))return 'users';
  if(path==='prospecting'||path.startsWith('prospecting/'))return method==='GET'?'map.read':'map.write';
+ if(path.startsWith('system/'))return 'integrations';
  if(path==='settings/business')return 'settings';
  if(path==='export/native')return 'export';
  if(path.startsWith('integrations/'))return 'integrations';
