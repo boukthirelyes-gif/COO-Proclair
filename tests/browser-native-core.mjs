@@ -28,9 +28,9 @@ try {
   const suffix=fixture; const name='Client navigateur '+suffix; const address='Site test '+suffix, contractName='Entente '+suffix, jobName='Prestation '+suffix;
   await navigate('Clients');await page.getByRole('button',{name:'+ Client',exact:true}).click();
   await page.getByRole('dialog').getByLabel('Nom',{exact:true}).fill(name);
-  await page.getByLabel('Courriel').fill('test@example.invalid');await page.getByLabel('Notes').fill('Validation navigateur uniquement.');await save();
+  await page.getByRole('dialog').getByLabel('Courriel',{exact:true}).fill('test@example.invalid');await page.getByLabel('Notes').fill('Validation navigateur uniquement.');await save();
   await page.locator('tr').filter({hasText:name}).getByRole('button',{name:'Modifier',exact:true}).click();
-  await page.getByLabel('Courriel').fill('');await page.getByLabel('Notes').fill('Client modifié depuis le navigateur.');await save();
+  await page.getByRole('dialog').getByLabel('Courriel',{exact:true}).fill('');await page.getByLabel('Notes').fill('Client modifié depuis le navigateur.');await save();
   await navigate('Sites');await page.getByRole('button',{name:'+ Site',exact:true}).click();
   await page.getByLabel('Adresse',{exact:true}).fill(address);await page.getByLabel('Client',{exact:true}).selectOption({label:name});await save();
   await navigate('Contrats');await page.getByRole('button',{name:'+ Contrat',exact:true}).click();

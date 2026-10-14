@@ -113,3 +113,6 @@ jobs:
       - run: |
           node tests/reset-browser-login-attempts.mjs
           npm run test:users-map:e2e
+      - run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:customer-table:e2e

@@ -22,9 +22,9 @@ try {
   const suffix=Date.now(); const name='Client navigateur '+suffix; const address='Site test '+suffix, contractName='Entente '+suffix, jobName='Prestation '+suffix;
   await navigate('Clients');await page.getByRole('button',{name:'+ Client',exact:true}).click();
   await page.getByRole('dialog').getByLabel('Nom',{exact:true}).fill(name);
-  await page.getByLabel('Courriel').fill('test@example.invalid');await page.getByLabel('Notes').fill('Validation navigateur uniquement.');await save();
+  await page.getByRole('dialog').getByLabel('Courriel',{exact:true}).fill('test@example.invalid');await page.getByLabel('Notes').fill('Validation navigateur uniquement.');await save();
   await page.locator('tr').filter({hasText:name}).getByRole('button',{name:'Modifier',exact:true}).click();
-  await page.getByLabel('Courriel').fill('');await page.getByLabel('Notes').fill('Client modifié depuis le navigateur.');await save();
+  await page.getByRole('dialog').getByLabel('Courriel',{exact:true}).fill('');await page.getByLabel('Notes').fill('Client modifié depuis le navigateur.');await save();
   await navigate('Sites');await page.getByRole('button',{name:'+ Site',exact:true}).click();
   await page.getByLabel('Adresse',{exact:true}).fill(address);await page.getByLabel('Client',{exact:true}).selectOption({label:name});await save();
   await navigate('Contrats');await page.getByRole('button',{name:'+ Contrat',exact:true}).click();
@@ -40,7 +40,7 @@ try {
   await page.locator('.technician-day .visit').first().click();await page.getByLabel('Notes',{exact:true}).fill('Visite modifiée dans le navigateur');await save();
   await page.getByRole('button',{name:'Semaine',exact:true}).click();await page.locator('.calendar.week .visit').first().waitFor();checks++;
   await page.getByRole('button',{name:'Mois',exact:true}).click();await page.locator('.calendar.month .visit').first().waitFor();assert.equal(await page.locator('.calendar.month > section').count(),31);checks++;
-  await navigate('Clients');await page.locator('tr').filter({hasText:name}).getByRole('button',{name:'Ouvrir'}).click();await page.getByRole('heading',{name:name+' · Fiche client'}).waitFor();checks++;
+  await navigate('Clients');await page.getByLabel('Rechercher',{exact:true}).fill(name);await page.locator('tr').filter({hasText:name}).getByRole('button',{name:'Ouvrir'}).click();await page.getByRole('heading',{name:name+' · Fiche client'}).waitFor();checks++;
   await page.reload();await page.getByRole('heading',{name:name+' · Fiche client'}).waitFor();checks++;
   await page.getByRole('button',{name:'Voir les factures de ce client'}).click();await page.getByRole('heading',{name:'Factures',level:1}).waitFor();await page.getByRole('status').filter({hasText:name}).waitFor();checks++;
   await navigate('Journal');await page.getByText('OMEGA_SCHEDULE',{exact:true}).first().waitFor();checks++;
