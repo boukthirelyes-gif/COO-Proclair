@@ -1,5 +1,8 @@
 import {DomainError} from '@/domain/rules';
 import {rotorBusinessRead} from './rotor';
+import type {PrismaClient} from '@prisma/client';
+import {RotorCapabilityRegistry} from './rotor-capabilities';
+import {validateRotorSchema} from './rotor-map';
 
 export type RotorLiveKind = 'payments' | 'sms' | 'invoices';
 type RecordRow = Record<string, unknown>;
@@ -58,10 +61,11 @@ export function normalizeRotorLivePage(kind: RotorLiveKind, raw: unknown, page: 
       reference: string(r.invoice_number, 100),
     };
   });
+  if (new Set(rows.map(row=>row.id)).size !== rows.length) throw new DomainError('ROTOR_PROTOCOL','Références Rotor dupliquées.',502);
   return {source: 'ROTOR', mode: 'READ_ONLY_LIVE', kind, page, limit, total, hasMore: pagination.has_more, rows};
 }
 
-export async function rotorLivePage(kind: RotorLiveKind, page = 1, limit = 25) {
+export async function rotorLivePage(kind: RotorLiveKind, page = 1, limit = 25, db?:PrismaClient) {
   if (!['payments', 'sms', 'invoices'].includes(kind)
     || !Number.isSafeInteger(page) || page < 1 || page > 2000
     || !Number.isSafeInteger(limit) || limit < 1 || limit > 25) {
@@ -69,6 +73,10 @@ export async function rotorLivePage(kind: RotorLiveKind, page = 1, limit = 25) {
   }
   const tool = kind === 'payments' ? 'list_payments'
     : kind === 'sms' ? 'list_messages' : 'list_invoices';
-  const raw = await rotorBusinessRead(tool, {...(kind === 'sms' ? {channel: 'sms'} : {}), page, limit});
+  const args={...(kind === 'sms' ? {channel: 'sms'} : {}), page, limit};
+  const schema=db?await new RotorCapabilityRegistry(db).schema(tool):null;
+  if(schema)validateRotorSchema(schema.inputSchema,args);
+  const raw = await rotorBusinessRead(tool, args);
+  if(schema?.outputSchema)validateRotorSchema(schema.outputSchema,raw);
   return normalizeRotorLivePage(kind, raw, page, limit);
 }

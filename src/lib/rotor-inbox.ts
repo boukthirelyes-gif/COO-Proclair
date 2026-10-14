@@ -27,13 +27,14 @@ const responseSchema=z.object({
   page:z.number().int().min(1),
   limit:z.number().int().min(1).max(100),
   total:z.number().int().min(0).optional(),
-  has_more:z.boolean().optional(),
+  has_more:z.boolean(),
  }).passthrough(),
 }).passthrough();
 export function normalizeRotorInbox(raw:unknown,expectedPage:number){
  const response=responseSchema.parse(raw);
  if(response.pagination.page!==expectedPage)throw new DomainError('ROTOR_PROTOCOL','Pagination des messages Rotor incohérente.',502);
  const messages=response.data.map(v=>sourceMessage.parse(v));
+ if(messages.length>response.pagination.limit||response.pagination.has_more&&messages.length===0)throw new DomainError('ROTOR_PROTOCOL','Page SMS vide ou incohérente.',502);
  if(new Set(messages.map(m=>m.id)).size!==messages.length)throw new DomainError('ROTOR_PROTOCOL','Identifiants de messages dupliqués sur cette page.',502);
  return {messages,pagination:response.pagination};
 }

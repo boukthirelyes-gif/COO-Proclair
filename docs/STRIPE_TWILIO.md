@@ -6,9 +6,9 @@ Les SDK officiels sont intégrés au CRM existant. Dans **Intégrations**, une c
 
 Une configuration présente n'est pas une connexion vérifiée. Aucun compte fournisseur n'a été testé : les clés sont absentes de l'environnement de développement. Les validations utilisent des signatures du SDK et des transports simulés, avec PostgreSQL réel dans un schéma de test séparé. Aucune communication externe et aucun débit bancaire ne sont exécutés par les tests.
 
-## Variables Vercel, exclusivement serveur
+## Variables d’hébergement, exclusivement serveur
 
-Conserver les six variables déjà décrites dans [deploy-vercel.md](deploy-vercel.md). Ajouter les suivantes dans les paramètres Vercel, sans préfixe `NEXT_PUBLIC_` et sans les communiquer dans le chat :
+Conserver les six variables déjà décrites dans [deploy-vercel.md](deploy-vercel.md). Sur Render, lire aussi [deploy-render.md](deploy-render.md). Ajouter les suivantes dans les paramètres privés de l’hébergement, sans préfixe `NEXT_PUBLIC_` et sans les communiquer dans le chat :
 
 | Variable | Usage |
 | --- | --- |
@@ -76,3 +76,9 @@ Dans Intégrations, **Tester la connexion Stripe** lit le compte propriétaire d
 La vérification nécessite `integrations`. Elle peut fonctionner avant la configuration du webhook ou de l'origine publique si les identifiants nécessaires sont présents. Son résultat est daté dans le fuseau Toronto et ne remplace pas la réception d'un événement signé : les webhooks restent affichés comme non vérifiés. L'état suspendu/fermé et un numéro absent sont signalés sans activer automatiquement les envois. Le résultat visible est effacé à l'actualisation de la configuration.
 
 Une réponse 401/403 signifie un refus d'identifiants ; une erreur réseau ou fournisseur ne confirme aucun résultat d'authentification. Les journaux contiennent uniquement le fournisseur, l'issue et l'acteur, sans erreur privée. Sans clés, le contrôle reste indisponible et les noms de variables à configurer sont affichés. Les clés doivent être ajoutées dans Vercel, puis le projet redéployé. Les comptes réels n'ont pas été vérifiés dans cet environnement.
+
+## Centre V1000
+
+Navigation Stripe, SMS, Appels et Fournisseurs. Les fiches client ouvrent Stripe filtré et les conversations à partir d’un numéro international normalisé. Un numéro partagé reste ambigu ; aucune liaison arbitraire. Les brouillons OMEGA sont heuristiques locaux à relire, bloqués en cas de STOP et ne déclenchent aucune opération.
+
+`GET /api/finance/stripe/dashboard` : historique local autorisé par finance, dates de création UTC, 25 lignes, totaux par devise et état. Les paiements test ne règlent pas les factures natives. `POST /api/finance/stripe/inspect` : consultation manuelle du compte Stripe de test via SDK officiel, réservée à finance + intégrations + lecture CRM. Soldes disponibles/en attente et charges paginées, champs privés exclus ; aucune création de paiement ou remboursement et aucune synchronisation comptable. Le périmètre est le compte fournisseur, pas le filtre client local. Connexion réelle non vérifiée sans clés.

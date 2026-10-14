@@ -7,7 +7,9 @@ import {SellerQuotes} from '@/sales/seller-quotes';
 import {RotorInboxService} from '@/lib/rotor-inbox';
 import {providerStatus} from '@/providers/config';
 import {Communications} from '@/providers/twilio';
+import {CommunicationsHub} from '@/providers/communications';
 import {StripePayments} from '@/providers/stripe';
+import {inspectStripeTest} from '@/providers/stripe-network-overview';
 import {TerritoryService} from '@/prospecting/territories';
 import {ServiceAgreements} from '@/sales/service-agreements';
 import {dashboardMetrics} from '@/lib/dashboard-metrics';
@@ -143,12 +145,17 @@ export async function GET(request: NextRequest) {
 
     const liveMatch=path.match(/^integrations\/rotor\/live\/(payments|sms|invoices)$/);
     if(liveMatch){
+      requirePermission(actor,'integrations');
+      requirePermission(actor,'crm.read');
       const page=Number(request.nextUrl.searchParams.get('page')||'1');
       const limit=Number(request.nextUrl.searchParams.get('limit')||'25');
-      return NextResponse.json(await rotorLivePage(liveMatch[1] as 'payments'|'sms'|'invoices',page,limit),{headers:{'Cache-Control':'private, no-store'}});
+      return NextResponse.json(await rotorLivePage(liveMatch[1] as 'payments'|'sms'|'invoices',page,limit,prisma),{headers:{'Cache-Control':'private, no-store'}});
     }
     if(path==='integrations/providers')return NextResponse.json(providerStatus());
     if(path==='integrations/communications')return NextResponse.json(await new Communications(prisma).list(actor));
+    if(path==='integrations/communications/conversations')return NextResponse.json(await new CommunicationsHub(prisma).list(Object.fromEntries(['query','page','pageSize'].flatMap(key=>{const value=request.nextUrl.searchParams.get(key);return value===null?[]:[[key,value]]})),actor));
+    if(path==='integrations/communications/conversation')return NextResponse.json(await new CommunicationsHub(prisma).detail(request.nextUrl.searchParams.get('phone'),actor));
+    if(path==='finance/stripe/dashboard')return NextResponse.json(await new StripePayments(prisma).dashboard(Object.fromEntries(['status','customerId','from','to','page'].flatMap(key=>{const value=request.nextUrl.searchParams.get(key);return value===null?[]:[[key,value]]})),actor));
     if(path==='finance/stripe')return NextResponse.json(await new StripePayments(prisma).list(actor));
     if(path==='dashboard/metrics')return NextResponse.json(await dashboardMetrics(prisma,actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='agreements')return NextResponse.json(await agreements.list(actor));
@@ -257,7 +264,9 @@ async function mutate(request: NextRequest) {
     if(path==='integrations/rotor/messages/sync'&&request.method==='POST')return NextResponse.json(await rotorInbox.sync(input,actor));
     if(path==='integrations/communications/consent'&&request.method==='POST')return NextResponse.json(await new Communications(prisma).consent(input,actor));
     if(path==='integrations/communications/send'&&request.method==='POST')return NextResponse.json(await new Communications(prisma).send(input,actor));
+    if(path==='integrations/communications/draft'&&request.method==='POST'){const value=z.object({phone:z.string()}).strict().parse(input);return NextResponse.json(await new CommunicationsHub(prisma).draft(value.phone,actor));}
     if(path==='finance/stripe/checkout'&&request.method==='POST')return NextResponse.json(await new StripePayments(prisma).checkout(input,actor));
+    if(path==='finance/stripe/inspect'&&request.method==='POST')return NextResponse.json(await inspectStripeTest(input,actor));
     if (path === 'session/logout') { const response = NextResponse.json({ok:true}); response.cookies.set(sessionCookie,'',{path:'/',maxAge:0}); return response; }
     if(request.method==='PATCH'&&/^agreements\/[^/]+$/.test(path))return NextResponse.json(await agreements.updateDraft(path.split('/')[1],input,actor));
     if(request.method==='POST'&&/^agreements\/[^/]+\/issue$/.test(path))return NextResponse.json(await agreements.issue(path.split('/')[1],input,actor));

@@ -5,7 +5,7 @@ import type {AccessActor} from './access';
 import {requirePermission} from './access';
 export type RotorTool={name:string;description:string;inputSchema:unknown;outputSchema?:unknown;annotations:unknown};
 export type RotorDiscovery={tools:RotorTool[];hasMore:boolean;readOnly:boolean;protocolVersion:string;scopes:string[]};
-export const implementedReadTools=['list_customers','list_jobs','list_visits','list_map_pin_types','search_map_pins','summarize_map_pin_activity','list_messages'];
+export const implementedReadTools=['list_customers','list_jobs','list_visits','list_map_pin_types','search_map_pins','summarize_map_pin_activity','list_messages','list_payments','list_invoices'];
 export function unsafeReadTool(tool:RotorTool){const a=tool.annotations as any;return a?.destructiveHint===true||a?.readOnlyHint===false}
 const stable=(value:any):any=>Array.isArray(value)?value.map(stable):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(k=>[k,stable(value[k])])):value;
 export function schemaFingerprint(tool:RotorTool){return createHash('sha256').update(JSON.stringify(stable({input:tool.inputSchema,output:tool.outputSchema??null,annotations:tool.annotations}))).digest('hex')}

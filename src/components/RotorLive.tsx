@@ -12,8 +12,9 @@ const title:Record<Kind,string>={
  sms:'SMS Rotor — numéro Surge existant',
  invoices:'Factures Rotor — source de référence'
 };
-const money=(cents:number|null|undefined,currency?:string)=>typeof cents==='number'
- ?new Intl.NumberFormat('fr-CA',{style:'currency',currency:(currency||'CAD').toUpperCase()}).format(cents/100):'—';
+const money=(cents:number|null|undefined,currency?:string)=>typeof cents!=='number'?'—':currency&&/^[a-z]{3}$/i.test(currency)
+ ?new Intl.NumberFormat('fr-CA',{style:'currency',currency:currency.toUpperCase()}).format(cents/100)
+ :(cents/100).toLocaleString('fr-CA',{minimumFractionDigits:2,maximumFractionDigits:2})+' · devise non fournie';
 const date=(value:string)=>{if(!value)return '—';const d=new Date(value);return Number.isFinite(d.getTime())?
  new Intl.DateTimeFormat('fr-CA',{timeZone:'America/Toronto',dateStyle:'short',timeStyle:'short'}).format(d):'—'};
 

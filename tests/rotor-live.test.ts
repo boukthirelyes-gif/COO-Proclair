@@ -31,6 +31,7 @@ test('Missing pagination, duplicate too-large pages and empty continued pages ar
  assert.throws(()=>normalizeRotorLivePage('sms',{data:[]},1,25));
  assert.throws(()=>normalizeRotorLivePage('payments',{data:[{},{}],pagination:{page:1,has_more:true}},1,1));
  assert.throws(()=>normalizeRotorLivePage('payments',{data:[],pagination:{page:1,has_more:true}},1,25));
+ assert.throws(()=>normalizeRotorLivePage('payments',{data:[{id:'same'},{id:'same'}],pagination:{page:1,has_more:false}},1,25));
 });
 test('Direct Rotor read paths are allowed according to financial and CRM permissions',()=>{
  assert.equal(routePermission('integrations/rotor/live/payments','GET'),'finance');

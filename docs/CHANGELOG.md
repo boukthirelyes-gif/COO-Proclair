@@ -1,3 +1,12 @@
+## Centres Stripe, SMS et Appels — 2026-10-13
+
+- Branches Rotor SMS, lectures paiements/factures et thème sombre récupérés avec historique Git préservé.
+- Conversations natives recherchables et paginées, correspondances client uniques ou ambiguës, historiques SMS/appels et liens dossiers.
+- Brouillons OMEGA locaux, STOP bloquant, formulaire individuel repliable et droits conservés.
+- Suivi Stripe local par devise/statut et consultation manuelle du compte Stripe test via SDK officiel, sans opération comptable.
+- 93 tests serveur, 11 groupes Superhub et 11 groupes fournisseurs navigateur réussis ; compilation et contrôle des secrets réussis.
+- Voir les six rapports OMEGA_V1000. Mise en ligne et connexions externes non vérifiées ; périmètre V1000 restant documenté.
+
 ## Recherche et filtres de revue Rotor — 2026-10-13
 
 - Recherche serveur dans tous les clients d'un import : nom, coordonnées, adresse et référence, avec compteur exact avant pagination.

@@ -18,6 +18,8 @@ test('rejects non-SMS responses instead of mixing mailboxes',()=>{
 test('rejects repeated message IDs and incoherent pagination',()=>{
  assert.throws(()=>normalizeRotorInbox({...example,data:[example.data[0],example.data[0]]},1));
  assert.throws(()=>normalizeRotorInbox(example,2));
+ assert.throws(()=>normalizeRotorInbox({...example,pagination:{page:1,limit:100}},1));
+ assert.throws(()=>normalizeRotorInbox({...example,data:[]},1));
 });
 test('rejects oversized message payloads',()=>{
  assert.throws(()=>normalizeRotorInbox({...example,data:[{...example.data[0],content:'x'.repeat(20001)}]},1));
