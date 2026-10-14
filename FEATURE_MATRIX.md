@@ -12,7 +12,9 @@
 | Recherche Places et calcul Routes / ETA | Non implémentés dans ce lot |
 | Autres cartes Leaflet | Migration restante |
 | Liste prospects dense, tri et pages 10/25/50 | Implémentés sur les données chargées ; API existante limitée à 1 000 prospects |
-| Parité visuelle complète des 29 captures | Incomplète : 14 reçues |
+| Parité visuelle complète des 29 captures | Incomplète : 29 reçues et référencées dans SCREENSHOT_MATRIX.md |
 | OMEGA | Missions internes supervisées existantes ; pas d’autonomie externe nouvelle |
 | Campagnes | Aucun envoi ni activation automatique |
 | Stripe / Twilio | Intégrations existantes ; aucune validation réelle nouvelle |
+
+| Paramètres : navigation Entreprise, équipe, rôles, Stripe, intégrations, données | Implémentée sur les modules natifs ; filtres utilisateurs et retour au CRM |
