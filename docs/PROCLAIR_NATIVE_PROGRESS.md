@@ -59,3 +59,7 @@ Quatre scénarios configurables, missions PostgreSQL persistantes, reprise par c
 ## Cockpit OMEGA — amélioration du 14 octobre 2026
 
 Indicateurs sur toute la file autorisée, tri global des urgences, recherche littérale et filtres serveur, décisions groupées atomiques (25 maximum), analyse continue avec pause et plafond de vingt cycles. Les brouillons de configuration survivent à la recherche ; une modification concurrente bloque leur enregistrement. Migration additive `20261014031000_omega_mission_priority`. Validation : 127 tests serveur, compilation finale et 28 groupes navigateur OMEGA réussis. Les tests de pause et plafond utilisent un transport simulé ; aucun fournisseur externe appelé.
+
+## Fiches de missions OMEGA — 14 octobre 2026
+
+Explication de la règle, vérification actuelle de la source et chronologie de décisions avec droit audit ajoutées. Lecture seule et projection limitée des événements ; notes et décisions restent privées. Navigation clavier/mobile vérifiée, formulaire de décision mis au premier plan. Validation : 127 tests serveur, compilation finale et 32 groupes navigateur OMEGA. Aucune migration ou clé nouvelle. Le statut Vercel Ready reste à confirmer après publication main. Voir `OMEGA_SUPERVISOR.md`.

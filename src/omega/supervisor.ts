@@ -109,6 +109,28 @@ export class OmegaSupervisor {
    return this.decide(tx,v,actor);
   },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable});
  }
+ async detail(input:unknown,actor:AccessActor){
+  access(actor);const {id}=z.object({id:z.string().min(1).max(100)}).strict().parse(input);
+  return this.db.$transaction(async tx=>{
+   const mission=await tx.omegaMission.findUnique({where:{id}});if(!mission)throw new DomainError('NOT_FOUND','Mission introuvable.',404);
+   const rule=ruleSchema.parse(mission.rule);grant(rule,actor);const now=this.now();
+   const row:any=rule==='LEAD_CALLBACK'?await tx.lead.findUnique({where:{id:mission.sourceId},include:leadInclude}):await tx.visit.findUnique({where:{id:mission.sourceId},include:{customer:{select:{name:true}},contract:{select:{active:true}}}});
+   const fresh=await current(tx,rule,mission.sourceId,now);
+   const explanation:Record<Rule,string>={OVERDUE_VISIT:'Le début prévu est passé sans démarrage, ou la fin prévue est dépassée pour une visite en cours.',UNCONFIRMED_VISIT:'La visite est en attente, proposée ou à replanifier. Une confirmation humaine reste nécessaire.',UNSCHEDULED_VISIT:'La visite est confirmée, sans créneau, et son contrat est actif.',LEAD_CALLBACK:'Le rappel du prospect actif est arrivé à échéance. Les restrictions de contact bloquent sa préparation.'};
+   const restricted=rule==='LEAD_CALLBACK'&&!!row&&!eligibleLead(row,now)&&(row.status==='DO_NOT_CONTACT'||row.sourcePin?.status==='DO_NOT_CONTACT'||row.sourcePin?.type?.restricted===true);
+   const isCurrent=fresh?.fingerprint===mission.fingerprint;
+   const reason=!row?'Le dossier source n’existe plus.':restricted?'Une restriction de prospection interdit l’approbation.':!fresh?'Le dossier ne correspond plus à ce scénario.':!isCurrent?'Le dossier a changé depuis la préparation de cette mission.':'La source correspond toujours à la mission préparée.';
+   const source={present:!!row,eligible:!!fresh,current:isCurrent,reason,status:row?.status??null,...(rule==='LEAD_CALLBACK'?{followUpAt:row?.followUpAt??null,restricted,ownerAssigned:!!row?.ownerId}:{startsAt:row?.startsAt??null,endsAt:row?.endsAt??null,contractActive:row?.contract?.active??null,technicianAssigned:!!row?.technicianId})};
+   const allowed=actor.permissions.includes('audit'),where={entityType:'OmegaMission',entityId:id,action:{in:['OMEGA_MISSION_APPROVE','OMEGA_MISSION_DONE','OMEGA_MISSION_DISMISS']}};
+   const total=allowed?await tx.auditEvent.count({where}):0;
+   const events=allowed?await tx.auditEvent.findMany({where,orderBy:[{createdAt:'asc'},{id:'asc'}],take:25,select:{id:true,action:true,actorId:true,actorRole:true,createdAt:true,after:true}}):[];
+   const history={allowed,total,hasMore:total>events.length,events:events.map(event=>{
+    const after=event.after&&typeof event.after==='object'&&!Array.isArray(event.after)?event.after as Record<string,unknown>:{};
+    return {id:event.id,action:event.action,createdAt:event.createdAt,actor:event.actorId===actor.id?'Vous':event.actorRole==='OMEGA'?'OMEGA':'Utilisateur autorisé',note:typeof after.note==='string'?after.note.slice(0,1000):null};
+   })};
+   return {mission,explanation:explanation[rule],source,history,checkedAt:now.toISOString(),mode:'READ_ONLY',externalEffects:false};
+  },{isolationLevel:Prisma.TransactionIsolationLevel.RepeatableRead});
+ }
  async reviewBatch(input:unknown,actor:AccessActor){
   access(actor);const v=z.object({missions:z.array(z.object({id:z.string().min(1).max(100),expectedVersion:z.number().int().positive()}).strict()).min(1).max(25),action:z.enum(['APPROVE','DISMISS']),note:z.string().trim().min(3).max(1000),approved:z.literal(true)}).strict().parse(input);
   if(new Set(v.missions.map(m=>m.id)).size!==v.missions.length)throw new DomainError('DUPLICATE_MISSION','Une mission ne peut figurer deux fois dans une décision.',400);

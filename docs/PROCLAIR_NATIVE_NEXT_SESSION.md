@@ -24,3 +24,7 @@ Le moteur de missions et ses quatre scénarios sont livrés, avec 127 tests serv
 ## Dernier cockpit validé
 
 127 tests serveur, build final et 28 groupes navigateur OMEGA réussis. Recherche/filtres, indicateurs globaux, urgences, approbation/rejet groupés atomiques et analyse continue sont livrés. Les réglages locaux non enregistrés sont conservés et protégés contre les conflits de version. Aucune action externe, activation automatique ou nouvelle clé. Lire `OMEGA_SUPERVISOR.md` avant les prochains changements ; ne pas confondre analyse de missions et exécution du travail client.
+
+## Fiches de missions OMEGA — 14 octobre 2026
+
+Explication de la règle, vérification actuelle de la source et chronologie de décisions avec droit audit ajoutées. Lecture seule et projection limitée des événements ; notes et décisions restent privées. Navigation clavier/mobile vérifiée, formulaire de décision mis au premier plan. Validation : 127 tests serveur, compilation finale et 32 groupes navigateur OMEGA. Aucune migration ou clé nouvelle. Le statut Vercel Ready reste à confirmer après publication main. Voir `OMEGA_SUPERVISOR.md`.

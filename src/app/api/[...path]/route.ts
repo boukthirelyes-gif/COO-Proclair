@@ -176,6 +176,7 @@ export async function GET(request: NextRequest) {
     }
     if(path==='sales/leaderboard')return NextResponse.json(await annualLeaderboard(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='operations/dispatch')return NextResponse.json(await nativeDispatch(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='omega/supervisor/mission')return NextResponse.json(await supervisor.detail(Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='omega/supervisor')return NextResponse.json(await supervisor.board(Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='omega/operations')return NextResponse.json(await omegaOperations(prisma,actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='omega/day-analysis')return NextResponse.json(await omegaDayAnalysis(prisma,request.nextUrl.searchParams.get('date'),actor),{headers:{'Cache-Control':'private, no-store'}});

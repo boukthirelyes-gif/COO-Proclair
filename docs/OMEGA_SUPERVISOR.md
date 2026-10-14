@@ -33,3 +33,13 @@ Une sélection de la page permet d'approuver ou écarter jusqu'à 25 missions av
 Les réglages non enregistrés sont conservés pendant les recherches et paginations. Il faut les enregistrer avant une nouvelle analyse. Une autre modification concurrente de configuration provoque un conflit ; **Recharger les scénarios enregistrés** permet d'abandonner explicitement le brouillon local. Une nouvelle recherche ne remplace pas silencieusement le brouillon ou sa version initiale.
 
 Migration supplémentaire additive : `20261014031000_omega_mission_priority`, avec index et priorité recalculée sur les missions existantes. Aucune nouvelle clé ou dépendance. Validation du cockpit : 127 tests serveur, 18 groupes navigateur superviseur (dont pause et plafond avec transport simulé) et 10 groupes du cockpit existant ; compilation réussie. Aucun compte fournisseur utilisé.
+
+## Explication et chronologie des missions
+
+Chaque mission propose **Comprendre cette mission** ; les missions clôturées proposent **Historique de la mission**. La fiche affiche le critère du scénario, puis la vérification actuelle de la source (existence, état, échéances, affectation, contrat actif ou restriction de prospection). Elle ne reconstitue pas des valeurs historiques absentes : les informations du dossier source sont celles de la lecture actuelle. Les décisions seront à nouveau revalidées lors de leur enregistrement.
+
+La chronologie affiche la date de préparation, puis les approbations, clôtures et rejets audités avec leurs notes. Elle exige le droit `audit` en plus des droits du scénario et du superviseur. Sans ce droit, la mission et sa vérification restent consultables mais les décisions du journal sont masquées. Seuls les champs nécessaires sont projetés : aucun corps fournisseur, jeton, mot de passe, identifiant d'un autre acteur ou objet d'audit brut. Les autres auteurs sont libellés Utilisateur autorisé ; vos décisions portent Vous. La dernière note de la mission reste un champ métier visible selon les droits de la mission.
+
+La fiche est en lecture seule. Une mission ouverte permet de revenir à sa décision avec l'état et la version relus. Le formulaire de décision est amené dans la vue et son champ de note reçoit le focus. La fenêtre se ferme avec Échap, maintient le focus clavier à l'intérieur et restaure le focus à la fermeture ; sa présentation mobile est contrôlée.
+
+Aucune nouvelle migration, dépendance ou variable. Validation : suite serveur de 127 tests réussie, contrôles ciblés du format d'explication et des droits réussis après correction, compilation finale réussie et 32 groupes navigateur OMEGA (22 superviseur, 10 cockpit existant). Aucun appel fournisseur ou paiement.

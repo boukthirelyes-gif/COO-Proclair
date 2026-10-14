@@ -12,6 +12,7 @@ test('supervisor denies non-human administrators and restricted rules before bus
  const service=new OmegaSupervisor({} as PrismaClient);
  const manager={...bootstrapActor,accountRole:'MANAGER',permissions:presets.MANAGER};
  await assert.rejects(()=>service.board({},manager),{code:'FORBIDDEN'});
+ await assert.rejects(()=>service.detail({id:'synthetic'},manager),{code:'FORBIDDEN'});
  await assert.rejects(()=>service.run({...bootstrapActor,role:'OMEGA'}),{code:'FORBIDDEN'});
  await assert.rejects(()=>service.configure({enabled:true,rules:['LEAD_CALLBACK'],expectedVersion:0},{...bootstrapActor,permissions:bootstrapActor.permissions.filter(p=>p!=='leads.all')}),{code:'FORBIDDEN'});
  await assert.rejects(()=>service.configure({enabled:true,rules:[],expectedVersion:0},bootstrapActor),{code:'RULES_REQUIRED'});
@@ -71,6 +72,16 @@ test('supervisor persists bounded resumable missions, rejects stale approvals an
   await db.visit.update({where:{id:'visit-001'},data:{status:'CANCELLED',version:{increment:1}}});
   assert.equal((await review(mission.id,2,'DONE')).status,'DONE');assert.equal((await service.board({status:'CLOSED'},bootstrapActor)).total,2);
   const summary=(await service.board({},bootstrapActor)).summary;assert.equal(summary.completedLast7Days,1);assert.equal(summary.done,1);assert.equal(summary.dismissed,1);assert.equal(summary.approved,2);
+  await db.auditEvent.create({data:{actorId:'foreign-private-actor-id',actorRole:'ADMIN',action:'OMEGA_MISSION_APPROVE',entityType:'OmegaMission',entityId:mission.id,after:{note:'Synthetic extra audit note',token:'PRIVATE_TOKEN_NOT_FOR_BROWSER',providerPayload:'PRIVATE_PROVIDER_BODY'}}});
+  const auditCount=await db.auditEvent.count();
+  const detail=await service.detail({id:mission.id},bootstrapActor);assert.equal(typeof detail.explanation,'string');assert.match(detail.explanation,/confirmation humaine/);assert.equal(detail.mode,'READ_ONLY');assert.equal(detail.externalEffects,false);assert.equal(detail.source.status,'CANCELLED');assert.equal(detail.source.current,false);assert.equal(detail.source.present,true);assert.equal(detail.source.eligible,false);
+  assert.equal(detail.history.total,3);assert.equal(detail.history.events.some(e=>e.action==='OMEGA_MISSION_DONE'),true);assert.equal(detail.history.events.some(e=>e.actor==='Utilisateur autorisé'),true);assert.equal(JSON.stringify(detail).includes('PRIVATE'),false);assert.equal(JSON.stringify(detail).includes('foreign-private-actor-id'),false);assert.equal(await db.auditEvent.count(),auditCount);
+  const noAudit=await service.detail({id:mission.id},{...bootstrapActor,permissions:bootstrapActor.permissions.filter(p=>p!=='audit')});assert.equal(noAudit.history.allowed,false);assert.deepEqual(noAudit.history.events,[]);assert.equal(noAudit.history.total,0);
+  const callback=await db.omegaMission.findFirstOrThrow({where:{sourceId:'callback'}});
+  await assert.rejects(()=>service.detail({id:callback.id},limited),{code:'FORBIDDEN'});
+  await db.lead.update({where:{id:'callback'},data:{status:'DO_NOT_CONTACT',version:{increment:1}}});
+  const blocked=await service.detail({id:callback.id},bootstrapActor);assert.equal('restricted' in blocked.source&&blocked.source.restricted,true);assert.equal(blocked.source.current,false);assert.match(blocked.source.reason,/restriction de prospection/);
+  await assert.rejects(()=>service.detail({id:'missing'},bootstrapActor),{code:'NOT_FOUND'});
   const control=await db.omegaSupervisorControl.findUniqueOrThrow({where:{id:'native-supervisor'}});
   await service.configure({enabled:false,rules:control.rules,expectedVersion:control.version},bootstrapActor);
   const count=await db.omegaMission.count();assert.equal((await service.tick()).enabled,false);assert.equal(await db.omegaMission.count(),count);

@@ -25,7 +25,11 @@ try{
  await panel.getByRole('status').filter({hasText:'Scénarios activés'}).waitFor();checks++;
  await panel.getByRole('button',{name:'Analyser les dossiers maintenant',exact:true}).click();await panel.getByRole('status').filter({hasText:'mission(s) créée(s)'}).waitFor();
  let mission=await db.omegaMission.findFirstOrThrow({where:{sourceId:prefix}});assert.equal(mission.status,'DRAFT');checks++;
- const card=panel.locator('article').filter({hasText:customer.name});await card.getByRole('button',{name:'Examiner cette mission',exact:true}).click();
+ const card=panel.locator('article').filter({hasText:customer.name});await card.getByRole('button',{name:'Comprendre cette mission',exact:true}).click();
+ const dialog=page.getByRole('dialog',{name:'Fiche de mission OMEGA',exact:true});await dialog.getByRole('status').filter({hasText:'La source correspond toujours'}).waitFor();await dialog.getByRole('heading',{name:'Pourquoi OMEGA a préparé cette mission',exact:true}).waitFor();assert.equal(await dialog.getByText('Aucune décision auditée enregistrée.',{exact:true}).count(),1);checks++;
+ await page.keyboard.press('Shift+Tab');assert.equal(await dialog.getByRole('button',{name:'Revoir la décision de cette mission',exact:true}).evaluate(e=>e===document.activeElement),true);await page.keyboard.press('Tab');assert.equal(await dialog.getByRole('button',{name:'Fermer la fiche de mission',exact:true}).evaluate(e=>e===document.activeElement),true);
+ await page.keyboard.press('Escape');await dialog.waitFor({state:'hidden'});assert.equal(await card.getByRole('button',{name:'Comprendre cette mission',exact:true}).evaluate(e=>e===document.activeElement),true);checks++;
+ await card.getByRole('button',{name:'Comprendre cette mission',exact:true}).click();await dialog.getByRole('button',{name:'Revoir la décision de cette mission',exact:true}).click();await dialog.waitFor({state:'hidden'});
  await panel.getByLabel('Note de décision OMEGA').fill('Synthetic approval');await panel.getByRole('button',{name:'Approuver la mission',exact:true}).click();
  await panel.getByRole('status').filter({hasText:'Décision enregistrée'}).waitFor();assert.equal((await db.omegaMission.findUniqueOrThrow({where:{id:mission.id}})).status,'APPROVED');checks++;
  await db.visit.update({where:{id:prefix},data:{status:'CANCELLED',version:{increment:1}}});await panel.getByRole('button',{name:'Actualiser les missions',exact:true}).click();
@@ -33,6 +37,9 @@ try{
  await panel.getByLabel('Note de décision OMEGA').fill('Synthetic source handled manually');await panel.getByRole('button',{name:'Consigner la mission traitée',exact:true}).click();
  await panel.getByRole('status').filter({hasText:'Décision enregistrée'}).waitFor();assert.equal((await db.omegaMission.findUniqueOrThrow({where:{id:mission.id}})).status,'DONE');checks++;
  await panel.getByRole('combobox',{name:/Afficher/}).selectOption('CLOSED');await card.getByText('Traitée',{exact:false}).waitFor();checks++;
+ await card.getByRole('button',{name:'Historique de la mission',exact:true}).click();await dialog.getByRole('listitem').filter({hasText:'Traitement consigné'}).waitFor();assert.equal(await dialog.getByRole('listitem').filter({hasText:'Mission approuvée'}).count(),1);assert.equal(await dialog.getByRole('listitem').filter({hasText:'Synthetic source handled manually'}).count(),1);await dialog.getByRole('status').filter({hasText:'Le dossier ne correspond plus'}).waitFor();checks++;
+ await page.setViewportSize({width:390,height:844});const bounds=await dialog.boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=392);assert.equal(await dialog.getByRole('button',{name:'Revoir la décision de cette mission',exact:true}).count(),0);await dialog.getByRole('button',{name:'Fermer la fiche de mission',exact:true}).click();await page.setViewportSize({width:1440,height:1000});checks++;
+
  await panel.getByRole('button',{name:'Arrêter le superviseur',exact:true}).click();await panel.getByRole('status').filter({hasText:'Superviseur arrêté.'}).waitFor();assert.equal((await db.omegaSupervisorControl.findUniqueOrThrow({where:{id:'native-supervisor'}})).enabled,false);checks++;
  await page.setViewportSize({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));checks++;
  const anonymous=await browser.newContext();assert.equal((await anonymous.request.get(base+'/api/omega/supervisor')).status(),401);await anonymous.close();checks++;
