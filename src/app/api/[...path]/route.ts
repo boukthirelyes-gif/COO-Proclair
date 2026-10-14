@@ -305,6 +305,7 @@ async function mutate(request: NextRequest) {
     if(request.method==='PATCH'&&/^quotes\/[^/]+$/.test(path))return NextResponse.json(await quotes.edit(path.split('/')[1],input,actor));
     if (request.method !== 'POST') return NextResponse.json({error:'Méthode non autorisée.'},{status:405});
     if (/^worker\/jobs\/[^/]+\/retry$/.test(path)) return NextResponse.json(await worker.retryJob(path.split('/')[2],input,actor));
+    if (/^visits\/[^/]+\/save$/.test(path)&&request.method==='POST')return NextResponse.json(await service.saveVisit(path.split('/')[1],input,actor));
     if (/^visits\/[^/]+\/transition$/.test(path)) return NextResponse.json(await service.transitionVisit(path.split('/')[1],input,actor));
     if (/^invoices\/[^/]+\/issue$/.test(path)) return NextResponse.json(await finance.issueInvoice(path.split('/')[1],input,actor));
     if (/^invoices\/[^/]+\/void$/.test(path)) return NextResponse.json(await finance.voidInvoice(path.split('/')[1],input,actor));

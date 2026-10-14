@@ -1,3 +1,10 @@
+## Interventions : sauvegarde atomique — 2026-10-14
+
+- Champs et état sauvegardés dans une seule transaction, sans écriture partielle en cas de transition refusée.
+- Report explicite avec libération du créneau ; annulation sans déplacement ni blocage causé par une configuration devenue inactive.
+- Droits, versions concurrentes, audit unique et prix immuables ; formulaire transmet les suppressions comme NULL.
+- 116 tests serveur, compilation et 22 contrôles navigateur natifs réussis. Aucune migration ni modification directe de production.
+
 ## Premier lot natif V2000 — 2026-10-14
 
 - Reprise de feature/proclair-native-operations-20261014 et du module existant.

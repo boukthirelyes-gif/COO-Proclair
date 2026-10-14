@@ -11,3 +11,9 @@ Audit navigateur initial : création/modification client, site, contrat, prestat
 Compilation de production réussie. Parcours natif complet : 17 contrôles navigateur réussis, sans erreur JavaScript, fixtures propres nettoyées. Contrats signés : six contrôles navigateur réussis, deux passages PENDING distincts et PDF conservé ; aucun encaissement.
 
 Finances natives : 17 contrôles navigateur réussis, zéro erreur JavaScript. Paiements manuels synthétiques, contrepassation, impayés, dépenses corrigées, CSV et PDF vérifiés ; aucun mouvement Stripe réel.
+
+## Deuxième lot : sauvegarde atomique des interventions
+
+116 tests serveur réussis, zéro ignoré ; compilation finale réussie. Deux nouveaux tests : droits/prix immuables puis transaction PostgreSQL (transition invalide sans écriture ni audit, créneau obligatoire, version obsolète, concurrence, report explicite et annulation malgré technicien/contrat inactifs). Le formulaire utilise un endpoint de sauvegarde unique ; les API existantes restent disponibles.
+
+22 contrôles navigateur natifs réussis, zéro erreur JavaScript. Le parcours vérifie l’absence de notes/audit partiellement enregistrés après transition interdite, le report qui libère le créneau et la confirmation humaine sans planification automatique. Les champs vidés sont transmis comme NULL. Aucune communication ou facture générée par cette correction.

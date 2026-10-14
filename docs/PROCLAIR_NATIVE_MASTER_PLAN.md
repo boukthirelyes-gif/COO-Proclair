@@ -9,7 +9,7 @@ Branche de travail : feature/proclair-native-operations-20261014. Reprise de f99
 | Dispatch natif | VERIFIED | Trois tests module/service et parcours navigateur de file, dossier, calendrier et mobile |
 | Capacité et week-end | VERIFIED | Tests native-operations : objectif nul le week-end et créneaux retirés exclus |
 | Navigation sans doublons Rotor | VERIFIED | Messages historiques accessibles par import/intégrations ou lien existant, hors navigation principale |
-| Modifications atomiques de visites | TODO | Ancien formulaire modifie les champs puis change l’état dans deux requêtes ; corriger sans enregistrement partiel |
+| Modifications atomiques de visites | VERIFIED | Deux tests serveur + parcours natif de 22 contrôles : rollback, report, annulation, concurrence et audit |
 | Factures/paiements manuels natifs | VERIFIED | 17 contrôles navigateur finance : montants, paiements manuels, annulations, dépenses, CSV et PDF |
 | Stripe réel | BLOCKED | Clés absentes ; mode test uniquement, aucune preuve de débit réel |
 | Twilio réel et Voice/voicemail | BLOCKED | Fournisseur/numéro/audio non configurés ; pas de bouton d’appel présenté comme connecté |
