@@ -1,7 +1,7 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {prisma} from '@/lib/db';
 import {resolveActor} from '@/lib/user-session';
-import {requirePermission} from '@/lib/access';
+import {requireArchivePermissions,safeArchiveError} from '@/lib/private-export';
 import {rotorArchiveRead,type RotorArchiveTool} from '@/lib/rotor';
 
 export const runtime='nodejs';
@@ -27,11 +27,11 @@ export async function GET(request:NextRequest){
  try{
   const actor=await resolveActor(prisma,request);
   if(!actor)return NextResponse.json({error:'Connexion requise.'},{status:401,headers:replyHeaders});
-  requirePermission(actor,'integrations');
-  requirePermission(actor,'export');
+  requireArchivePermissions(actor,'list_customers');
   const query=request.nextUrl.searchParams;
   const tool=query.get('tool') as RotorArchiveTool|null;
   if(!tool||!allowed.has(tool))return NextResponse.json({error:'Catégorie export inconnue.'},{status:400,headers:replyHeaders});
+  requireArchivePermissions(actor,tool);
   const args:Record<string,unknown>={};
   if(!unpaged.has(tool)){
    const page=Number(query.get('page')),limit=Number(query.get('limit')||'100');
@@ -48,12 +48,14 @@ export async function GET(request:NextRequest){
   return NextResponse.json(result,{headers:replyHeaders});
  }catch(e){
   // Never leak API keys, customer records or message bodies into the logs.
-  const code=e&&typeof e==='object'&&'code'in e?String(e.code):'EXPORT_FAILED';
-  const status=code==='FORBIDDEN'?403:code==='ROTOR_RATE_LIMIT'?429:code==='ROTOR_AUTH'||code==='ROTOR_SCOPE'?409:502;
+  const code=safeArchiveError(e);
+  const invalid=['ROTOR_PAGE','ROTOR_RANGE','ROTOR_ARGUMENTS'].includes(code),auth=['ROTOR_AUTH','ROTOR_REAUTH','ROTOR_SCOPE'].includes(code),config=['CONFIG_REQUIRED','AUTH_CONFIGURATION_REQUIRED','CREDENTIAL_STORE'].includes(code);
+  const status=code==='FORBIDDEN'?403:invalid?400:config?503:code==='ROTOR_RATE_LIMIT'?429:auth?409:502;
   const message=code==='FORBIDDEN'?'Accès à l’export refusé.':
    code==='ROTOR_SCOPE'?'Droit de lecture Rotor manquant. Reconnectez Rotor avec les autorisations de lecture nécessaires.':
-   code==='ROTOR_AUTH'?'Connexion Rotor absente ou expirée. Reconnectez-la dans Intégrations.':
+   (code==='ROTOR_AUTH'||code==='ROTOR_REAUTH')?'Connexion Rotor absente ou expirée. Reconnectez-la dans Intégrations.':
    code==='ROTOR_RATE_LIMIT'?'Rotor limite temporairement les demandes, réessayez.':
+   invalid?'Paramètres d’export invalides.':config?'Configuration d’export indisponible. Vérifiez les paramètres privés du CRM.':
    'Rotor ne répond pas à cette page. Réessayez ou réduisez la taille des pages.';
   return NextResponse.json({error:message,code},{status,headers:replyHeaders});
  }

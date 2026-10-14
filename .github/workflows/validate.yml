@@ -74,9 +74,24 @@ jobs:
           DATABASE_URL="$E2E_DATABASE_URL" node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3102 > /tmp/proclair-browser.log 2>&1 &
           DATABASE_URL="$E2E_DATABASE_URL" VERCEL=1 VERCEL_URL=coo-proclair-access-fixture.vercel.app PROCLAIR_PUBLIC_ORIGIN=https://coo-proclair.vercel.app/ node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3103 > /tmp/proclair-preview.log 2>&1 &
           node --input-type=module -e 'for(const base of [process.env.E2E_BASE_URL,process.env.E2E_PREVIEW_BASE_URL]){let ready=false; for(let i=0;i<60;i++){try{const r=await fetch(base+"/api/health"); if(r.ok){ready=true;break}}catch{} await new Promise(resolve=>setTimeout(resolve,1000))} if(!ready)process.exit(1);}'
-      - run: npm run test:superhub:e2e
-      - run: npm run test:team:e2e
-      - run: npm run test:omega-operations:e2e
-      - run: npm run test:access-calendar:e2e
-      - run: npm run test:native-core:e2e
-      - run: npm run test:leaderboard:e2e
+      - run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:superhub:e2e
+      - run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:team:e2e
+      - run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:omega-operations:e2e
+      - run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:access-calendar:e2e
+      - run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:native-core:e2e
+      - run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:leaderboard:e2e
+      - run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:archive-gates:e2e

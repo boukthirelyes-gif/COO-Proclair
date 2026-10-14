@@ -11,3 +11,5 @@ Compilation finale réussie ; 121 tests serveur et 77 groupes navigateur réussi
 Dernière compilation réussie après les états guidés. 121 tests serveur et couverture de 79 groupes navigateur ; un push de branche n’est pas une Preview distante vérifiée.
 
 Après fusion de 63c9aba et durcissement de l’export privé : compilation réussie et 123 tests serveur réussis, 25 contrôles natifs + 7 leaderboard repassés. Les archives restent dans private-exports/ ignoré par Git ; jamais de données d’archives dans un artefact de livraison. Les migrations/variables de production sont inchangées.
+
+Point final après intégration de 0f85058 : endpoint d’archive historique facultatif conservé et protégé par catégorie. 124 tests serveur réussis, compilation finale réussie et couverture de 82 groupes navigateur/HTTP. Aucun export réel exécuté, aucune Preview distante vérifiée, aucune modification de main ou production. Reprendre les commits de cette branche et les TODO du plan.

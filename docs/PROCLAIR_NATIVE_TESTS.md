@@ -41,3 +41,9 @@ Compilation finale réussie, 25 contrôles natifs navigateur réussis et dix con
 La branche distante a avancé jusqu’à 63c9aba avec l’archive historique Rotor. Fusion conservatrice sans conflit : fonctions natives et outils d’export préservés. Garde-fous ajoutés : noms d’outils réellement allowlistés, répertoire privé lié au projet, noms de lots sans traversée, diagnostics sans messages bruts de fournisseur ou de base.
 
 Dernière validation après fusion : 123 tests serveur réussis, zéro ignoré ; compilation de production et TypeScript réussis. Les 25 contrôles natifs et sept du leaderboard ont été repassés sur ce build, sans erreur JavaScript. La couverture navigateur métier de la livraison reste 79 groupes, sans recompter les répétitions. Aucun fichier private-exports suivi par Git et aucun export réel exécuté. L’archive externe complète n’est pas déclarée VERIFIED.
+
+## Endpoint d’archive facultatif préservé et protégé
+
+Changement distant 0f85058 fusionné sans écrasement. Endpoint authentifié d’archive en lecture seule conservé ; contrôle CRM/intégrations/export et droits additionnels par catégorie (finance, employés, pins/prospects globaux, devis). Codes d’erreur bornés et erreurs de validation retournées en 400. Aucune donnée réelle demandée.
+
+Validation finale : 124 tests serveur réussis, zéro ignoré ; compilation finale et TypeScript réussis. Trois contrôles HTTP d’archive (anonyme refusé, catégorie inconnue refusée, intervalle invalide refusé avant transport) réussis sans appel externe ni enregistrement exporté. Couverture totale de livraison : 82 groupes navigateur/HTTP, sans compter deux fois les répétitions. Le job CI remet à zéro les seuls compteurs de connexion de proclair_browser_test entre suites, pour isoler les fixtures en conservant la limite réelle de connexion ; jamais pendant un test de cette limite. Exécution CI distante non certifiée.

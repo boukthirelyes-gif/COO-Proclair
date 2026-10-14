@@ -61,3 +61,5 @@ Les exports sont exclus de Git par `.gitignore` et stockés sous `private-export
 ## Garde-fous après intégration de la branche
 
 Les noms de lots restent dans private-exports/ du projet ; chemins absolus et traversées de répertoire refusés. Les diagnostics enregistrés ne contiennent que des codes bornés, jamais les messages bruts de fournisseur ou PostgreSQL. Les noms d’outils hérités du prototype sont refusés avant accès aux jetons. Tests locaux de ces garde-fous uniquement : aucun export de données réelles exécuté pendant cette livraison native.
+
+Le relais HTTP authentifié exige les droits CRM/intégrations/export et les droits supplémentaires de la catégorie (finance, employés, accès global pins/prospects ou devis). Les contrôles HTTP exécutés n’ont demandé que des cas refusés ; aucun export réel n’est déclaré validé.
