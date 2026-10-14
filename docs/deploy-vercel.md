@@ -107,3 +107,11 @@ Les intégrations sont facultatives pour le démarrage. Configurer les variables
 La migration additive `20261014010000_rotor_file_import` ajoute les lots de fichiers et l'archive financière. Appliquer les migrations et générer Prisma avec le build habituel avant de servir cette version. Aucune nouvelle clé. L'origine cible reste `https://coo-proclair.vercel.app` ; connexion OAuth, imports réels et statut Ready restent à vérifier en production. Voir TRANSFERT_ROTOR.md pour le parcours, les permissions et la distinction entre archives financières et registre comptable.
 
 La migration `20261014011000_rotor_annual_import` aligne la contrainte PostgreSQL avec la limite annuelle de 366 jours des imports reprenables. Les anciennes migrations restent immuables. Le lecteur MCP applique cette même limite et conserve la vérification des schémas Rotor.
+
+### Isolation des prévisualisations
+
+Sur Vercel Preview, `PROCLAIR_PREVIEW_DATABASE_URL` est désormais obligatoire et
+ne doit pas désigner la même base que DATABASE_URL ou DIRECT_DATABASE_URL, même
+via un alias pooler. Sans isolation, le runtime refuse le démarrage. Production
+conserve DIRECT_DATABASE_URL prioritaire puis DATABASE_URL. Ne pas renseigner la
+variable Preview avec les identifiants de production.
