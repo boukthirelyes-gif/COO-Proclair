@@ -1,5 +1,15 @@
 # OMEGA V1000 — rapport de tests
 
+## Accès, Vercel et agenda — 2026-10-14
+
+111 tests serveur réussis, zéro ignoré. Après les dernières modifications du droit export et du statut agenda, trois tests ciblés calendrier réussis. TypeScript et compilation finale de production réussis ; santé PostgreSQL locale vérifiée.
+
+Nouveaux cas : mot de passe incorrect distingué d’une configuration absente ; slash final et domaine exact VERCEL_URL ; refus d’un autre domaine vercel.app ; proxy HTTPS et absence de confiance dans forwarded-host ; journées Toronto de 23/25 h ; calendrier natif sans écritures, droits avant lecture, plage invalide, injection CRLF échappée, pliage de lignes de 75 octets UTF-8, UID stable et statut TENTATIVE.
+
+34 groupes navigateur réussis : 10 Accès/Agenda, 10 OMEGA et 14 Superhub, zéro erreur JavaScript. Le parcours Accès/Agenda vérifie refus du mauvais mot de passe puis connexion valide, téléchargement réel du fichier, période trop longue, mobile 390 px, rôle restreint et session anonyme refusés, origine Vercel exacte acceptée avec cookie Secure et domaine tiers refusé. Le serveur de simulation Vercel a été arrêté après vérification. Les deux lectures Stripe du Superhub sont simulées ; aucune communication, inscription agenda ou écriture de planning/paiement réelle.
+
+L’accès au domaine Vercel utilisateur échoue au proxy de sortie (CONNECT 403), y compris après l’essai autorisé hors sandbox. Cela ne constitue pas une réponse de l’application ni une preuve de mauvais mot de passe. La connexion de production et l’exécution CI distante restent non certifiées.
+
 ## Validation OMEGA — 2026-10-14
 
 Campagne actuelle : 104 tests serveur réussis, zéro ignoré ; TypeScript et compilation de production réussis ; trois tests Python historiques réussis. Le catalogue de 512 capacités reste un catalogue de candidats, pas une preuve de 512 fonctions livrées.

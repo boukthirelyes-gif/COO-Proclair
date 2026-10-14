@@ -1,3 +1,11 @@
+## Accès Vercel et intégration agenda — 2026-10-14
+
+- Connexion : slash final accepté, domaine exact de déploiement Vercel autorisé sans wildcard, cookies HTTPS derrière proxy et diagnostics distincts. Mot de passe existant conservé.
+- Message réel des identifiants invalides et double soumission du formulaire bloquée.
+- Planning iCalendar pour Google Agenda, Outlook et Apple Calendar : droits CRM/intégrations/export, 31 jours maximum, compteur d’omissions, UID stable et statut TENTATIVE pour visites non confirmées. Import ponctuel sans synchronisation automatique.
+- Bornes Toronto corrigées pour les changements d’heure de 23/25 heures.
+- 111 tests serveur, trois tests ciblés agenda repassés après finalisation, compilation et 34 groupes navigateur réussis. Production non vérifiée ; aucune migration ni nouvelle clé requise.
+
 ## OMEGA : priorités, briefing et capacité — 2026-10-14
 
 - Cockpit PostgreSQL : retards, confirmations, visites à placer, suivis, factures et worker selon les droits ; compte exact, dix dossiers affichés et accès aux dossiers.

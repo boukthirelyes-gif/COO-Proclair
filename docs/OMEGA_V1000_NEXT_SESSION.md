@@ -1,5 +1,7 @@
 # OMEGA V1000 — point de reprise au 14 octobre 2026
 
+Dernier lot : correctif de connexion Vercel/proxy HTTPS et intégration agenda iCalendar. 111 tests serveur, trois tests agenda ciblés repassés, compilation finale et 34 groupes navigateur réussis. Consulter ACCESS_AND_CALENDAR.md. La connexion distante reste non vérifiée (proxy de sortie CONNECT 403) ; ne pas annoncer l’accès utilisateur rétabli sans preuve. Ne pas changer le secret de session pour résoudre un problème de mot de passe. L’URL de déploiement fournie par l’utilisateur est immuable ; la mise à jour doit être déployée puis ouverte sur le domaine principal.
+
 Le CRM existant est conservé. Dernier lot : cockpit des priorités respectant les permissions, briefing de l’assistant et analyse de capacité quotidienne en lecture seule. 104 tests serveur, dix groupes navigateur OMEGA, TypeScript, compilation et trois tests Python réussis. Aucun modèle de langage ou routage routier connecté ; aucun contact ou paiement réel pendant les tests.
 
 1. Inspecter Git et lire les rapports avant de modifier le code ; préserver les branches récupérées et les migrations appliquées.

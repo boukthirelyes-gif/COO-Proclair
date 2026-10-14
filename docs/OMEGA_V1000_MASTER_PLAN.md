@@ -1,5 +1,13 @@
 # OMEGA V1000 — plan de livraison
 
+## Accès et agendas — 2026-10-14
+
+VERIFIED : origines exactes Vercel autorisées via configuration serveur, normalisation du slash final, HTTPS derrière proxy et erreurs de connexion distinctes. Le mot de passe existant n’est pas modifié ; les domaines tiers restent refusés.
+
+VERIFIED : export iCalendar du planning pour import ponctuel Google Agenda, Outlook et Apple Calendar. Droits Intégrations + lecture CRM + export, période de 31 jours, refus au-delà de 2 000 rendez-vous, compteur des créneaux incomplets, UID stable et texte échappé/fold UTF-8. Les visites non confirmées restent TENTATIVE dans l’agenda. Pas de synchronisation OAuth ni d’inscription externe automatique.
+
+Correction partagée : bornes de journée Toronto sur les changements d’heure (23/25 h), validées sans altération des rendez-vous. Déploiement et connexion sur le site utilisateur restent non vérifiés.
+
 ## Lot OMEGA du 14 octobre 2026
 
 Priorités natives en snapshot PostgreSQL : retards réels (début sans démarrage ou fin dépassée), confirmations, visites confirmées sans créneau, suivis échus, factures natives et échecs du worker. Les droits déterminent les catégories et les compteurs ; dix dossiers maximum par catégorie, compte exact avant limite. Le briefing reprend ce périmètre dans l’assistant.

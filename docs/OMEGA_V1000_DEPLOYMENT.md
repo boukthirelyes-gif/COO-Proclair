@@ -1,5 +1,11 @@
 # OMEGA V1000 — déploiement
 
+## Correctif de connexion et agendas — 2026-10-14
+
+Aucune migration, dépendance ou nouvelle clé. Sur Vercel, conserver le secret de session existant et le mot de passe privé. PROCLAIR_PUBLIC_ORIGIN doit désigner https://coo-proclair.vercel.app sans chemin ni paramètres ; le slash final est accepté. VERCEL et VERCEL_URL sont les variables système de l’hébergement : aucune liste wildcard de domaines n’est ajoutée.
+
+Après déploiement de main, utiliser le domaine principal. Une ancienne adresse de déploiement garde son ancienne version. Vérifier Production/Preview pour les variables privées existantes, puis redéployer après toute modification. Guide détaillé : ACCESS_AND_CALENDAR.md. La connexion de production n’est pas vérifiée depuis cet environnement.
+
 ## Code préparé — 2026-10-14
 
 Ce lot enrichit OMEGA sans migration, nouvelle dépendance ou variable d’environnement. Conserver les variables privées et la base existantes. Compilation de production réussie et API protégées sans cache public.

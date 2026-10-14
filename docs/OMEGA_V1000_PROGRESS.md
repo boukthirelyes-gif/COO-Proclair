@@ -1,5 +1,11 @@
 # OMEGA V1000 — avancement
 
+## Accès et intégration agenda — 2026-10-14
+
+Code validé : correction de l’origine des déploiements Vercel et cookies HTTPS, message réel des identifiants invalides, blocage du double clic de connexion, diagnostic de variables privées manquantes. Aucun mot de passe réinitialisé, affiché ou exporté.
+
+Nouvelle intégration agenda par fichier .ics : Google Agenda/Outlook/Apple Calendar, permissions côté serveur, UTC et bornes Toronto correctes, import ponctuel explicitement indiqué. 111 tests serveur réussis, zéro ignoré ; les trois tests agenda ont été repassés après renforcement du droit export et du statut TENTATIVE. Compilation et TypeScript réussis ; 10 groupes Accès/Agenda, 10 OMEGA et 14 Superhub réussis. Aucune migration, dépendance ou nouvelle clé pour l’agenda.
+
 ## Livraison OMEGA — 2026-10-14
 
 VERIFIED : cockpit des priorités, briefing de l’assistant, simulation de capacité en lecture seule, raccourcis vers dossiers et tableau de traitement. Les factures Stripe test et archives Rotor ne sont pas confondues avec le registre financier natif. Les catégories non autorisées sont absentes, y compris leurs nombres.

@@ -1,5 +1,11 @@
 # OMEGA V1000 — blocages
 
+## Accès utilisateur — 2026-10-14
+
+Le lien signalé est un déploiement Vercel immuable. Le code actuel pouvait refuser ce domaine lorsque PROCLAIR_PUBLIC_ORIGIN désignait le domaine principal. La correction autorise le seul VERCEL_URL exact configuré côté serveur et conserve les refus de domaines étrangers. Ce cas est reproduit et corrigé en test ; le message réel de l’utilisateur n’a pas été fourni.
+
+Aucune vérification distante : CONNECT 403 au proxy réseau, absence de VERCEL_TOKEN et RENDER_API_KEY. Une publication GitHub ne certifie pas un déploiement ni un accès rétabli. Utiliser le domaine principal et déployer la branche main corrigée. Si les identifiants sont toujours refusés, vérifier le mot de passe privé sur l’environnement Vercel concerné, sans l’envoyer au chat.
+
 ## État actuel — 2026-10-14
 
 Le nouveau cockpit, le briefing et l’analyse de capacité sont validés localement : 104 tests serveur et dix groupes navigateur OMEGA réussis, compilation réussie. Les mentions TESTING ci-dessous sont des étapes historiques et ne concernent pas ce lot final.
