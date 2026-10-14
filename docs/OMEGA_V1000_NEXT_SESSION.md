@@ -17,3 +17,5 @@ Les deux nouvelles migrations communication_followups et communication_activity_
 Dernier lot : capacités quotidiennes des techniciens et corrections de marge OMEGA implémentées. Suite serveur 100 réussis. Les horaires variables, disponibilités individuelles, comparaison de scénarios routiers et attribution des conversations restent à développer.
 
 Dernière validation : compilation réussie, 100 tests serveur et 5 groupes navigateur Équipe réussis. Le plan reste une heuristique locale à marge fixe, pas un itinéraire routier validé. Les capacités modifiées invalident les nouveaux plans ; une marge modifiée avant application provoque un refus atomique.
+
+Les onglets SMS/Appels disposent désormais de filtres serveur distincts et d’une liste d’appels manqués à examiner. Validation : 14 groupes Superhub réussis. Prochain module : attribution persistante des conversations avec droits par propriétaire ; ne pas exposer automatiquement l’historique global aux vendeurs.

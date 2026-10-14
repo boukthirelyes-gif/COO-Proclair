@@ -33,3 +33,7 @@ Tests serveur : 94 réussis. Le test ciblé a été repassé après l’optimisa
 L’écran Équipe est remplacé par une gestion fonctionnelle : création, modification, activation et objectifs lundi-jeudi/vendredi. Consultation avec lecture CRM ; modifications avec Paramètres. Version optimistic, audit et refus de désactivation/réduction incompatible avec les rendez-vous. Migration additive technician_versions.
 
 Le planificateur recherche le premier créneau admissible en conservant 30 minutes avant/après les interventions. Un candidat trop long ne consomme pas un créneau utile à une visite plus courte. L’application revérifie configuration et marge ; aucun déplacement silencieux. Heuristique fixe, pas de routage routier. Suite serveur : 100 tests réussis, zéro ignoré ; compilation et 5 groupes navigateur Équipe VERIFIED (création, modification, conflit de version, mobile, lecture seule).
+
+## Filtres des communications
+
+Filtres serveur SMS, CALLS et MISSED_CALLS, avec compteur avant pagination. Le filtre appels manqués exige un dernier appel entrant sans réponse/occupé/échoué, sans appel ni SMS plus récent. Les recherches sont combinées au filtre sans contournement par les termes ou numéros. Chaque onglet charge son propre canal. Typecheck, compilation et tests ciblés PostgreSQL réussis ; 14 groupes navigateur Superhub VERIFIED. Aucune migration ni clé supplémentaire.

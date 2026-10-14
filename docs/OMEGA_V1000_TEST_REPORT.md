@@ -30,3 +30,7 @@ Suite serveur : 94 tests réussis, zéro ignoré. Test ciblé des suivis repass�
 ## Équipe et remplissage OMEGA
 
 100 tests serveur réussis, zéro ignoré. Six nouveaux tests : marges avant/après, bornes 8–17, candidat trop long puis court, invariance des entrées, validation/droits, protection des rendez-vous et versions. Une marge occupée après preview bloque l’application sans déplacement partiel. Compilation réussie. Cinq groupes navigateur Équipe réussis, zéro erreur JavaScript et largeur mobile vérifiée. Le workflow navigateur inclut désormais ce parcours ; exécution GitHub distante non confirmée.
+
+## Filtres des communications
+
+Deux tests ciblés communications réussis (avec nouvelles assertions des canaux), compilation réussie, 14 groupes navigateur Superhub réussis. Cas : dernier appel manqué entrant, appel sortant exclu, rappel plus récent exclu, SMS plus récent exclu, recherche ne contournant pas le canal, nombre exact avant pagination et absence de droits. Aucun appel fournisseur ou contact téléphonique réel pendant ces contrôles ; deux réponses Stripe sont simulées.

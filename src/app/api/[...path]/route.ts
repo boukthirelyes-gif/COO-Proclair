@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
     }
     if(path==='integrations/providers')return NextResponse.json(providerStatus());
     if(path==='integrations/communications')return NextResponse.json(await new Communications(prisma).list(actor));
-    if(path==='integrations/communications/conversations')return NextResponse.json(await new CommunicationsHub(prisma).list(Object.fromEntries(['query','page','pageSize'].flatMap(key=>{const value=request.nextUrl.searchParams.get(key);return value===null?[]:[[key,value]]})),actor));
+    if(path==='integrations/communications/conversations')return NextResponse.json(await new CommunicationsHub(prisma).list(Object.fromEntries(['query','page','pageSize','channel'].flatMap(key=>{const value=request.nextUrl.searchParams.get(key);return value===null?[]:[[key,value]]})),actor));
     if(path==='integrations/communications/followups')return NextResponse.json(await new CommunicationFollowUps(prisma).list(Object.fromEntries(['phone','status','page'].flatMap(key=>{const value=request.nextUrl.searchParams.get(key);return value===null?[]:[[key,value]]})),actor));
     if(path==='integrations/communications/conversation')return NextResponse.json(await new CommunicationsHub(prisma).detail(request.nextUrl.searchParams.get('phone'),actor));
     if(path==='finance/stripe/dashboard')return NextResponse.json(await new StripePayments(prisma).dashboard(Object.fromEntries(['status','customerId','from','to','page'].flatMap(key=>{const value=request.nextUrl.searchParams.get(key);return value===null?[]:[[key,value]]})),actor));

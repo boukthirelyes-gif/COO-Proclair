@@ -1,3 +1,10 @@
+## Filtres SMS et appels manqués — 2026-10-13
+
+- Canal SMS/Appels filtré côté serveur avec compteur exact avant pagination.
+- Appels manqués à examiner : dernier appel entrant sans réponse, occupé ou échoué, sans communication plus récente.
+- Recherche combinée au canal sans contournement et sélection du fil réinitialisée au changement de filtre.
+- Tests PostgreSQL ciblés et 14 groupes navigateur Superhub réussis ; compilation réussie. Aucun contact externe, migration ou clé supplémentaire.
+
 ## Équipe configurable et marges OMEGA — 2026-10-13
 
 - Écran Équipe fonctionnel : création, activation et objectifs lundi-jeudi/vendredi, droits Paramètres et versions.
