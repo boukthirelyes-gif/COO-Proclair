@@ -1,3 +1,4 @@
+import {stripeSecretKey,stripeWebhookSecret} from './stripe-credentials';
 import Stripe from 'stripe';
 import type {PrismaClient} from '@prisma/client';
 import {z} from 'zod';
@@ -5,8 +6,8 @@ import {DomainError} from '../domain/rules';
 import {requirePermission,type AccessActor} from '../lib/access';
 import {publicOrigin} from './config';
 import {stripeDashboard} from './stripe-dashboard';
-export function stripeClient(){const key=process.env.STRIPE_SECRET_KEY;if(!key?.startsWith('sk_test_'))throw new DomainError('TEST_KEY_REQUIRED','Configurez une clé Stripe de test. Les paiements réels sont désactivés.',409);return new Stripe(key,{maxNetworkRetries:1,timeout:10000})}
-export function verifyStripe(raw:string,signature:string|null){const secret=process.env.STRIPE_WEBHOOK_SECRET;if(!secret||!signature)throw new DomainError('INVALID_SIGNATURE','Signature Stripe absente.',403);let event:Stripe.Event;try{event=stripeClient().webhooks.constructEvent(raw,signature,secret)}catch{throw new DomainError('INVALID_SIGNATURE','Signature Stripe invalide.',403)}if(event.livemode)throw new DomainError('LIVE_DISABLED','Événement Stripe réel refusé.',403);return event;}
+export function stripeClient(){const key=stripeSecretKey();if(!key?.startsWith('sk_test_'))throw new DomainError('TEST_KEY_REQUIRED','Configurez une clé Stripe de test. Les paiements réels sont désactivés.',409);return new Stripe(key,{maxNetworkRetries:1,timeout:10000})}
+export function verifyStripe(raw:string,signature:string|null){const secret=stripeWebhookSecret();if(!secret||!signature)throw new DomainError('INVALID_SIGNATURE','Signature Stripe absente.',403);let event:Stripe.Event;try{event=stripeClient().webhooks.constructEvent(raw,signature,secret)}catch{throw new DomainError('INVALID_SIGNATURE','Signature Stripe invalide.',403)}if(event.livemode)throw new DomainError('LIVE_DISABLED','Événement Stripe réel refusé.',403);return event;}
 export class StripePayments {
  constructor(public db:PrismaClient,private client:()=>Stripe=stripeClient){}
  async dashboard(input:unknown,actor:AccessActor){return stripeDashboard(this.db,input,actor)}

@@ -86,3 +86,9 @@ Navigation Stripe, SMS, Appels et Fournisseurs. Les fiches client ouvrent Stripe
 ## Suivis persistants OMEGA
 
 Depuis une conversation SMS ou un appel manqué admissible, créer un suivi. Dans OMEGA, vérifier la source puis approuver pour traitement humain. La clôture nécessite une note ; un report explicite propose 24 h, 48 h ou 7 jours. Déduplication et versions empêchent les doubles créations/actions ; un désabonnement, une réponse ou un état source modifié bloque la reprise. Une exclusion reste possible. Ces suivis et les messages Rotor sont inclus dans l’export métier. Aucun suivi n’envoie de SMS ou ne lance d’appel.
+
+### Diagnostic Stripe et copier-coller
+
+Le diagnostic distingue maintenant une clé absente, une clé publique, une clé réelle refusée et un format incompatible. Les espaces et retours à la ligne entourant la clé secrète ou le secret webhook sont retirés avant utilisation, sans modifier leur contenu. Le secret webhook doit commencer par `whsec_`. La clé de test permet de vérifier le compte indépendamment du webhook : une configuration incomplète ne signifie pas un refus d’authentification.
+
+La carte affiche l’environnement effectivement chargé (Production, Preview ou Local) et, si disponible, la version Git du déploiement. Ajouter une variable Vercel ne modifie pas une instance existante : sélectionner Production, redéployer, attendre Ready puis rouvrir le domaine principal. Le CRM ne reçoit jamais les clés du navigateur. Les clés réelles et paiements réels restent refusés.
