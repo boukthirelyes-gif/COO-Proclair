@@ -98,3 +98,9 @@ jobs:
       - run: |
           node tests/reset-browser-login-attempts.mjs
           npm run test:archive-gates:e2e
+      - run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:omega-workspace:e2e
+      - run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:lead-table:e2e
