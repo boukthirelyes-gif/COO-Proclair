@@ -82,3 +82,7 @@ Une réponse 401/403 signifie un refus d'identifiants ; une erreur réseau ou fo
 Navigation Stripe, SMS, Appels et Fournisseurs. Les fiches client ouvrent Stripe filtré et les conversations à partir d’un numéro international normalisé. Un numéro partagé reste ambigu ; aucune liaison arbitraire. Les brouillons OMEGA sont heuristiques locaux à relire, bloqués en cas de STOP et ne déclenchent aucune opération.
 
 `GET /api/finance/stripe/dashboard` : historique local autorisé par finance, dates de création UTC, 25 lignes, totaux par devise et état. Les paiements test ne règlent pas les factures natives. `POST /api/finance/stripe/inspect` : consultation manuelle du compte Stripe de test via SDK officiel, réservée à finance + intégrations + lecture CRM. Soldes disponibles/en attente et charges paginées, champs privés exclus ; aucune création de paiement ou remboursement et aucune synchronisation comptable. Le périmètre est le compte fournisseur, pas le filtre client local. Connexion réelle non vérifiée sans clés.
+
+## Suivis persistants OMEGA
+
+Depuis une conversation SMS ou un appel manqué admissible, créer un suivi. Dans OMEGA, vérifier la source puis approuver pour traitement humain. La clôture nécessite une note ; un report explicite propose 24 h, 48 h ou 7 jours. Déduplication et versions empêchent les doubles créations/actions ; un désabonnement, une réponse ou un état source modifié bloque la reprise. Une exclusion reste possible. Ces suivis et les messages Rotor sont inclus dans l’export métier. Aucun suivi n’envoie de SMS ou ne lance d’appel.

@@ -23,4 +23,4 @@ Périmètre : les deux directives fournies le 13 octobre 2026, appliquées au CR
 
 Pas de quota artificiel de tests : couvrir les cas réels, compter les vérifications exécutées, ne pas annoncer 2 000 ou 400 tests sans preuves.
 
-Cette tranche fournit des suggestions locales, pas un éditeur complet d’automatisations ni une synchronisation bidirectionnelle. Le suivi persistant, l’attribution de conversations, la messagerie vocale et le dispatch configurable restent TODO. Les connexions réelles restent BLOCKED.
+Cette tranche fournit des suggestions locales, pas un éditeur complet d’automatisations ni une synchronisation bidirectionnelle. Les suivis persistants sont VERIFIED dans le second lot : validation humaine, déduplication, versions, STOP, état source, note et audit ; 13 groupes navigateur réussis. L’attribution de conversations, la messagerie vocale et le dispatch configurable restent TODO. Les connexions réelles restent BLOCKED.

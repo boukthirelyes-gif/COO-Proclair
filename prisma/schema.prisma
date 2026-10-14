@@ -691,6 +691,7 @@ model SmsMessage {
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
  @@index([phone,createdAt])
+ @@index([phone,createdAt(sort: Desc),id(sort: Desc)],map:"SmsMessage_phone_recent_idx")
 }
 model PhoneCall {
  sid String @id
@@ -700,6 +701,7 @@ model PhoneCall {
  durationSeconds Int?
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
+ @@index([phone,createdAt(sort: Desc),sid(sort: Desc)],map:"PhoneCall_phone_recent_idx")
 }
 model StripeCheckout {
  id String @id @default(cuid())
@@ -765,4 +767,26 @@ model RotorSmsSyncControl {
  lastImported Int @default(0)
  lastErrorCode String?
  updatedAt DateTime @updatedAt
+}
+
+model CommunicationFollowUp {
+ id String @id @default(cuid())
+ sourceKind String
+ sourceId String
+ phone String
+ sourceFingerprint String
+ draft String
+ status String @default("DRAFT")
+ dueAt DateTime
+ version Int @default(1)
+ createdBy String
+ approvedBy String?
+ approvedAt DateTime?
+ completionNote String?
+ closedAt DateTime?
+ dedupeKey String @unique
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([phone,status,dueAt])
+ @@index([status,dueAt])
 }

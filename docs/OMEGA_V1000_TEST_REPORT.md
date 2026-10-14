@@ -4,11 +4,11 @@
 
 | Contrôle | État | Preuve |
 | --- | --- | --- |
-| Suite serveur npm test | VERIFIED | 93 tests réussis, zéro ignoré ; PostgreSQL séparé proclair_test |
+| Suite serveur npm test | VERIFIED | 94 tests réussis, zéro ignoré ; PostgreSQL séparé proclair_test |
 | TypeScript | VERIFIED | Typecheck réussi |
 | Adaptateur officiel Stripe de lecture test | VERIFIED | SDK simulé, délai 10 secondes, zéro réessai, exclusion des champs privés |
 | Compilation de production | VERIFIED | Next.js 16 et TypeScript : compilation réussie |
-| Superhub navigateur | VERIFIED | 11 groupes réussis, aucune erreur JavaScript ; deux réponses Stripe simulées |
+| Superhub navigateur | VERIFIED | 13 groupes réussis, aucune erreur JavaScript ; deux réponses Stripe simulées |
 | Régression fournisseurs navigateur | VERIFIED | 11 groupes réussis, aucune erreur JavaScript |
 | Tests Python existants | VERIFIED | 3 tests réussis |
 | Catalogue de capacités | VERIFIED | 512 candidats / 32 domaines ; ce compteur ne certifie pas leur implémentation |
@@ -22,3 +22,7 @@ Les tests couvrent les nouvelles lectures et recherches serveur, la pagination, 
 CI : PostgreSQL 17 isolé, Node 24, génération Prisma, migrations, catalogue de capacités, TypeScript, suite serveur, compilation, tests Python et contrôle des secrets. Un job navigateur dédié a été ajouté, avec base distincte, Chromium et secrets synthétiques de CI. Son YAML est lisible ; son exécution distante GitHub n’a pas été vérifiée ici.
 
 Les contrôles financiers/communications utilisent des fournisseurs simulés et une base distincte. Les résultats historiques demeurent dans validation.md ; ils ne remplacent pas la campagne de cette session. Aucun objectif de 2 000 ou 400 tests n'est revendiqué. Les fixtures des nouveaux tests navigateur sont supprimées après exécution ; aucun message, appel ou paiement réel n’a été effectué.
+
+## Validation des suivis persistants
+
+Suite serveur : 94 tests réussis, zéro ignoré. Test ciblé des suivis repassé après lecture groupée : création concurrente dédupliquée, approbations concurrentes, STOP après approbation, communication plus récente, appels sortants refusés, report, note obligatoire, acteur OMEGA et vendeur refusés, assistant sans droit intégrations restreint, pagination 26 suivis en pages 25/1. Compilation de production et extension navigateur du second lot VERIFIED : 13 groupes réussis, dont création persistante, approbation, note obligatoire et clôture, compte exact via assistant, STOP et affichage mobile. Export des suivis, messages Rotor et événements fournisseurs vérifié. Le contrôle mobile a d’abord détecté un débordement du tableau du worker historique ; son conteneur a été corrigé puis le même contrôle strict a réussi.

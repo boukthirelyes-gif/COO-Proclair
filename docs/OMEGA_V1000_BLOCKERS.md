@@ -18,3 +18,5 @@ Audit local : seules les présences/absences des variables sont examinées. Aucu
 Compilation finale et dix groupes navigateur : TESTING. Les 93 tests serveur et TypeScript ont réussi. Les lectures Stripe restent TEST_ONLY ; elles ne prouvent ni activation Live ni encaissement comptable. Les brouillons OMEGA n'envoient rien.
 
 Contrôle de cette session : la requête publique vers `/api/health` du site Vercel a échoué dans le tunnel réseau (HTTP 403), y compris après une nouvelle tentative autorisée. Cela ne prouve pas une erreur du CRM distant. Le dépôt Git HTTPS reste accessible. Les PR et états de déploiement API ne sont pas vérifiés.
+
+Restent à construire indépendamment des clés : attribution/lecture des conversations par propriétaire, scénarios d’automatisation configurables, dispatch paramétrable et simulation des trajets. Les suivis persistants sont désormais livrés ; le moteur n’envoie rien automatiquement.

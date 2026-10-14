@@ -1,3 +1,11 @@
+## Suivis persistants de communications — 2026-10-13
+
+- Création depuis un SMS entrant ou appel manqué, validation humaine, report, clôture avec note et audit.
+- Déduplication, versions concurrentes, STOP et communications plus récentes contrôlés avant chaque action.
+- Tableau OMEGA paginé et compte réel dans l’assistant ; lectures groupées et index pour les dernières activités.
+- Export métier des suivis et des messages Rotor ; correction du débordement du tableau worker sur mobile.
+- 94 tests serveur réussis et 13 groupes navigateur Superhub réussis ; compilation validée. Aucune communication ou opération financière réelle.
+
 ## Centres Stripe, SMS et Appels — 2026-10-13
 
 - Branches Rotor SMS, lectures paiements/factures et thème sombre récupérés avec historique Git préservé.
