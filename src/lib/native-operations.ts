@@ -50,16 +50,14 @@ export function summarizeNativeOperations(
   const followups = visits.filter(visit => needsAttention.has(visit.status));
   const todayVisits = visits.filter(visit => {
     const start = safeDate(visit.startsAt);
-    return start !== null && localParts(start).date === today && visit.status !== 'CANCELLED';
+    return start !== null && localParts(start).date === today && !['CANCELLED','RESCHEDULED'].includes(visit.status);
   });
   const scheduledNext = active.filter(visit => {
     const start = safeDate(visit.startsAt);
-    return start !== null && start.getTime() >= now.getTime();
+    return start !== null && ['SCHEDULED','CONFIRMED'].includes(visit.status) && start.getTime() >= now.getTime();
   }).sort((a, b) => safeDate(a.startsAt)!.getTime() - safeDate(b.startsAt)!.getTime());
   const capacities = technicians.filter(tech => tech.active !== false).map(tech => {
-    const configured = weekday === 'Fri' ? tech.fridayTarget : tech.dailyTarget;
-    const target = Number.isInteger(configured) && configured! >= 0
-      ? configured! : weekday === 'Fri' ? 2 : 4;
+    const target = nativeDailyTarget(tech,weekday);
     const assigned = todayVisits.filter(visit => visit.technicianId === tech.id).length;
     return {id: tech.id, name: tech.name, target, assigned, remaining: Math.max(0, target - assigned)};
   });
@@ -74,4 +72,11 @@ export function summarizeNativeOperations(
     capacities,
     completedToday: todayVisits.filter(visit => visit.status === 'COMPLETED').length,
   };
+}
+
+/** Fixed business week; capacity is a target, not a free-time guarantee. */
+export function nativeDailyTarget(tech:NativeTechnician,weekday:string){
+ if(['Sat','Sun'].includes(weekday)||tech.active===false)return 0;
+ const configured=weekday==='Fri'?tech.fridayTarget:tech.dailyTarget;
+ return Number.isInteger(configured)&&configured!>=0?configured!:weekday==='Fri'?2:4;
 }

@@ -1,3 +1,10 @@
+## Premier lot natif V2000 — 2026-10-14
+
+- Reprise de feature/proclair-native-operations-20261014 et du module existant.
+- Dispatch PostgreSQL indépendant de Rotor, compteurs exacts, file paginée, objectifs et dossiers modifiables selon les droits.
+- Capacité nulle le week-end et visites retirées exclues ; navigation Rotor dédoublonnée et réservée aux outils historiques.
+- 114 tests serveur, compilation, 17 contrôles navigateur CRM/Dispatch et six contrats signés réussis. Production inchangée.
+
 ## Accès Vercel et intégration agenda — 2026-10-14
 
 - Connexion : slash final accepté, domaine exact de déploiement Vercel autorisé sans wildcard, cookies HTTPS derrière proxy et diagnostics distincts. Mot de passe existant conservé.

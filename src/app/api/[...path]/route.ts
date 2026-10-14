@@ -44,6 +44,7 @@ import { CRMService } from '@/domain/service';
 import { DomainError } from '@/domain/rules';
 import { OmegaWorker } from '@/omega/worker';
 import {saveBusinessProfile} from '@/lib/business-profile';
+import {nativeDispatch} from '@/lib/native-dispatch';
 import {nativeExport} from '@/lib/native-export';
 import {ClientPortal} from '@/sales/client-portal';
 import {QuoteService} from '@/sales/quotes';
@@ -169,6 +170,7 @@ export async function GET(request: NextRequest) {
       const result=await exportCalendar(prisma,{start:request.nextUrl.searchParams.get('start'),end:request.nextUrl.searchParams.get('end')},actor);
       return new NextResponse(result.content,{headers:{'Content-Type':'text/calendar; charset=utf-8','Content-Disposition':'attachment; filename=proclair-planning.ics','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','X-Calendar-Events':String(result.eventCount),'X-Calendar-Skipped':String(result.skippedCount)}});
     }
+    if(path==='operations/dispatch')return NextResponse.json(await nativeDispatch(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='omega/operations')return NextResponse.json(await omegaOperations(prisma,actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='omega/day-analysis')return NextResponse.json(await omegaDayAnalysis(prisma,request.nextUrl.searchParams.get('date'),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='agreements')return NextResponse.json(await agreements.list(actor));

@@ -36,6 +36,7 @@ export function routePermission(path:string,method:string):Permission|null {
  if(path==='sales'||path.startsWith('sales/'))return 'sales.write';
  if(path==='agreements/options')return 'crm.write';
  if(path==='agreements'||path.startsWith('agreements/'))return method==='GET'?'crm.read':path.endsWith('/schedule')?'dispatch':'crm.write';
+ if(path==='operations/dispatch')return 'crm.read';
  if(path==='dashboard/metrics')return 'crm.read';
  if(path==='search')return null;
  if(path==='session'||path==='session/logout'||path==='state')return null;
