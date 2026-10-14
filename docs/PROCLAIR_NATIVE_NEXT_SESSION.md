@@ -16,3 +16,7 @@ Finition livrée : transitions guidées dans l’éditeur et visites terminales 
 Point final : changements distants jusqu’à 63c9aba fusionnés sans perdre les opérations natives. Export historique facultatif conservé et durci, mais aucune récupération réelle exécutée. 123 tests serveur réussis, compilation réussie et couverture navigateur de 79 groupes. Reprendre ce point, pas un ancien HEAD de la branche.
 
 Point final après intégration de 0f85058 : endpoint d’archive historique facultatif conservé et protégé par catégorie. 124 tests serveur réussis, compilation finale réussie et couverture de 82 groupes navigateur/HTTP. Aucun export réel exécuté, aucune Preview distante vérifiée, aucune modification de main ou production. Reprendre les commits de cette branche et les TODO du plan.
+
+## État récent : superviseur OMEGA
+
+Le moteur de missions et ses quatre scénarios sont livrés, avec 127 tests serveur, compilation finale et 20 groupes navigateur OMEGA validés. Lire `OMEGA_SUPERVISOR.md`. Vérifier Ready en production puis activer explicitement les scénarios ; aucun fournisseur externe n’est activé. Restent notamment les trajets routiers réels, la téléphonie avancée, le modèle de langage et les opérations financières de production. Ne pas annoncer ces fonctions comme terminées.

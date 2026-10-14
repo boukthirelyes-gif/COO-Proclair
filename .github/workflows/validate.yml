@@ -85,6 +85,9 @@ jobs:
           npm run test:omega-operations:e2e
       - run: |
           node tests/reset-browser-login-attempts.mjs
+          npm run test:omega-supervisor:e2e
+      - run: |
+          node tests/reset-browser-login-attempts.mjs
           npm run test:access-calendar:e2e
       - run: |
           node tests/reset-browser-login-attempts.mjs

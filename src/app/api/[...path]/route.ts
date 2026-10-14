@@ -1,3 +1,4 @@
+import {OmegaSupervisor} from '@/omega/supervisor';
 import {rotorCustomerReviewList} from '@/lib/rotor-customer-review-list';
 import {rotorMigrationOverview} from '@/lib/rotor-migration-overview';
 import {verifyProvider} from '@/providers/verification';
@@ -56,6 +57,7 @@ export const runtime = 'nodejs';
 export const maxDuration = 60;
 const service = new CRMService(prisma);
 const worker = new OmegaWorker(prisma);
+const supervisor = new OmegaSupervisor(prisma);
 const finance = new FinanceService(prisma);
 const quotes=new QuoteService(prisma);
 const agreements=new ServiceAgreements(prisma);
@@ -125,7 +127,8 @@ export async function GET(request: NextRequest) {
     if(path==='cron/compatibility'){if(!cronAuthorized(request.headers.get('authorization')))return NextResponse.json({error:'Authentification cron requise.'},{status:401});return NextResponse.json(await rotorMonitor.tick());}
     if (path === 'cron/omega') {
       if(!cronAuthorized(request.headers.get('authorization')))return NextResponse.json({error:'Authentification cron requise.'},{status:401});
-      return NextResponse.json(await worker.tick(),{headers:{'Cache-Control':'no-store'}});
+      const dispatch=await worker.tick(),missions=await supervisor.tick();
+      return NextResponse.json({...dispatch,supervisor:missions},{headers:{'Cache-Control':'no-store'}});
     }
     if (path === 'health') { await prisma.$queryRaw`SELECT 1`; return NextResponse.json({status:'ok',database:'connected'}); }
     if(path==='integrations/rotor/callback') {
@@ -173,6 +176,7 @@ export async function GET(request: NextRequest) {
     }
     if(path==='sales/leaderboard')return NextResponse.json(await annualLeaderboard(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='operations/dispatch')return NextResponse.json(await nativeDispatch(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='omega/supervisor')return NextResponse.json(await supervisor.board(Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='omega/operations')return NextResponse.json(await omegaOperations(prisma,actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='omega/day-analysis')return NextResponse.json(await omegaDayAnalysis(prisma,request.nextUrl.searchParams.get('date'),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='agreements')return NextResponse.json(await agreements.list(actor));
@@ -350,6 +354,9 @@ async function mutate(request: NextRequest) {
       case 'integrations/rotor/promotion/preview': return NextResponse.json(await rotorPromotion.preview(input,actor));
       case 'integrations/rotor/promotion/apply': return NextResponse.json(await rotorPromotion.apply(input,actor));
       case 'agreements': return NextResponse.json(await agreements.create(input,actor),{status:201});
+      case 'omega/supervisor/configure': return NextResponse.json(await supervisor.configure(input,actor));
+      case 'omega/supervisor/run': z.object({}).strict().parse(input);return NextResponse.json(await supervisor.run(actor));
+      case 'omega/supervisor/review': return NextResponse.json(await supervisor.review(input,actor));
       case 'omega/assistant': return NextResponse.json(await omegaAssistant(prisma,input,actor));
       case 'territories': return NextResponse.json(await territories.save(null,input,actor),{status:201});
       case 'customers': return NextResponse.json(await service.createCustomer(input,actor),{status:201});

@@ -171,6 +171,33 @@ model WorkerControl {
  enabled Boolean @default(false)
  updatedAt DateTime @updatedAt
 }
+model OmegaSupervisorControl {
+ id String @id @default("native-supervisor")
+ enabled Boolean @default(false)
+ rules String[] @default([])
+ cursors Json @default("{}")
+ version Int @default(1)
+ updatedAt DateTime @updatedAt
+ lastRunAt DateTime?
+}
+model OmegaMission {
+ id String @id @default(cuid())
+ dedupeKey String @unique
+ rule String
+ sourceId String
+ fingerprint String
+ label String
+ detail String
+ status String @default("DRAFT")
+ version Int @default(1)
+ reviewedBy String?
+ note String?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ closedAt DateTime?
+ @@index([status,createdAt,id])
+ @@index([rule,sourceId])
+}
 model WorkerJob {
  id String @id @default(cuid())
  key String @unique

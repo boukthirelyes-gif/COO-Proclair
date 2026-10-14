@@ -1,0 +1,63 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {readFile,readdir} from 'node:fs/promises';
+import {createRequire} from 'node:module';
+import {PrismaClient} from '@prisma/client';
+import {PrismaPg} from '@prisma/adapter-pg';
+import {OmegaSupervisor} from '../src/omega/supervisor';
+import {bootstrapActor,presets,type AccessActor} from '../src/lib/access';
+const {Client}=createRequire(import.meta.url)('pg');
+test('supervisor denies non-human administrators and restricted rules before business access',async()=>{
+ const service=new OmegaSupervisor({} as PrismaClient);
+ const manager={...bootstrapActor,accountRole:'MANAGER',permissions:presets.MANAGER};
+ await assert.rejects(()=>service.board({},manager),{code:'FORBIDDEN'});
+ await assert.rejects(()=>service.run({...bootstrapActor,role:'OMEGA'}),{code:'FORBIDDEN'});
+ await assert.rejects(()=>service.configure({enabled:true,rules:['LEAD_CALLBACK'],expectedVersion:0},{...bootstrapActor,permissions:bootstrapActor.permissions.filter(p=>p!=='leads.all')}),{code:'FORBIDDEN'});
+ await assert.rejects(()=>service.configure({enabled:true,rules:[],expectedVersion:0},bootstrapActor),{code:'RULES_REQUIRED'});
+});
+test('supervisor persists bounded resumable missions, rejects stale approvals and records manual completion without changing dossiers', {skip:!process.env.TEST_DATABASE_URL,timeout:60000},async()=>{
+ const database=process.env.TEST_DATABASE_URL!,schema='supervisor_'+randomUUID().replaceAll('-',''),setup=new Client({connectionString:database});
+ await setup.connect();await setup.query(`CREATE SCHEMA "${schema}"`);await setup.query(`SET search_path TO "${schema}"`);
+ const db=new PrismaClient({adapter:new PrismaPg({connectionString:database},{schema})});
+ try{
+  for(const entry of (await readdir('prisma/migrations',{withFileTypes:true})).filter(e=>e.isDirectory()).sort((a,b)=>a.name.localeCompare(b.name)))await setup.query(await readFile(`prisma/migrations/${entry.name}/migration.sql`,'utf8'));
+  const now=new Date('2026-10-14T16:00:00Z'),past=new Date('2026-10-13T16:00:00Z'),service=new OmegaSupervisor(db,()=>now);
+  assert.equal((await service.tick()).enabled,false);assert.equal(await db.omegaMission.count(),0);
+  const customer=await db.customer.create({data:{name:'Synthetic supervisor'}}),property=await db.property.create({data:{customerId:customer.id,address:'Synthetic site'}});
+  const contract=await db.contract.create({data:{customerId:customer.id,propertyId:property.id,name:'Synthetic contract',service:'Cleaning',totalVisits:40,priceCents:10000}});
+  const job=await db.job.create({data:{customerId:customer.id,propertyId:property.id,contractId:contract.id,name:'Synthetic job'}});
+  const base={customerId:customer.id,propertyId:property.id,contractId:contract.id,jobId:job.id,service:'Cleaning',durationMinutes:60,priceCents:10000};
+  await db.visit.createMany({data:Array.from({length:27},(_,i)=>({...base,id:'visit-'+String(i).padStart(3,'0'),passageNumber:i+1,status:'PENDING' as const}))});
+  await db.visit.createMany({data:[{...base,id:'late',passageNumber:28,status:'SCHEDULED',startsAt:past,endsAt:past},{...base,id:'ready',passageNumber:29,status:'CONFIRMED'},{...base,id:'closed',passageNumber:30,status:'COMPLETED',startsAt:past,endsAt:past}]});
+  await db.lead.createMany({data:[{id:'callback',name:'Synthetic lead',followUpAt:past,pipelineId:'proclair-sales',stageId:'proclair-qualify',idempotencyKey:'callback',payloadHash:'fixture',tags:[]},{id:'restricted',name:'Restricted synthetic',status:'DO_NOT_CONTACT',followUpAt:past,pipelineId:'proclair-sales',stageId:'proclair-qualify',idempotencyKey:'restricted',payloadHash:'fixture',tags:[]}]});
+  const before=await db.visit.findMany({orderBy:{id:'asc'}});
+  await service.configure({enabled:true,rules:['UNCONFIRMED_VISIT','OVERDUE_VISIT','UNSCHEDULED_VISIT','LEAD_CALLBACK'],expectedVersion:0},bootstrapActor);
+  await assert.rejects(()=>service.configure({enabled:false,rules:[],expectedVersion:0},bootstrapActor),{code:'VERSION_CONFLICT'});
+  await assert.rejects(()=>service.run({...bootstrapActor,permissions:bootstrapActor.permissions.filter(p=>p!=='leads.all')}),{code:'FORBIDDEN'});assert.equal(await db.omegaMission.count(),0);
+  const first=await service.run(bootstrapActor);assert.equal(first.created,28);assert.equal(first.continuation,true);
+  const second=await service.run(bootstrapActor);assert.equal(second.created,2);assert.equal(second.continuation,false);
+  assert.equal((await service.run(bootstrapActor)).created,0);assert.equal(await db.omegaMission.count(),30);
+  assert.equal(await db.omegaMission.count({where:{sourceId:'restricted'}}),0);
+  assert.deepEqual(await db.visit.findMany({orderBy:{id:'asc'}}),before);assert.equal(await db.payment.count(),0);assert.equal(await db.smsMessage.count(),0);
+  const board=await service.board({},bootstrapActor);assert.equal(board.total,30);assert.equal(board.missions.length,25);assert.equal(board.hasMore,true);assert.equal((await service.board({page:2},bootstrapActor)).missions.length,5);
+  const limited={...bootstrapActor,permissions:bootstrapActor.permissions.filter(p=>p!=='leads.all')} as AccessActor;
+  const hidden=await service.board({},limited);assert.equal(hidden.total,29);assert.equal(JSON.stringify(hidden).includes('callback'),false);
+  const stale=await db.omegaMission.findFirstOrThrow({where:{sourceId:'visit-000'}});
+  await db.visit.update({where:{id:'visit-000'},data:{status:'CANCELLED',version:{increment:1}}});
+  const review=(id:string,expectedVersion:number,action:string)=>service.review({id,expectedVersion,action,note:'Synthetic manual decision',approved:true},bootstrapActor);
+  await assert.rejects(()=>review(stale.id,1,'APPROVE'),{code:'STALE_MISSION'});
+  assert.equal((await review(stale.id,1,'DISMISS')).status,'DISMISSED');
+  const mission=await db.omegaMission.findFirstOrThrow({where:{sourceId:'visit-001'}});
+  await assert.rejects(()=>review(mission.id,1,'DONE'),{code:'INVALID_TRANSITION'});
+  assert.equal((await review(mission.id,1,'APPROVE')).status,'APPROVED');
+  await assert.rejects(()=>review(mission.id,1,'APPROVE'),{code:'VERSION_CONFLICT'});
+  // Human work changes the source. Recording completion must still be possible.
+  await db.visit.update({where:{id:'visit-001'},data:{status:'CANCELLED',version:{increment:1}}});
+  assert.equal((await review(mission.id,2,'DONE')).status,'DONE');assert.equal((await service.board({status:'CLOSED'},bootstrapActor)).total,2);
+  const control=await db.omegaSupervisorControl.findUniqueOrThrow({where:{id:'native-supervisor'}});
+  await service.configure({enabled:false,rules:control.rules,expectedVersion:control.version},bootstrapActor);
+  const count=await db.omegaMission.count();assert.equal((await service.tick()).enabled,false);assert.equal(await db.omegaMission.count(),count);
+  assert.equal(await db.auditEvent.count({where:{action:'OMEGA_MISSION_DONE'}}),1);
+ }finally{await db.$disconnect();await setup.query(`DROP SCHEMA "${schema}" CASCADE`);await setup.end()}
+});

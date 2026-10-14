@@ -1,0 +1,46 @@
+import {chromium} from 'playwright';
+import {PrismaClient} from '@prisma/client';
+import {PrismaPg} from '@prisma/adapter-pg';
+import {randomUUID} from 'node:crypto';
+import assert from 'node:assert/strict';
+if(!process.env.E2E_DATABASE_URL||process.env.E2E_DATABASE_URL===process.env.DATABASE_URL||!new URL(process.env.E2E_DATABASE_URL).pathname.includes('proclair_browser_test'))throw Error('Base navigateur isolée requise.');
+const db=new PrismaClient({adapter:new PrismaPg({connectionString:process.env.E2E_DATABASE_URL})});
+const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
+const prefix='!omega-supervisor-'+randomUUID(),base=process.env.E2E_BASE_URL||'http://127.0.0.1:3102';let checks=0;
+const control=await db.omegaSupervisorControl.findUnique({where:{id:'native-supervisor'}}),prior=await db.omegaMission.findMany({select:{id:true}});
+const priorAudit=await db.auditEvent.findMany({where:{entityType:{in:['OmegaSupervisorControl','OmegaMission']}},select:{id:true}});
+let customer,property,contract,job;
+try{
+ customer=await db.customer.create({data:{name:'Synthetic mission '+prefix}});property=await db.property.create({data:{customerId:customer.id,address:'Synthetic supervisor site'}});
+ contract=await db.contract.create({data:{customerId:customer.id,propertyId:property.id,name:'Synthetic contract',service:'Cleaning',totalVisits:1,priceCents:10000}});
+ job=await db.job.create({data:{customerId:customer.id,propertyId:property.id,contractId:contract.id,name:'Synthetic job'}});
+ await db.visit.create({data:{id:prefix,customerId:customer.id,propertyId:property.id,contractId:contract.id,jobId:job.id,service:'Cleaning',passageNumber:1,priceCents:10000,durationMinutes:60}});
+ const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(base+'/?view=omega');await page.getByLabel('Mot de passe',{exact:true}).fill(process.env.PROCLAIR_ADMIN_PASSWORD);await page.getByRole('button',{name:'Se connecter',exact:true}).click();
+ await page.getByRole('heading',{name:'Superviseur OMEGA',exact:true}).waitFor();const panel=page.locator('.omega-supervisor');
+ assert.equal(await panel.getByText('Aucun SMS, appel, paiement ou confirmation automatique.',{exact:false}).count(),1);checks++;
+ await panel.getByLabel('Activer le superviseur de missions').check();
+ for(const label of ['Visites en retard','Visites confirmées à placer','Rappels de prospects échus'])await panel.getByLabel(label,{exact:true}).uncheck();
+ await panel.getByLabel('Visites à confirmer',{exact:true}).check();await panel.getByRole('button',{name:'Enregistrer les scénarios OMEGA',exact:true}).click();
+ await panel.getByRole('status').filter({hasText:'Scénarios activés'}).waitFor();checks++;
+ await panel.getByRole('button',{name:'Analyser les dossiers maintenant',exact:true}).click();await panel.getByRole('status').filter({hasText:'mission(s) créée(s)'}).waitFor();
+ let mission=await db.omegaMission.findFirstOrThrow({where:{sourceId:prefix}});assert.equal(mission.status,'DRAFT');checks++;
+ const card=panel.locator('article').filter({hasText:customer.name});await card.getByRole('button',{name:'Examiner cette mission',exact:true}).click();
+ await panel.getByLabel('Note de décision OMEGA').fill('Synthetic approval');await panel.getByRole('button',{name:'Approuver la mission',exact:true}).click();
+ await panel.getByRole('status').filter({hasText:'Décision enregistrée'}).waitFor();assert.equal((await db.omegaMission.findUniqueOrThrow({where:{id:mission.id}})).status,'APPROVED');checks++;
+ await db.visit.update({where:{id:prefix},data:{status:'CANCELLED',version:{increment:1}}});await panel.getByRole('button',{name:'Actualiser les missions',exact:true}).click();
+ await card.getByText('Dossier modifié ou règle devenue inapplicable',{exact:false}).waitFor();await card.getByRole('button',{name:'Examiner cette mission',exact:true}).click();
+ await panel.getByLabel('Note de décision OMEGA').fill('Synthetic source handled manually');await panel.getByRole('button',{name:'Consigner la mission traitée',exact:true}).click();
+ await panel.getByRole('status').filter({hasText:'Décision enregistrée'}).waitFor();assert.equal((await db.omegaMission.findUniqueOrThrow({where:{id:mission.id}})).status,'DONE');checks++;
+ await panel.getByRole('combobox',{name:/Afficher/}).selectOption('CLOSED');await card.getByText('Traitée',{exact:false}).waitFor();checks++;
+ await panel.getByRole('button',{name:'Arrêter le superviseur',exact:true}).click();await panel.getByRole('status').filter({hasText:'Superviseur arrêté.'}).waitFor();assert.equal((await db.omegaSupervisorControl.findUniqueOrThrow({where:{id:'native-supervisor'}})).enabled,false);checks++;
+ await page.setViewportSize({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));checks++;
+ const anonymous=await browser.newContext();assert.equal((await anonymous.request.get(base+'/api/omega/supervisor')).status(),401);await anonymous.close();checks++;
+ const denied=await page.evaluate(async()=>{const r=await fetch('/api/omega/supervisor/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:'missing',expectedVersion:1,action:'APPROVE',note:'Synthetic note',approved:false})});return r.status});assert.equal(denied,400);checks++;
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({omegaSupervisorChecks:checks,pageErrors:errors,providerCalls:0}));
+}finally{
+ await browser.close();await db.omegaMission.deleteMany({where:{id:{notIn:prior.map(r=>r.id)}}});
+ if(control){const {id,...values}=control;await db.omegaSupervisorControl.update({where:{id},data:values})}else await db.omegaSupervisorControl.deleteMany({where:{id:'native-supervisor'}});
+ await db.auditEvent.deleteMany({where:{entityType:{in:['OmegaSupervisorControl','OmegaMission']},id:{notIn:priorAudit.map(r=>r.id)}}});
+ await db.visit.deleteMany({where:{id:prefix}});if(job)await db.job.delete({where:{id:job.id}});if(contract)await db.contract.delete({where:{id:contract.id}});if(property)await db.property.delete({where:{id:property.id}});if(customer)await db.customer.delete({where:{id:customer.id}});await db.$disconnect();
+}
