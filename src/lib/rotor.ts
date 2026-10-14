@@ -103,4 +103,35 @@ export async function rotorInboxRead(page:number,limit:number){
  const message=result.content?.find((v:any)=>v.type==='text')?.text;
  if(typeof message!=='string')throw new DomainError('ROTOR_PROTOCOL','SMS Rotor absents.',502);
  try{return JSON.parse(message)}catch{throw new DomainError('ROTOR_PROTOCOL','Réponse SMS invalide.',502)}
+
+}
+
+/**
+ * Read a tightly allowlisted Rotor operation with the CRM's own OAuth grant.
+ * ChatGPT's Rotor token is NOT shared with the application. No remote writes.
+ */
+export async function rotorBusinessRead(name:'list_payments'|'list_invoices'|'list_messages',args:Record<string,unknown>){
+ const required=name==='list_payments'?'payments:read':name==='list_invoices'?'invoices:read':'inbox:read';
+ if(!Number.isSafeInteger(args.page)||Number(args.page)<1||Number(args.page)>2000||
+    !Number.isSafeInteger(args.limit)||Number(args.limit)<1||Number(args.limit)>25||
+    Object.keys(args).some(k=>!['page','limit',...(name==='list_messages'?['channel']:[])].includes(k))||
+    (name==='list_messages'&&args.channel!=='sms'))
+  throw new DomainError('ROTOR_ARGUMENTS','Lecture Rotor non autorisée.',400);
+ const token=await usableToken();
+ if(!token.scope.split(' ').includes(required))
+  throw new DomainError('ROTOR_SCOPE','Reconnectez Rotor dans Intégrations avec '+required+'.',403);
+ const headers:Record<string,string>={Authorization:'Bearer '+token.accessToken,Accept:'application/json, text/event-stream'};
+ const init=await remote('/mcp',{jsonrpc:'2.0',id:1,method:'initialize',params:{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'proclair-crm',version:packageInfo.version}}},headers);
+ const info=await rpcResult(init,1);
+ if(!['2025-03-26','2025-06-18','2025-11-25'].includes(info.protocolVersion))
+  throw new DomainError('ROTOR_PROTOCOL','Version MCP invalide.',502);
+ const session=init.headers.get('mcp-session-id');if(session)headers['Mcp-Session-Id']=session;
+ headers['MCP-Protocol-Version']=info.protocolVersion;
+ await remote('/mcp',{jsonrpc:'2.0',method:'notifications/initialized'},headers);
+ const result=await rpcResult(await remote('/mcp',{jsonrpc:'2.0',id:2,method:'tools/call',params:{name,arguments:args}},headers),2);
+ if(result.isError)throw new DomainError('ROTOR_TOOL','Lecture Rotor refusée.',502);
+ if(result.structuredContent)return result.structuredContent;
+ const payload=Array.isArray(result.content)?result.content.find((c:any)=>c.type==='text'&&typeof c.text==='string')?.text:null;
+ if(!payload||payload.length>1000000)throw new DomainError('ROTOR_PROTOCOL','Réponse Rotor absente.',502);
+ try{return JSON.parse(payload)}catch{throw new DomainError('ROTOR_PROTOCOL','Réponse Rotor invalide.',502)}
 }

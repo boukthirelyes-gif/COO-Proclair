@@ -11,6 +11,7 @@ import {StripePayments} from '@/providers/stripe';
 import {TerritoryService} from '@/prospecting/territories';
 import {ServiceAgreements} from '@/sales/service-agreements';
 import {dashboardMetrics} from '@/lib/dashboard-metrics';
+import {rotorLivePage} from '@/lib/rotor-live';
 import {RotorCustomerPromotion} from '@/lib/rotor-customer-promotion';
 import {customerDossier} from '@/lib/customer-dossier';
 import {omegaAssistant} from '@/omega/assistant';
@@ -139,6 +140,13 @@ export async function GET(request: NextRequest) {
     if(path==='integrations/rotor/messages/auto')return NextResponse.json(await rotorInbox.autoStatus(actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='integrations/rotor/messages/followups')return NextResponse.json(await rotorInbox.followups(actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='integrations/rotor/messages')return NextResponse.json(await rotorInbox.list(actor,{phone:request.nextUrl.searchParams.get('phone')||undefined,q:request.nextUrl.searchParams.get('q')||undefined,page:Number(request.nextUrl.searchParams.get('page')||1)}),{headers:{'Cache-Control':'private, no-store'}});
+
+    const liveMatch=path.match(/^integrations\/rotor\/live\/(payments|sms|invoices)$/);
+    if(liveMatch){
+      const page=Number(request.nextUrl.searchParams.get('page')||'1');
+      const limit=Number(request.nextUrl.searchParams.get('limit')||'25');
+      return NextResponse.json(await rotorLivePage(liveMatch[1] as 'payments'|'sms'|'invoices',page,limit),{headers:{'Cache-Control':'private, no-store'}});
+    }
     if(path==='integrations/providers')return NextResponse.json(providerStatus());
     if(path==='integrations/communications')return NextResponse.json(await new Communications(prisma).list(actor));
     if(path==='finance/stripe')return NextResponse.json(await new StripePayments(prisma).list(actor));
