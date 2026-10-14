@@ -135,3 +135,78 @@ export async function rotorBusinessRead(name:'list_payments'|'list_invoices'|'li
  if(!payload||payload.length>1000000)throw new DomainError('ROTOR_PROTOCOL','Réponse Rotor absente.',502);
  try{return JSON.parse(payload)}catch{throw new DomainError('ROTOR_PROTOCOL','Réponse Rotor invalide.',502)}
 }
+
+
+/**
+ * Explicitly allowlisted, READ-ONLY Rotor page reader for private, offline
+ * company exports. This uses the CRM's separately authorized Rotor OAuth
+ * connection; it never reuses ChatGPT connector credentials.
+ * Never expose its responses from an unauthenticated HTTP endpoint.
+ */
+export type RotorArchiveTool =
+ 'list_customers'|'list_leads'|'list_jobs'|'list_invoices'|'list_payments'|
+ 'search_map_pins'|'list_service_plans'|'list_messages'|'list_quotes'|
+ 'list_tasks'|'list_company_members'|'list_message_templates'|'list_campaigns'|
+ 'list_pipelines'|'list_pipeline_stages'|'list_map_pin_types'|
+ 'list_visits'|'list_timesheets'|'list_visit_timers'|'list_payroll';
+const rotorArchiveScopes:Record<RotorArchiveTool,string>={
+ list_customers:'customers:read',list_leads:'leads:read',
+ list_jobs:'jobs:read',list_invoices:'invoices:read',
+ list_payments:'payments:read',search_map_pins:'pins:read',
+ list_service_plans:'service_plans:read',list_messages:'inbox:read',
+ list_quotes:'quotes:read',list_tasks:'tasks:read',
+ list_company_members:'members:read',list_message_templates:'templates:read',
+ list_campaigns:'campaigns:read',list_pipelines:'pipelines:read',
+ list_pipeline_stages:'pipelines:read',list_map_pin_types:'pins:read',
+ list_visits:'visits:read',list_timesheets:'timesheets:read',
+ list_visit_timers:'timesheets:read',list_payroll:'payroll:read',
+};
+const rotorArchiveRanged=new Set<RotorArchiveTool>(['list_visits','list_timesheets','list_visit_timers','list_payroll']);
+const rotorArchiveUnpaged=new Set<RotorArchiveTool>(['list_pipelines','list_pipeline_stages','list_map_pin_types']);
+export async function rotorArchiveRead(name:RotorArchiveTool,args:Record<string,unknown>={}):Promise<{data:Record<string,unknown>[];pagination:{page:number;limit:number;total:number|null;has_more:boolean}|null}> {
+ if(!(name in rotorArchiveScopes))throw new DomainError('FORBIDDEN','Lecture Rotor non autorisée.',403);
+ const ranged=rotorArchiveRanged.has(name),unpaged=rotorArchiveUnpaged.has(name);
+ const page=unpaged?1:args.page,limit=unpaged?100:args.limit;
+ if(!unpaged&&(!Number.isInteger(page)||Number(page)<1||Number(page)>2000||!Number.isInteger(limit)||Number(limit)<1||Number(limit)>100))
+  throw new DomainError('ROTOR_PAGE','Pagination invalide.',400);
+ const expected=unpaged?[]:ranged?['page','limit','start','end']:['page','limit'];
+ if(Object.keys(args).some(k=>!expected.includes(k)))throw new DomainError('ROTOR_ARGUMENTS','Paramètres non autorisés.',400);
+ if(ranged){
+  const from=new Date(String(args.start)),to=new Date(String(args.end));
+  if(!Number.isFinite(from.getTime())||!Number.isFinite(to.getTime())||to<=from||to.getTime()-from.getTime()>366*86400000)
+   throw new DomainError('ROTOR_RANGE','Intervalle invalide ou trop long.',400);
+ }
+ const token=await usableToken();
+ if(!token.scope.split(' ').includes(rotorArchiveScopes[name]))
+  throw new DomainError('ROTOR_SCOPE','Lecture '+rotorArchiveScopes[name]+' non autorisée sur cette connexion.',403);
+ const headers:Record<string,string>={Authorization:'Bearer '+token.accessToken,Accept:'application/json, text/event-stream'};
+ const init=await remote('/mcp',{jsonrpc:'2.0',id:1,method:'initialize',
+  params:{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'proclair-private-export',version:packageInfo.version}}},headers);
+ const info=await rpcResult(init,1);
+ if(!['2025-03-26','2025-06-18','2025-11-25'].includes(info.protocolVersion))
+  throw new DomainError('ROTOR_PROTOCOL','Version MCP non prise en charge.',502);
+ const session=init.headers.get('mcp-session-id');
+ if(session)headers['Mcp-Session-Id']=session;
+ headers['MCP-Protocol-Version']=info.protocolVersion;
+ await remote('/mcp',{jsonrpc:'2.0',method:'notifications/initialized'},headers);
+ const result=await rpcResult(await remote('/mcp',{jsonrpc:'2.0',id:2,method:'tools/call',
+  params:{name,arguments:args}},headers),2);
+ if(result.isError)throw new DomainError('ROTOR_TOOL','Lecture refusée par Rotor.',502);
+ let payload=result.structuredContent;
+ if(!payload){
+  const value=Array.isArray(result.content)?result.content.find((c:any)=>c?.type==='text'&&typeof c.text==='string')?.text:null;
+  if(typeof value!=='string'||value.length>1000000)throw new DomainError('ROTOR_PROTOCOL','Réponse invalide.',502);
+  try{payload=JSON.parse(value)}catch{throw new DomainError('ROTOR_PROTOCOL','JSON Rotor invalide.',502)}
+ }
+ if(!payload||typeof payload!=='object'||!Array.isArray(payload.data))
+  throw new DomainError('ROTOR_PROTOCOL','Données Rotor absentes.',502);
+ const data=payload.data as Record<string,unknown>[];
+ if(!unpaged){
+  const pg=payload.pagination;
+  if(data.length>Number(limit)||!pg||typeof pg.has_more!=='boolean'||(pg.page!==undefined&&pg.page!==page)||
+     (pg.has_more&&data.length===0))
+   throw new DomainError('ROTOR_PROTOCOL','Pagination Rotor incohérente.',502);
+  return {data,pagination:{page:Number(page),limit:Number(limit),total:Number.isSafeInteger(pg.total)?pg.total:null,has_more:pg.has_more}};
+ }
+ return {data,pagination:null};
+}
