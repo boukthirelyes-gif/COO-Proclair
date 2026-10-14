@@ -1,3 +1,9 @@
+## Interventions : transitions guidées — 2026-10-14
+
+- États proposés limités aux transitions autorisées ; visites annulées/terminées ouvertes en lecture seule.
+- Une requête falsifiée reste refusée atomiquement côté serveur.
+- Compilation finale, 25 contrôles navigateur natifs et régression OMEGA réussis ; couverture de la livraison : 121 tests serveur et 79 groupes navigateur.
+
 ## Dashboard et leaderboard natifs — 2026-10-14
 
 - Dashboard : totaux CAD en agrégats PostgreSQL, sans lecture de tous les dossiers ; contrepassations, dates Toronto et devises distinctes respectées.

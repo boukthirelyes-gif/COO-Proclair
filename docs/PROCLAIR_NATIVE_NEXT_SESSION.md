@@ -10,3 +10,5 @@
 Dernier état : quatre lots natifs livrés, dont leaderboard annuel conforme aux réponses utilisateur. 121 tests serveur et 77 groupes navigateur réussis, compilation finale réussie. Méthode commissions fixée sur ventes signées HT, rétroactive par vendeur, année civile Toronto. Les ventes sans propriétaire ne doivent jamais être attribuées à partir de createdBy.
 
 Prochaine priorité indépendante des secrets : pagination/recherche des listes CRM et réduction de /api/state, attribution restreinte des conversations, disponibilités individuelles, puis moteur événementiel supervisé. Contrôler les versions et conserver l’approbation humaine des affectations. Préparer une Preview distante seulement quand des accès réels sont disponibles ; production inchangée.
+
+Finition livrée : transitions guidées dans l’éditeur et visites terminales en lecture seule, avec refus serveur des requêtes falsifiées. Dernière couverture : 121 tests serveur et 79 groupes navigateur. L’assiette et les paliers annuels du leaderboard sont confirmés ; ne pas les remplacer par des encaissements ou un calcul progressif.

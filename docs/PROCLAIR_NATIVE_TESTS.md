@@ -29,3 +29,9 @@ Leaderboard paginé de 25 vendeurs, rangs ex æquo, compteurs complets et compte
 Validation finale : 121 tests serveur réussis, zéro ignoré ; compilation et TypeScript réussis. Trois tests commissions couvrent seuils, centimes, droits, changement d’année Toronto, ex æquo, exclusions, chiffres personnels et absence d’écriture. Sept groupes navigateur leaderboard réussis (API, montants, année, mobile, vendeur privé/rechargement, anonyme, absence de paiement). La préparation initiale d’un compte de fixture sans leads.read a été refusée conformément aux restrictions ; la fixture a été corrigée sans modifier ces restrictions.
 
 Régressions finales : 23 groupes natifs CRM/Dispatch/dashboard, 17 finances, six contrats signés, dix OMEGA et 14 Superhub réussis, zéro erreur JavaScript. Avec les sept leaderboard, 77 groupes navigateur validés. Deux inspections Stripe du Superhub sont simulées ; aucun appel fournisseur réel. Les anciens parcours de finance/contrats conservent leurs fixtures synthétiques uniquement dans la base navigateur ; les nouveaux parcours nettoient leurs propres fixtures.
+
+## Finition : états guidés et dossiers terminaux
+
+Le formulaire propose uniquement l’état courant et les transitions autorisées. Les visites annulées/terminées sont consultables en lecture seule. Le serveur conserve ses contrôles : le test navigateur falsifie un état dans la requête et vérifie le refus sans changement de notes ni audit.
+
+Compilation finale réussie, 25 contrôles natifs navigateur réussis et dix contrôles OMEGA repassés, zéro erreur JavaScript. Deux contrôles natifs supplémentaires vérifient absence d’option interdite et lecture seule d’une visite annulée. Bilan de couverture navigateur de la livraison : 79 groupes (25 natifs, 7 leaderboard, 17 finance, 6 contrats, 10 OMEGA, 14 Superhub), chaque groupe compté une seule fois. Suite serveur : 121 réussis. Production inchangée.
