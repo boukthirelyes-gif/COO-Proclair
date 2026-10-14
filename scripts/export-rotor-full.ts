@@ -7,7 +7,7 @@
  *   node --env-file-if-exists=.env --import tsx scripts/export-rotor-full.ts
  *   node --env-file-if-exists=.env --import tsx scripts/export-rotor-full.ts --resume
  */
-import {mkdir,readFile,writeFile,appendFile} from 'node:fs/promises';
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
 import {rotorArchiveRead,type RotorArchiveTool} from '../src/lib/rotor';
@@ -67,11 +67,11 @@ for(const spec of specs){
  for(const range of ranges){
   const windowKey=range?range.start.slice(0,7):'all';
   const key=spec.key+':'+windowKey;
-  const output=path.join(root,spec.key+(range?'-'+windowKey:'')+'.ndjson');
+  const outputDir=path.join(root,spec.key+(range?'-'+windowKey:''));
+  await mkdir(outputDir,{recursive:true,mode:0o700});
   let state=manifest.datasets[key]||{key:spec.key,window:windowKey,page:1,count:0,total:null,complete:false};
   if(state.complete)continue;
   if(!manifest.datasets[key]){
-   await writeFile(output,'',{flag:'wx',mode:0o600});
    manifest.datasets[key]=state;await save();
   }
   try{
@@ -82,8 +82,9 @@ for(const spec of specs){
     if(result.data.length){
      // Stable source IDs are preserved to support importer deduplication.
      const lines=result.data.map(row=>JSON.stringify(row)).join('\n')+'\n';
-     // Each page is written before the checkpoint moves forward.
-     await appendFile(output,lines,{encoding:'utf8'});
+     // Every page has a stable filename: retry overwrites only that page.
+     // A crash between page write and manifest commit cannot duplicate rows.
+     await writeFile(path.join(outputDir,'page-'+String(state.page).padStart(5,'0')+'.ndjson'),lines,{encoding:'utf8',mode:0o600});
     }
     state.count+=result.data.length;
     if(!result.pagination?.has_more){state.complete=true;state.error=undefined;await save();break;}
