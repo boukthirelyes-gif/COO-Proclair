@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 const statusLabels:Record<string,string>={DRAFT:'À examiner',APPROVED:'Approuvée',DONE:'Traitée',DISMISSED:'Écartée',PENDING:'En attente',PROPOSED:'Proposée',CONFIRMED:'Confirmée',SCHEDULED:'Planifiée',IN_PROGRESS:'En cours',COMPLETED:'Terminée',CANCELLED:'Annulée',RESCHEDULED:'À replanifier',ACTIVE:'Actif',DO_NOT_CONTACT:'Ne pas contacter',CONVERTED:'Converti'};
-const actionLabels:Record<string,string>={OMEGA_MISSION_APPROVE:'Mission approuvée',OMEGA_MISSION_DONE:'Traitement consigné',OMEGA_MISSION_DISMISS:'Mission écartée'};
+const actionLabels:Record<string,string>={OMEGA_MISSION_APPROVE:'Mission approuvée',OMEGA_MISSION_DONE:'Traitement consigné',OMEGA_MISSION_DISMISS:'Mission écartée',OMEGA_MISSION_SUPERSEDED:'Proposition obsolète écartée'};
 const date=(v:string|null)=>v?new Date(v).toLocaleString('fr-CA',{timeZone:'America/Toronto'}):'Non renseigné';
 export default function OmegaMissionDetail({id,onClose,onReview}:{id:string;onClose:()=>void;onReview:(mission:any)=>void}){
  const [data,setData]=useState<any>(null),[error,setError]=useState(''),dialog=useRef<HTMLElement>(null),close=useRef(onClose);close.current=onClose;

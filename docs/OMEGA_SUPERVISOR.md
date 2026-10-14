@@ -43,3 +43,11 @@ La chronologie affiche la date de préparation, puis les approbations, clôtures
 La fiche est en lecture seule. Une mission ouverte permet de revenir à sa décision avec l'état et la version relus. Le formulaire de décision est amené dans la vue et son champ de note reçoit le focus. La fenêtre se ferme avec Échap, maintient le focus clavier à l'intérieur et restaure le focus à la fermeture ; sa présentation mobile est contrôlée.
 
 Aucune nouvelle migration, dépendance ou variable. Validation : suite serveur de 127 tests réussie, contrôles ciblés du format d'explication et des droits réussis après correction, compilation finale réussie et 32 groupes navigateur OMEGA (22 superviseur, 10 cockpit existant). Aucun appel fournisseur ou paiement.
+
+## Nettoyage des propositions obsolètes
+
+Une page contenant des missions DRAFT dont la source ne correspond plus à l'empreinte affiche **Écarter les propositions obsolètes de cette page**. L'administrateur déclenche une vérification transactionnelle de chacune (25 maximum). Une source toujours pertinente, une version incorrecte, un droit manquant ou une mission déjà approuvée refuse l'ensemble du lot. Aucune clôture partielle.
+
+Les propositions valides pour ce nettoyage passent à DISMISSED, avec une note déterministe, la date et l'auteur. Leur historique et la source sont conservés. L'événement `OMEGA_MISSION_SUPERSEDED` apparaît comme Proposition obsolète écartée dans la chronologie, avec le droit audit habituel. Les missions approuvées, même obsolètes, restent à consigner ou écarter manuellement. Aucun client, visite, contrat, paiement ou communication modifié par le nettoyage. Le parcours est déclenché par l'administrateur ; il ne devient pas un nettoyage automatique du cron.
+
+Aucune migration, clé ou dépendance supplémentaire. Validation : 127 tests serveur, compilation finale et 35 groupes navigateur OMEGA (25 superviseur et 10 cockpit existant). Les tests vérifient le refus atomique des lots mixtes, la conservation des missions approuvées et l'événement de nettoyage dans l'historique.

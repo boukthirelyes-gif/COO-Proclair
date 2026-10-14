@@ -358,6 +358,7 @@ async function mutate(request: NextRequest) {
       case 'omega/supervisor/configure': return NextResponse.json(await supervisor.configure(input,actor));
       case 'omega/supervisor/run': z.object({}).strict().parse(input);return NextResponse.json(await supervisor.run(actor));
       case 'omega/supervisor/review-batch': return NextResponse.json(await supervisor.reviewBatch(input,actor));
+      case 'omega/supervisor/reconcile': return NextResponse.json(await supervisor.reconcile(input,actor));
       case 'omega/supervisor/review': return NextResponse.json(await supervisor.review(input,actor));
       case 'omega/assistant': return NextResponse.json(await omegaAssistant(prisma,input,actor));
       case 'territories': return NextResponse.json(await territories.save(null,input,actor),{status:201});

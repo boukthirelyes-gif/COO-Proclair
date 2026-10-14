@@ -28,3 +28,7 @@ Le moteur de missions et ses quatre scénarios sont livrés, avec 127 tests serv
 ## Fiches de missions OMEGA — 14 octobre 2026
 
 Explication de la règle, vérification actuelle de la source et chronologie de décisions avec droit audit ajoutées. Lecture seule et projection limitée des événements ; notes et décisions restent privées. Navigation clavier/mobile vérifiée, formulaire de décision mis au premier plan. Validation : 127 tests serveur, compilation finale et 32 groupes navigateur OMEGA. Aucune migration ou clé nouvelle. Le statut Vercel Ready reste à confirmer après publication main. Voir `OMEGA_SUPERVISOR.md`.
+
+## Nettoyage contrôlé des propositions — 14 octobre 2026
+
+Les propositions obsolètes DRAFT peuvent être écartées par page après une revalidation atomique. Missions approuvées et dossiers sources préservés ; historique avec événement explicite conservé. Le cron ne déclenche pas ce nettoyage. Aucune migration ou clé nouvelle. Validation : 127 tests serveur, compilation et 35 groupes navigateur OMEGA réussis. Statut Ready distant toujours à confirmer après publication Git.

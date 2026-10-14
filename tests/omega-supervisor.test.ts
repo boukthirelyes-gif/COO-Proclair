@@ -20,6 +20,9 @@ test('supervisor denies non-human administrators and restricted rules before bus
  await assert.rejects(()=>service.reviewBatch({missions:[{id:'same',expectedVersion:1},{id:'same',expectedVersion:1}],action:'APPROVE',note:'Synthetic',approved:true},bootstrapActor),{code:'DUPLICATE_MISSION'});
  await assert.rejects(()=>service.reviewBatch({missions:[],action:'APPROVE',note:'Synthetic',approved:true},bootstrapActor));
  await assert.rejects(()=>service.reviewBatch({missions:Array.from({length:26},(_,i)=>({id:String(i),expectedVersion:1})),action:'APPROVE',note:'Synthetic',approved:true},bootstrapActor));
+ await assert.rejects(()=>service.reconcile({missions:[{id:'synthetic',expectedVersion:1}],approved:true},manager),{code:'FORBIDDEN'});
+ await assert.rejects(()=>service.reconcile({missions:[],approved:true},bootstrapActor));
+ await assert.rejects(()=>service.reconcile({missions:[{id:'synthetic',expectedVersion:1}],approved:false},bootstrapActor));
 });
 test('supervisor persists bounded resumable missions, rejects stale approvals and records manual completion without changing dossiers', {skip:!process.env.TEST_DATABASE_URL,timeout:60000},async()=>{
  const database=process.env.TEST_DATABASE_URL!,schema='supervisor_'+randomUUID().replaceAll('-',''),setup=new Client({connectionString:database});
@@ -82,6 +85,18 @@ test('supervisor persists bounded resumable missions, rejects stale approvals an
   await db.lead.update({where:{id:'callback'},data:{status:'DO_NOT_CONTACT',version:{increment:1}}});
   const blocked=await service.detail({id:callback.id},bootstrapActor);assert.equal('restricted' in blocked.source&&blocked.source.restricted,true);assert.equal(blocked.source.current,false);assert.match(blocked.source.reason,/restriction de prospection/);
   await assert.rejects(()=>service.detail({id:'missing'},bootstrapActor),{code:'NOT_FOUND'});
+  const obsolete=await db.omegaMission.findFirstOrThrow({where:{sourceId:'visit-004'}}),stillCurrent=await db.omegaMission.findFirstOrThrow({where:{sourceId:'visit-005'}});
+  await db.visit.update({where:{id:'visit-004'},data:{status:'CANCELLED',version:{increment:1}}});
+  await db.visit.update({where:{id:'visit-002'},data:{status:'CANCELLED',version:{increment:1}}});
+  const ref=(id:string,expectedVersion:number)=>({id,expectedVersion});
+  const auditBeforeCleanup=await db.auditEvent.count();
+  await assert.rejects(()=>service.reconcile({missions:[ref(obsolete.id,1),ref(stillCurrent.id,1)],approved:true},bootstrapActor),{code:'MISSION_STILL_CURRENT'});
+  await assert.rejects(()=>service.reconcile({missions:[ref(obsolete.id,1),ref(fresh.id,2)],approved:true},bootstrapActor),{code:'CLEANUP_DRAFT_REQUIRED'});
+  assert.equal((await db.omegaMission.findUniqueOrThrow({where:{id:obsolete.id}})).status,'DRAFT');assert.equal(await db.auditEvent.count(),auditBeforeCleanup);
+  const sourceBeforeCleanup=await db.visit.findMany({orderBy:{id:'asc'}});
+  const cleaned=await service.reconcile({missions:[ref(obsolete.id,1)],approved:true},bootstrapActor);assert.equal(cleaned.reconciled,1);assert.equal(cleaned.clientChanges,false);
+  const trace=await service.detail({id:obsolete.id},bootstrapActor);assert.equal(trace.mission.status,'DISMISSED');assert.equal(trace.history.events.some(e=>e.action==='OMEGA_MISSION_SUPERSEDED'),true);
+  assert.equal((await db.omegaMission.findUniqueOrThrow({where:{id:fresh.id}})).status,'APPROVED');assert.deepEqual(await db.visit.findMany({orderBy:{id:'asc'}}),sourceBeforeCleanup);
   const control=await db.omegaSupervisorControl.findUniqueOrThrow({where:{id:'native-supervisor'}});
   await service.configure({enabled:false,rules:control.rules,expectedVersion:control.version},bootstrapActor);
   const count=await db.omegaMission.count();assert.equal((await service.tick()).enabled,false);assert.equal(await db.omegaMission.count(),count);

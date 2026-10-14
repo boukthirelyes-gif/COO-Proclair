@@ -121,7 +121,7 @@ export class OmegaSupervisor {
    const isCurrent=fresh?.fingerprint===mission.fingerprint;
    const reason=!row?'Le dossier source n’existe plus.':restricted?'Une restriction de prospection interdit l’approbation.':!fresh?'Le dossier ne correspond plus à ce scénario.':!isCurrent?'Le dossier a changé depuis la préparation de cette mission.':'La source correspond toujours à la mission préparée.';
    const source={present:!!row,eligible:!!fresh,current:isCurrent,reason,status:row?.status??null,...(rule==='LEAD_CALLBACK'?{followUpAt:row?.followUpAt??null,restricted,ownerAssigned:!!row?.ownerId}:{startsAt:row?.startsAt??null,endsAt:row?.endsAt??null,contractActive:row?.contract?.active??null,technicianAssigned:!!row?.technicianId})};
-   const allowed=actor.permissions.includes('audit'),where={entityType:'OmegaMission',entityId:id,action:{in:['OMEGA_MISSION_APPROVE','OMEGA_MISSION_DONE','OMEGA_MISSION_DISMISS']}};
+   const allowed=actor.permissions.includes('audit'),where={entityType:'OmegaMission',entityId:id,action:{in:['OMEGA_MISSION_APPROVE','OMEGA_MISSION_DONE','OMEGA_MISSION_DISMISS','OMEGA_MISSION_SUPERSEDED']}};
    const total=allowed?await tx.auditEvent.count({where}):0;
    const events=allowed?await tx.auditEvent.findMany({where,orderBy:[{createdAt:'asc'},{id:'asc'}],take:25,select:{id:true,action:true,actorId:true,actorRole:true,createdAt:true,after:true}}):[];
    const history={allowed,total,hasMore:total>events.length,events:events.map(event=>{
@@ -138,6 +138,25 @@ export class OmegaSupervisor {
    await tx.$executeRaw`SELECT pg_advisory_xact_lock(714928370)`;
    for(const mission of v.missions)await this.decide(tx,{...mission,action:v.action,note:v.note,approved:v.approved},actor);
    return {reviewed:v.missions.length,action:v.action,externalEffects:false};
+  },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable,timeout:20000});
+ }
+ async reconcile(input:unknown,actor:AccessActor){
+  access(actor);const v=z.object({missions:z.array(z.object({id:z.string().min(1).max(100),expectedVersion:z.number().int().positive()}).strict()).min(1).max(25),approved:z.literal(true)}).strict().parse(input);
+  if(new Set(v.missions.map(m=>m.id)).size!==v.missions.length)throw new DomainError('DUPLICATE_MISSION','Une mission ne peut figurer deux fois dans un nettoyage.',400);
+  return this.db.$transaction(async tx=>{
+   await tx.$executeRaw`SELECT pg_advisory_xact_lock(714928370)`;
+   for(const candidate of v.missions){
+    const before=await tx.omegaMission.findUnique({where:{id:candidate.id}});if(!before)throw new DomainError('NOT_FOUND','Mission introuvable.',404);
+    const rule=ruleSchema.parse(before.rule);grant(rule,actor);
+    if(before.version!==candidate.expectedVersion)throw new DomainError('VERSION_CONFLICT','La mission a changé. Actualisez OMEGA.',409);
+    if(before.status!=='DRAFT')throw new DomainError('CLEANUP_DRAFT_REQUIRED','Seules les propositions non approuvées peuvent être nettoyées.',409);
+    const source=await current(tx,rule,before.sourceId,this.now());
+    if(source?.fingerprint===before.fingerprint)throw new DomainError('MISSION_STILL_CURRENT','Une proposition est encore pertinente. Actualisez OMEGA avant de nettoyer.',409);
+    const note=source?'Proposition écartée : le dossier a changé depuis sa préparation. Relancer une analyse pour préparer une nouvelle mission.':'Proposition écartée : le dossier ne correspond plus au scénario ou sa source est absente. Aucun dossier client modifié.';
+    await tx.omegaMission.update({where:{id:before.id,version:before.version},data:{status:'DISMISSED',note,reviewedBy:actor.id,closedAt:this.now(),version:{increment:1}}});
+    await tx.auditEvent.create({data:{actorId:actor.id,actorRole:actor.accountRole,action:'OMEGA_MISSION_SUPERSEDED',entityType:'OmegaMission',entityId:before.id,after:{status:'DISMISSED',note,reason:source?'SOURCE_CHANGED':'SOURCE_NOT_ELIGIBLE',externalEffects:false}}});
+   }
+   return {reconciled:v.missions.length,externalEffects:false,clientChanges:false};
   },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable,timeout:20000});
  }
  private async decide(tx:DB,v:z.infer<typeof decisionSchema>,actor:AccessActor){
