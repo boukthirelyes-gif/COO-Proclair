@@ -1,3 +1,9 @@
+## Export historique privé préservé — 2026-10-14
+
+- Fusion des changements distants de la branche native sans écraser les améliorations CRM.
+- Export historique facultatif : noms d’outils allowlistés, fichiers confinés au répertoire privé ignoré et diagnostics sans données sensibles.
+- 123 tests serveur, compilation finale et régressions natives/leaderboard réussis. Aucun export réel ou déploiement production.
+
 ## Interventions : transitions guidées — 2026-10-14
 
 - États proposés limités aux transitions autorisées ; visites annulées/terminées ouvertes en lecture seule.

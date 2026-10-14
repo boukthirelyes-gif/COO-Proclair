@@ -57,3 +57,7 @@ Les exports sont exclus de Git par `.gitignore` et stockés sous `private-export
 ## Important
 
 **Le code de l'exporteur est préparé, pas validé avec un lot complet en production.** Aucune garantie de migration totale tant que l'export, son audit et l'import natif ne sont pas réellement exécutés.
+
+## Garde-fous après intégration de la branche
+
+Les noms de lots restent dans private-exports/ du projet ; chemins absolus et traversées de répertoire refusés. Les diagnostics enregistrés ne contiennent que des codes bornés, jamais les messages bruts de fournisseur ou PostgreSQL. Les noms d’outils hérités du prototype sont refusés avant accès aux jetons. Tests locaux de ces garde-fous uniquement : aucun export de données réelles exécuté pendant cette livraison native.

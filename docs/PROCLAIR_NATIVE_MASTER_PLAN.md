@@ -52,3 +52,5 @@ Branche de travail : feature/proclair-native-operations-20261014. Reprise de f99
 VERIFIED est limité à la preuve indiquée. Documents/photos du dossier client, horaires variables, attribution des conversations et moteur événementiel complet restent TODO. Une signature enregistrée n’est ni une facture payée ni une autorisation de prélèvement.
 
 Dernière validation : sauvegarde atomique + transitions guidées et dossiers terminaux en lecture seule ; 121 tests serveur et couverture navigateur de 79 groupes. Les défauts de parcours constatés ont été corrigés sans retirer les validations serveur.
+
+Intégration finale : outils d’archive historique de la branche distante conservés ; garde-fous négatifs testés sans connexion réelle. État final de la suite : 123 tests serveur réussis et compilation réussie ; couverture navigateur métier : 79 groupes.

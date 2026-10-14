@@ -9,6 +9,8 @@
  */
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {privateExportRoot,safeArchiveError} from '../src/lib/private-export';
 import {randomUUID,createHash} from 'node:crypto';
 import {rotorArchiveRead,type RotorArchiveTool} from '../src/lib/rotor';
 type Spec={name:RotorArchiveTool;key:string;ranged?:boolean;unpaged?:boolean};
@@ -47,7 +49,7 @@ for(let y=firstYear;y<=year;y++)for(let m=0;m<12;m++){
  windows.push({start:start.toISOString(),end:stop.toISOString()});
 }
 const resume=process.argv.includes('--resume');
-const root=path.resolve('private-exports',process.env.ROTOR_EXPORT_BATCH||'rotor-full-'+year+pad(month+1)+pad(dateNow.getUTCDate()));
+const root=privateExportRoot(process.env.ROTOR_EXPORT_BATCH||'rotor-full-'+year+pad(month+1)+pad(dateNow.getUTCDate()),fileURLToPath(new URL('../private-exports',import.meta.url)));
 const manifestPath=path.join(root,'manifest.json');
 type Progress={key:string;window:string;page:number;count:number;total:number|null;complete:boolean;error?:string};
 type Manifest={format:string;batch:string;createdAt:string;updatedAt:string;source:string;complete:boolean;datasets:Record<string,Progress>};
@@ -93,7 +95,7 @@ for(const spec of specs){
    if(!state.complete)throw Error('Page cap 2000 reached: archive incomplete.');
    console.log(spec.key,windowKey,state.count,'complete');
   }catch(error){
-   const message=error instanceof Error?error.message:String(error);
+   const message=safeArchiveError(error);
    state.error=message;problems.push(key+': '+message);await save();
    console.error('BLOCKED',key,message);
    // Skip blocked categories and continue exporting everything else.

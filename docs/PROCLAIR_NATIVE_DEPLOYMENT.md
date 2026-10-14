@@ -9,3 +9,5 @@ Aucune Preview Vercel/Render créée ou vérifiée : accès fournisseur absent e
 Compilation finale réussie ; 121 tests serveur et 77 groupes navigateur réussis. Quatre lots métier et une finition du formulaire committés sur la branche native : Dispatch, sauvegarde atomique, agrégats dashboard et commissions/leaderboard. Aucune migration, clé ou dépendance nouvelle. Ne pas créer une fausse URL Preview ou présenter le site Vercel existant comme cette branche.
 
 Dernière compilation réussie après les états guidés. 121 tests serveur et couverture de 79 groupes navigateur ; un push de branche n’est pas une Preview distante vérifiée.
+
+Après fusion de 63c9aba et durcissement de l’export privé : compilation réussie et 123 tests serveur réussis, 25 contrôles natifs + 7 leaderboard repassés. Les archives restent dans private-exports/ ignoré par Git ; jamais de données d’archives dans un artefact de livraison. Les migrations/variables de production sont inchangées.

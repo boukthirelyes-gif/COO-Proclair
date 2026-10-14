@@ -39,3 +39,9 @@ Régressions finales : 23 groupes natifs CRM/Dispatch/dashboard, 17 finances, si
 Le formulaire propose uniquement l’état courant et les transitions autorisées. Les visites annulées/terminées sont consultables en lecture seule. Le serveur conserve ses contrôles : le test navigateur falsifie un état dans la requête et vérifie le refus sans changement de notes ni audit.
 
 Compilation finale réussie, 25 contrôles natifs navigateur réussis et dix contrôles OMEGA repassés, zéro erreur JavaScript. Deux contrôles natifs supplémentaires vérifient absence d’option interdite et lecture seule d’une visite annulée. Bilan de couverture navigateur de la livraison : 79 groupes (25 natifs, 7 leaderboard, 17 finance, 6 contrats, 10 OMEGA, 14 Superhub), chaque groupe compté une seule fois. Suite serveur : 121 réussis. Production inchangée.
+
+## Intégration des changements distants
+
+La branche distante a avancé jusqu’à 63c9aba avec l’archive historique Rotor. Fusion conservatrice sans conflit : fonctions natives et outils d’export préservés. Garde-fous ajoutés : noms d’outils réellement allowlistés, répertoire privé lié au projet, noms de lots sans traversée, diagnostics sans messages bruts de fournisseur ou de base.
+
+Dernière validation après fusion : 123 tests serveur réussis, zéro ignoré ; compilation de production et TypeScript réussis. Les 25 contrôles natifs et sept du leaderboard ont été repassés sur ce build, sans erreur JavaScript. La couverture navigateur métier de la livraison reste 79 groupes, sans recompter les répétitions. Aucun fichier private-exports suivi par Git et aucun export réel exécuté. L’archive externe complète n’est pas déclarée VERIFIED.

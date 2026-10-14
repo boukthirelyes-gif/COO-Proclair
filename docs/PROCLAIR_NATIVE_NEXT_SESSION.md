@@ -12,3 +12,5 @@ Dernier état : quatre lots natifs livrés, dont leaderboard annuel conforme aux
 Prochaine priorité indépendante des secrets : pagination/recherche des listes CRM et réduction de /api/state, attribution restreinte des conversations, disponibilités individuelles, puis moteur événementiel supervisé. Contrôler les versions et conserver l’approbation humaine des affectations. Préparer une Preview distante seulement quand des accès réels sont disponibles ; production inchangée.
 
 Finition livrée : transitions guidées dans l’éditeur et visites terminales en lecture seule, avec refus serveur des requêtes falsifiées. Dernière couverture : 121 tests serveur et 79 groupes navigateur. L’assiette et les paliers annuels du leaderboard sont confirmés ; ne pas les remplacer par des encaissements ou un calcul progressif.
+
+Point final : changements distants jusqu’à 63c9aba fusionnés sans perdre les opérations natives. Export historique facultatif conservé et durci, mais aucune récupération réelle exécutée. 123 tests serveur réussis, compilation réussie et couverture navigateur de 79 groupes. Reprendre ce point, pas un ancien HEAD de la branche.

@@ -164,7 +164,7 @@ const rotorArchiveScopes:Record<RotorArchiveTool,string>={
 const rotorArchiveRanged=new Set<RotorArchiveTool>(['list_visits','list_timesheets','list_visit_timers','list_payroll']);
 const rotorArchiveUnpaged=new Set<RotorArchiveTool>(['list_pipelines','list_pipeline_stages','list_map_pin_types']);
 export async function rotorArchiveRead(name:RotorArchiveTool,args:Record<string,unknown>={}):Promise<{data:Record<string,unknown>[];pagination:{page:number;limit:number;total:number|null;has_more:boolean}|null}> {
- if(!(name in rotorArchiveScopes))throw new DomainError('FORBIDDEN','Lecture Rotor non autorisée.',403);
+ if(!Object.hasOwn(rotorArchiveScopes,name))throw new DomainError('FORBIDDEN','Lecture Rotor non autorisée.',403);
  const ranged=rotorArchiveRanged.has(name),unpaged=rotorArchiveUnpaged.has(name);
  const page=unpaged?1:args.page,limit=unpaged?100:args.limit;
  if(!unpaged&&(!Number.isInteger(page)||Number(page)<1||Number(page)>2000||!Number.isInteger(limit)||Number(limit)<1||Number(limit)>100))
