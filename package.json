@@ -42,7 +42,8 @@
     "test:native-core:e2e": "node --env-file-if-exists=.env tests/browser-native-core.mjs",
     "test:leaderboard:e2e": "node --env-file-if-exists=.env tests/browser-leaderboard.mjs",
     "test:archive-gates:e2e": "node --env-file-if-exists=.env tests/browser-archive-gates.mjs",
-    "test:omega-supervisor:e2e": "node --env-file-if-exists=.env tests/browser-omega-supervisor.mjs"
+    "test:omega-supervisor:e2e": "node --env-file-if-exists=.env tests/browser-omega-supervisor.mjs",
+    "test:lead-table:e2e": "node --env-file-if-exists=.env tests/browser-lead-table.mjs"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.1.3",

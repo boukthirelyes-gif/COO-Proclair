@@ -24,3 +24,20 @@ Pas de modification des commissions annuelles sur ventes signées hors taxes.
   sans clé. Une validation du SDK réel reste requise avant fusion en production.
 - Le test utilisateurs attend désormais le classement vendeur existant, ajouté
   dans une version précédente, sans élargir les droits du compte.
+
+## Lot interface prospects — 2026-10-14
+
+La liste native affiche désormais les coordonnées, états de contact, étapes,
+valeurs potentielles, relances Toronto et affectations. Huit colonnes triables,
+pages de 10/25/50 éléments, état vide et retour au Kanban. Aucun champ de priorité
+n’est inventé à partir des captures. Les données et permissions serveur restent
+inchangées. La pagination porte sur le résultat chargé : le seuil existant de
+1 000 prospects et l’erreur explicite au-delà restent en place. Une pagination
+serveur des prospects à grand volume est un travail distinct.
+
+Compilation de production et TypeScript réussis. Chromium : 7 vérifications du
+nouveau tableau (26 lignes synthétiques en transport intercepté, sans persistance),
+7 vérifications du parcours natif sur base navigateur séparée (création depuis une
+porte, étape, conversion, doublons et droits vendeur). Zéro erreur JavaScript.
+Captures de validation locales synthétiques ; aucun fichier client ajouté au Git.
+Les 127 tests métier du lot précédent ne sont pas présentés comme rejoués ici.

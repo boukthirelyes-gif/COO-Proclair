@@ -6,7 +6,7 @@ clients ne sont pas ajoutées au dépôt. Les valeurs affichées ne sont pas imp
 
 | Heure | Écran | Observation |
 |---|---|---|
-| 14.55.10 | Leads | Tableau dense, filtres, pagination |
+| 14.55.10 | Leads | Liste native enrichie : coordonnées, statuts, tri et pagination ; aucune priorité inventée |
 | 14.55.38 | Dialer / Call Logs | KPI, agents et journal |
 | 14.55.46 | Service / Jobs | Six périodes et tableau |
 | 14.55.51 | Financials / Invoices | Quatre KPI et factures |
