@@ -104,3 +104,12 @@ jobs:
       - run: |
           node tests/reset-browser-login-attempts.mjs
           npm run test:lead-table:e2e
+      - run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:map-filters:e2e
+      - run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:territories:e2e
+      - run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:users-map:e2e
