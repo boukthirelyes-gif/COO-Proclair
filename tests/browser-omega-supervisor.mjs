@@ -37,10 +37,39 @@ try{
  await page.setViewportSize({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));checks++;
  const anonymous=await browser.newContext();assert.equal((await anonymous.request.get(base+'/api/omega/supervisor')).status(),401);await anonymous.close();checks++;
  const denied=await page.evaluate(async()=>{const r=await fetch('/api/omega/supervisor/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:'missing',expectedVersion:1,action:'APPROVE',note:'Synthetic note',approved:false})});return r.status});assert.equal(denied,400);checks++;
- assert.deepEqual(errors,[]);console.log(JSON.stringify({omegaSupervisorChecks:checks,pageErrors:errors,providerCalls:0}));
+
+ await page.setViewportSize({width:1440,height:1000});
+ await db.contract.update({where:{id:contract.id},data:{totalVisits:28}});
+ await db.visit.createMany({data:Array.from({length:27},(_,i)=>({id:prefix+'-bulk-'+String(i).padStart(2,'0'),customerId:customer.id,propertyId:property.id,contractId:contract.id,jobId:job.id,service:'Cleaning',passageNumber:i+2,priceCents:10000,durationMinutes:60}))});
+ await panel.getByRole('combobox',{name:/Afficher/}).selectOption('OPEN');
+ await panel.getByLabel('Activer le superviseur de missions').check();await panel.getByRole('button',{name:'Enregistrer les scénarios OMEGA',exact:true}).click();
+ await panel.getByRole('status').filter({hasText:'Scénarios activés'}).waitFor();
+ await panel.getByRole('button',{name:'Analyser en continu',exact:true}).click();await panel.getByRole('status').filter({hasText:'Passage terminé pour les scénarios activés.'}).waitFor();
+ assert.equal(await db.omegaMission.count({where:{sourceId:{startsWith:prefix+'-bulk-'}}}),27);checks++;
+ await panel.getByLabel('Rechercher une mission',{exact:true}).fill(prefix);await panel.getByRole('button',{name:'Rechercher les missions',exact:true}).click();
+ await panel.getByText('27 mission(s) correspondant aux filtres · page 1',{exact:true}).waitFor();
+ const overview=await page.evaluate(async()=>{const r=await fetch('/api/omega/supervisor?search='+encodeURIComponent('absent-literal'));return r.json()});assert.equal(overview.total,0);assert.ok(overview.summary.open>=27);checks++;
+ await panel.getByLabel('Sélectionner cette page',{exact:true}).check();await panel.getByLabel('Note pour la sélection',{exact:true}).fill('Synthetic approval of selected internal missions');
+ await panel.getByRole('button',{name:'Approuver la sélection',exact:true}).click();await panel.getByRole('status').filter({hasText:'25 mission(s) approuvée(s).'}).waitFor();
+ assert.equal(await db.omegaMission.count({where:{sourceId:{startsWith:prefix+'-bulk-'},status:'APPROVED'}}),25);checks++;
+ await panel.getByRole('combobox',{name:/Afficher/}).selectOption('APPROVED');await panel.getByText('25 mission(s) correspondant aux filtres · page 1',{exact:true}).waitFor();
+ await panel.getByLabel('Scénario des missions',{exact:false}).selectOption('LEAD_CALLBACK');await panel.getByText('Aucune mission ne correspond à ces filtres.',{exact:true}).waitFor();
+ await panel.getByLabel('Scénario des missions',{exact:false}).selectOption('');await panel.getByText('25 mission(s) correspondant aux filtres · page 1',{exact:true}).waitFor();checks++;
+ await panel.getByText('Scénarios et configuration',{exact:true}).click();await panel.getByLabel('Visites confirmées à placer',{exact:true}).check();
+ await db.omegaSupervisorControl.update({where:{id:'native-supervisor'},data:{version:{increment:1}}});
+ await panel.getByLabel('Rechercher une mission',{exact:true}).fill(prefix+'-bulk-00');await panel.getByRole('button',{name:'Rechercher les missions',exact:true}).click();
+ await panel.getByText('1 mission(s) correspondant aux filtres · page 1',{exact:true}).waitFor();assert.equal(await panel.getByLabel('Visites confirmées à placer',{exact:true}).isChecked(),true);assert.equal(await panel.getByRole('button',{name:'Analyser en continu',exact:true}).isDisabled(),true);await panel.getByRole('button',{name:'Enregistrer les scénarios OMEGA',exact:true}).click();await panel.getByRole('alert').filter({hasText:'La configuration a changé'}).waitFor();await panel.getByRole('button',{name:'Recharger les scénarios enregistrés',exact:true}).click();await panel.getByRole('status').filter({hasText:'Scénarios rechargés.'}).waitFor();assert.equal(await panel.getByLabel('Visites confirmées à placer',{exact:true}).isChecked(),false);checks++;
+ await page.setViewportSize({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));checks++;
+ let mockedCycles=0;
+ await page.route('**/api/omega/supervisor/run',async route=>{mockedCycles++;await new Promise(resolve=>setTimeout(resolve,100));await route.fulfill({json:{enabled:true,busy:false,created:0,scanned:25,continuation:true,externalEffects:false}})});
+ const request=page.waitForRequest(r=>r.url().endsWith('/api/omega/supervisor/run'));
+ await panel.getByRole('button',{name:'Analyser en continu',exact:true}).click();await request;await panel.getByRole('button',{name:'Suspendre cette analyse',exact:true}).click();
+ await panel.getByRole('status').filter({hasText:'Analyse suspendue après le cycle en cours'}).waitFor();assert.equal(mockedCycles,1);checks++;
+ mockedCycles=0;await panel.getByRole('button',{name:'Analyser en continu',exact:true}).click();await panel.getByRole('status').filter({hasText:'Limite de 20 cycles atteinte'}).waitFor();assert.equal(mockedCycles,20);await page.unroute('**/api/omega/supervisor/run');checks++;
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({omegaSupervisorChecks:checks,pageErrors:errors,providerCalls:0,mockedAnalysisCycles:21}));
 }finally{
  await browser.close();await db.omegaMission.deleteMany({where:{id:{notIn:prior.map(r=>r.id)}}});
  if(control){const {id,...values}=control;await db.omegaSupervisorControl.update({where:{id},data:values})}else await db.omegaSupervisorControl.deleteMany({where:{id:'native-supervisor'}});
  await db.auditEvent.deleteMany({where:{entityType:{in:['OmegaSupervisorControl','OmegaMission']},id:{notIn:priorAudit.map(r=>r.id)}}});
- await db.visit.deleteMany({where:{id:prefix}});if(job)await db.job.delete({where:{id:job.id}});if(contract)await db.contract.delete({where:{id:contract.id}});if(property)await db.property.delete({where:{id:property.id}});if(customer)await db.customer.delete({where:{id:customer.id}});await db.$disconnect();
+ await db.visit.deleteMany({where:{id:{startsWith:prefix}}});if(job)await db.job.delete({where:{id:job.id}});if(contract)await db.contract.delete({where:{id:contract.id}});if(property)await db.property.delete({where:{id:property.id}});if(customer)await db.customer.delete({where:{id:customer.id}});await db.$disconnect();
 }

@@ -188,6 +188,7 @@ model OmegaMission {
  fingerprint String
  label String
  detail String
+ priority Int @default(2)
  status String @default("DRAFT")
  version Int @default(1)
  reviewedBy String?
@@ -197,6 +198,7 @@ model OmegaMission {
  closedAt DateTime?
  @@index([status,createdAt,id])
  @@index([rule,sourceId])
+ @@index([status,priority,createdAt,id])
 }
 model WorkerJob {
  id String @id @default(cuid())

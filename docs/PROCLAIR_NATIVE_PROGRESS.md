@@ -55,3 +55,7 @@ Validation finale : 124 tests serveur réussis, zéro ignoré ; compilation fina
 ## Superviseur OMEGA — livraison du 14 octobre 2026
 
 Quatre scénarios configurables, missions PostgreSQL persistantes, reprise par curseur, déduplication, validation humaine et arrêt sont livrés. Migration additive `20261014030000_omega_supervisor`. Suite serveur : 127 réussites sans tests ignorés ; compilation finale réussie ; 20 groupes navigateur OMEGA réussis. Voir [le parcours et ses limites](OMEGA_SUPERVISOR.md). Les publications sur main sont désormais autorisées par les demandes ultérieures de déploiement ; les mentions historiques de main inchangée décrivent les étapes précédentes.
+
+## Cockpit OMEGA — amélioration du 14 octobre 2026
+
+Indicateurs sur toute la file autorisée, tri global des urgences, recherche littérale et filtres serveur, décisions groupées atomiques (25 maximum), analyse continue avec pause et plafond de vingt cycles. Les brouillons de configuration survivent à la recherche ; une modification concurrente bloque leur enregistrement. Migration additive `20261014031000_omega_mission_priority`. Validation : 127 tests serveur, compilation finale et 28 groupes navigateur OMEGA réussis. Les tests de pause et plafond utilisent un transport simulé ; aucun fournisseur externe appelé.

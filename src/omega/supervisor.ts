@@ -7,6 +7,8 @@ import {requirePermission,type AccessActor,type Permission} from '../lib/access'
 export const supervisorRules=['OVERDUE_VISIT','UNCONFIRMED_VISIT','UNSCHEDULED_VISIT','LEAD_CALLBACK'] as const;
 type Rule=typeof supervisorRules[number];
 const ruleSchema=z.enum(supervisorRules),CONTROL='native-supervisor',BATCH=25;
+const priorities:Record<Rule,number>={OVERDUE_VISIT:0,LEAD_CALLBACK:1,UNCONFIRMED_VISIT:2,UNSCHEDULED_VISIT:3};
+const decisionSchema=z.object({id:z.string().min(1).max(100),expectedVersion:z.number().int().positive(),action:z.enum(['APPROVE','DONE','DISMISS']),note:z.string().trim().min(3).max(1000),approved:z.literal(true)}).strict();
 const digest=(v:unknown)=>createHash('sha256').update(JSON.stringify(v)).digest('hex');
 type DB=Prisma.TransactionClient;
 function access(actor:AccessActor){
@@ -27,7 +29,7 @@ const leadInclude={sourcePin:{include:{type:true}}} as const;
 function eligibleLead(row:any,now:Date){return row.status==='ACTIVE'&&row.followUpAt&&row.followUpAt<=now&&row.sourcePin?.status!=='DO_NOT_CONTACT'&&!row.sourcePin?.type?.restricted}
 function describe(rule:Rule,row:any){
  const fields=rule==='LEAD_CALLBACK'?{version:row.version,status:row.status,followUpAt:row.followUpAt,ownerId:row.ownerId,pinVersion:row.sourcePin?.version,pinStatus:row.sourcePin?.status,restricted:row.sourcePin?.type?.restricted}:{version:row.version,status:row.status,startsAt:row.startsAt,endsAt:row.endsAt,technicianId:row.technicianId,contractActive:row.contract.active};
- return {fingerprint:digest({rule,id:row.id,...fields}),label:rule==='LEAD_CALLBACK'?row.name:row.customer.name,detail:rule==='LEAD_CALLBACK'?'Rappel prospect arrivé à échéance. Aucun consentement SMS présumé.':row.service+' · '+row.status};
+ return {priority:priorities[rule],fingerprint:digest({rule,id:row.id,...fields}),label:rule==='LEAD_CALLBACK'?row.name:row.customer.name,detail:rule==='LEAD_CALLBACK'?'Rappel prospect arrivé à échéance. Aucun consentement SMS présumé.':row.service+' · '+row.status};
 }
 async function current(tx:DB,rule:Rule,sourceId:string,now:Date){
  if(rule==='LEAD_CALLBACK'){
@@ -80,20 +82,43 @@ export class OmegaSupervisor {
   },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable,timeout:20000});
  }
  async board(input:unknown,actor:AccessActor){
-  access(actor);const v=z.object({page:z.coerce.number().int().min(1).max(100000).default(1),status:z.enum(['OPEN','CLOSED']).default('OPEN')}).strict().parse(input);
+  access(actor);const v=z.object({page:z.coerce.number().int().min(1).max(100000).default(1),status:z.enum(['OPEN','CLOSED','DRAFT','APPROVED']).default('OPEN'),rule:ruleSchema.optional(),search:z.string().trim().max(100).default('')}).strict().parse(input);
   const allowed=supervisorRules.filter(rule=>rule==='LEAD_CALLBACK'?['leads.read','leads.write','leads.all'].every(p=>actor.permissions.includes(p as Permission)):actor.permissions.includes('dispatch'));
-  const where={rule:{in:allowed},status:{in:v.status==='OPEN'?['DRAFT','APPROVED']:['DONE','DISMISSED']}};
+  if(v.rule&&!allowed.includes(v.rule))throw new DomainError('FORBIDDEN','Scénario non autorisé.',403);
+  const statuses=v.status==='OPEN'?['DRAFT','APPROVED']:v.status==='CLOSED'?['DONE','DISMISSED']:[v.status];
+  // PostgreSQL LIKE metacharacters are literal user input, never extra wildcards.
+  const literal=v.search.replace(/[\\%_]/g,'\\$&');
+  const where:Prisma.OmegaMissionWhereInput={rule:v.rule??{in:allowed},status:{in:statuses},...(literal?{OR:['label','detail','note','sourceId'].map(field=>({[field]:{contains:literal,mode:'insensitive'}}))}:{})};
+  const now=this.now();
   return this.db.$transaction(async tx=>{
    const control=await tx.omegaSupervisorControl.findUnique({where:{id:CONTROL}}),total=await tx.omegaMission.count({where});
-   const rows=await tx.omegaMission.findMany({where,orderBy:[{createdAt:'asc'},{id:'asc'}],skip:(v.page-1)*25,take:25});
+   const rows=await tx.omegaMission.findMany({where,orderBy:[{priority:'asc'},{createdAt:'asc'},{id:'asc'}],skip:(v.page-1)*25,take:25});
+   const groups=await tx.omegaMission.groupBy({by:['rule','status'],where:{rule:{in:allowed}},_count:{_all:true}});
+   const counts:Record<string,number>={DRAFT:0,APPROVED:0,DONE:0,DISMISSED:0};const byRule=Object.fromEntries(allowed.map(rule=>[rule,{open:0,done:0}]));
+   for(const group of groups){counts[group.status]=(counts[group.status]??0)+group._count._all;if(['DRAFT','APPROVED'].includes(group.status))byRule[group.rule].open+=group._count._all;if(group.status==='DONE')byRule[group.rule].done+=group._count._all;}
+   const completedLast7Days=await tx.omegaMission.count({where:{rule:{in:allowed},status:'DONE',closedAt:{gte:new Date(now.getTime()-7*86400000),lte:now}}});
+   const summary={open:counts.DRAFT+counts.APPROVED,pending:counts.DRAFT,approved:counts.APPROVED,done:counts.DONE,dismissed:counts.DISMISSED,completedLast7Days,byRule};
    const missions=[];for(const row of rows){const source=await current(tx,ruleSchema.parse(row.rule),row.sourceId,this.now());missions.push({...row,current:source?.fingerprint===row.fingerprint,view:row.rule==='LEAD_CALLBACK'?'leads':'visits'})}
-   return {control:control?{id:control.id,enabled:control.enabled,rules:control.rules.filter(rule=>allowed.includes(rule as Rule)),version:control.version,lastRunAt:control.lastRunAt}:defaultControl,allowedRules:allowed,missions,total,page:v.page,pageSize:25,hasMore:v.page*25<total,mode:'INTERNAL_MISSIONS_ONLY',externalEffects:false};
+   return {control:control?{id:control.id,enabled:control.enabled,rules:control.rules.filter(rule=>allowed.includes(rule as Rule)),version:control.version,lastRunAt:control.lastRunAt}:defaultControl,allowedRules:allowed,missions,summary,filters:{status:v.status,rule:v.rule??null,search:v.search},total,page:v.page,pageSize:25,hasMore:v.page*25<total,mode:'INTERNAL_MISSIONS_ONLY',externalEffects:false};
   },{isolationLevel:Prisma.TransactionIsolationLevel.RepeatableRead});
  }
  async review(input:unknown,actor:AccessActor){
-  access(actor);const v=z.object({id:z.string().min(1).max(100),expectedVersion:z.number().int().positive(),action:z.enum(['APPROVE','DONE','DISMISS']),note:z.string().trim().min(3).max(1000),approved:z.literal(true)}).strict().parse(input);
+  access(actor);const v=decisionSchema.parse(input);
   return this.db.$transaction(async tx=>{
    await tx.$executeRaw`SELECT pg_advisory_xact_lock(714928370)`;
+   return this.decide(tx,v,actor);
+  },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable});
+ }
+ async reviewBatch(input:unknown,actor:AccessActor){
+  access(actor);const v=z.object({missions:z.array(z.object({id:z.string().min(1).max(100),expectedVersion:z.number().int().positive()}).strict()).min(1).max(25),action:z.enum(['APPROVE','DISMISS']),note:z.string().trim().min(3).max(1000),approved:z.literal(true)}).strict().parse(input);
+  if(new Set(v.missions.map(m=>m.id)).size!==v.missions.length)throw new DomainError('DUPLICATE_MISSION','Une mission ne peut figurer deux fois dans une décision.',400);
+  return this.db.$transaction(async tx=>{
+   await tx.$executeRaw`SELECT pg_advisory_xact_lock(714928370)`;
+   for(const mission of v.missions)await this.decide(tx,{...mission,action:v.action,note:v.note,approved:v.approved},actor);
+   return {reviewed:v.missions.length,action:v.action,externalEffects:false};
+  },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable,timeout:20000});
+ }
+ private async decide(tx:DB,v:z.infer<typeof decisionSchema>,actor:AccessActor){
    const before=await tx.omegaMission.findUnique({where:{id:v.id}});if(!before)throw new DomainError('NOT_FOUND','Mission introuvable.',404);
    grant(ruleSchema.parse(before.rule),actor);
    if(before.version!==v.expectedVersion)throw new DomainError('VERSION_CONFLICT','La mission a changé. Actualisez OMEGA.',409);
@@ -108,6 +133,5 @@ export class OmegaSupervisor {
    const status=v.action==='APPROVE'?'APPROVED':v.action==='DONE'?'DONE':'DISMISSED';
    const result=await tx.omegaMission.update({where:{id:before.id,version:v.expectedVersion},data:{status,note:v.note,reviewedBy:actor.id,version:{increment:1},closedAt:status==='APPROVED'?null:this.now()}});
    await tx.auditEvent.create({data:{actorId:actor.id,actorRole:actor.accountRole,action:'OMEGA_MISSION_'+v.action,entityType:'OmegaMission',entityId:before.id,after:{status,note:v.note,externalEffects:false}}});return result;
-  },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable});
  }
 }

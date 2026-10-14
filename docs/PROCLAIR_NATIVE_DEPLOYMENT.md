@@ -17,3 +17,7 @@ Point final après intégration de 0f85058 : endpoint d’archive historique fac
 ## Livraison du superviseur OMEGA
 
 Le build de production doit appliquer `20261014030000_omega_supervisor` avant de servir le nouveau panneau. Aucune variable supplémentaire. Le superviseur reste arrêté par défaut et indépendant du worker de planning. Activer les scénarios dans OMEGA après déploiement ; vérifier la base et les permissions. Le cron OMEGA existant peut préparer les missions si le superviseur est activé. Sauvegarder PostgreSQL avant migration ; ne pas partager les bases Production/Preview. Une publication main ne confirme pas le statut Ready de Vercel.
+
+## Cockpit OMEGA et priorité des missions
+
+Appliquer également `20261014031000_omega_mission_priority` avec le build de production habituel. Elle ajoute la priorité et son index, puis classe les missions existantes selon leur scénario. Aucun reset, aucune variable nouvelle. L’analyse continue est un parcours navigateur plafonné ; elle ne remplace pas un ordonnanceur permanent. Vercel Ready reste à vérifier sur le compte distant après publication Git.

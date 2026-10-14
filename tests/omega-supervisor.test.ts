@@ -15,6 +15,10 @@ test('supervisor denies non-human administrators and restricted rules before bus
  await assert.rejects(()=>service.run({...bootstrapActor,role:'OMEGA'}),{code:'FORBIDDEN'});
  await assert.rejects(()=>service.configure({enabled:true,rules:['LEAD_CALLBACK'],expectedVersion:0},{...bootstrapActor,permissions:bootstrapActor.permissions.filter(p=>p!=='leads.all')}),{code:'FORBIDDEN'});
  await assert.rejects(()=>service.configure({enabled:true,rules:[],expectedVersion:0},bootstrapActor),{code:'RULES_REQUIRED'});
+ await assert.rejects(()=>service.board({rule:'LEAD_CALLBACK'},{...bootstrapActor,permissions:bootstrapActor.permissions.filter(p=>p!=='leads.all')}),{code:'FORBIDDEN'});
+ await assert.rejects(()=>service.reviewBatch({missions:[{id:'same',expectedVersion:1},{id:'same',expectedVersion:1}],action:'APPROVE',note:'Synthetic',approved:true},bootstrapActor),{code:'DUPLICATE_MISSION'});
+ await assert.rejects(()=>service.reviewBatch({missions:[],action:'APPROVE',note:'Synthetic',approved:true},bootstrapActor));
+ await assert.rejects(()=>service.reviewBatch({missions:Array.from({length:26},(_,i)=>({id:String(i),expectedVersion:1})),action:'APPROVE',note:'Synthetic',approved:true},bootstrapActor));
 });
 test('supervisor persists bounded resumable missions, rejects stale approvals and records manual completion without changing dossiers', {skip:!process.env.TEST_DATABASE_URL,timeout:60000},async()=>{
  const database=process.env.TEST_DATABASE_URL!,schema='supervisor_'+randomUUID().replaceAll('-',''),setup=new Client({connectionString:database});
@@ -41,12 +45,23 @@ test('supervisor persists bounded resumable missions, rejects stale approvals an
   assert.equal(await db.omegaMission.count({where:{sourceId:'restricted'}}),0);
   assert.deepEqual(await db.visit.findMany({orderBy:{id:'asc'}}),before);assert.equal(await db.payment.count(),0);assert.equal(await db.smsMessage.count(),0);
   const board=await service.board({},bootstrapActor);assert.equal(board.total,30);assert.equal(board.missions.length,25);assert.equal(board.hasMore,true);assert.equal((await service.board({page:2},bootstrapActor)).missions.length,5);
+  assert.equal(board.missions[0].sourceId,'late');assert.equal(board.missions[0].priority,0);assert.equal(board.summary.open,30);assert.equal(board.summary.pending,30);assert.equal(board.summary.byRule.UNCONFIRMED_VISIT.open,27);
+  const callbackBoard=await service.board({rule:'LEAD_CALLBACK',search:'synthetic'},bootstrapActor);assert.equal(callbackBoard.total,1);assert.equal(callbackBoard.summary.open,30);
+  await db.omegaMission.updateMany({where:{sourceId:'visit-026'},data:{label:'Synthetic literal %_\\ marker'}});
+  const literal=await service.board({search:'%_\\'},bootstrapActor);assert.equal(literal.total,1);assert.equal(literal.missions[0].sourceId,'visit-026');
   const limited={...bootstrapActor,permissions:bootstrapActor.permissions.filter(p=>p!=='leads.all')} as AccessActor;
   const hidden=await service.board({},limited);assert.equal(hidden.total,29);assert.equal(JSON.stringify(hidden).includes('callback'),false);
   const stale=await db.omegaMission.findFirstOrThrow({where:{sourceId:'visit-000'}});
   await db.visit.update({where:{id:'visit-000'},data:{status:'CANCELLED',version:{increment:1}}});
   const review=(id:string,expectedVersion:number,action:string)=>service.review({id,expectedVersion,action,note:'Synthetic manual decision',approved:true},bootstrapActor);
   await assert.rejects(()=>review(stale.id,1,'APPROVE'),{code:'STALE_MISSION'});
+  const fresh=await db.omegaMission.findFirstOrThrow({where:{sourceId:'visit-002'}}),another=await db.omegaMission.findFirstOrThrow({where:{sourceId:'visit-003'}});
+  const auditBeforeBatch=await db.auditEvent.count();
+  await assert.rejects(()=>service.reviewBatch({missions:[{id:fresh.id,expectedVersion:1},{id:stale.id,expectedVersion:1}],action:'APPROVE',note:'Synthetic batch',approved:true},bootstrapActor),{code:'STALE_MISSION'});
+  assert.equal((await db.omegaMission.findUniqueOrThrow({where:{id:fresh.id}})).status,'DRAFT');assert.equal(await db.auditEvent.count(),auditBeforeBatch);
+  const batch=await service.reviewBatch({missions:[fresh,another].map(m=>({id:m.id,expectedVersion:1})),action:'APPROVE',note:'Synthetic batch',approved:true},bootstrapActor);assert.equal(batch.reviewed,2);
+  assert.equal((await service.board({status:'APPROVED'},bootstrapActor)).total,2);
+  await assert.rejects(()=>service.reviewBatch({missions:[{id:fresh.id,expectedVersion:1}],action:'DISMISS',note:'Stale synthetic batch',approved:true},bootstrapActor),{code:'VERSION_CONFLICT'});
   assert.equal((await review(stale.id,1,'DISMISS')).status,'DISMISSED');
   const mission=await db.omegaMission.findFirstOrThrow({where:{sourceId:'visit-001'}});
   await assert.rejects(()=>review(mission.id,1,'DONE'),{code:'INVALID_TRANSITION'});
@@ -55,6 +70,7 @@ test('supervisor persists bounded resumable missions, rejects stale approvals an
   // Human work changes the source. Recording completion must still be possible.
   await db.visit.update({where:{id:'visit-001'},data:{status:'CANCELLED',version:{increment:1}}});
   assert.equal((await review(mission.id,2,'DONE')).status,'DONE');assert.equal((await service.board({status:'CLOSED'},bootstrapActor)).total,2);
+  const summary=(await service.board({},bootstrapActor)).summary;assert.equal(summary.completedLast7Days,1);assert.equal(summary.done,1);assert.equal(summary.dismissed,1);assert.equal(summary.approved,2);
   const control=await db.omegaSupervisorControl.findUniqueOrThrow({where:{id:'native-supervisor'}});
   await service.configure({enabled:false,rules:control.rules,expectedVersion:control.version},bootstrapActor);
   const count=await db.omegaMission.count();assert.equal((await service.tick()).enabled,false);assert.equal(await db.omegaMission.count(),count);

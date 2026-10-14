@@ -20,3 +20,7 @@ Point final après intégration de 0f85058 : endpoint d’archive historique fac
 ## État récent : superviseur OMEGA
 
 Le moteur de missions et ses quatre scénarios sont livrés, avec 127 tests serveur, compilation finale et 20 groupes navigateur OMEGA validés. Lire `OMEGA_SUPERVISOR.md`. Vérifier Ready en production puis activer explicitement les scénarios ; aucun fournisseur externe n’est activé. Restent notamment les trajets routiers réels, la téléphonie avancée, le modèle de langage et les opérations financières de production. Ne pas annoncer ces fonctions comme terminées.
+
+## Dernier cockpit validé
+
+127 tests serveur, build final et 28 groupes navigateur OMEGA réussis. Recherche/filtres, indicateurs globaux, urgences, approbation/rejet groupés atomiques et analyse continue sont livrés. Les réglages locaux non enregistrés sont conservés et protégés contre les conflits de version. Aucune action externe, activation automatique ou nouvelle clé. Lire `OMEGA_SUPERVISOR.md` avant les prochains changements ; ne pas confondre analyse de missions et exécution du travail client.
