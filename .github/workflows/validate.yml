@@ -73,3 +73,4 @@ jobs:
           DATABASE_URL="$E2E_DATABASE_URL" node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3102 > /tmp/proclair-browser.log 2>&1 &
           node --input-type=module -e 'let ready=false; for(let i=0;i<60;i++){try{const r=await fetch(process.env.E2E_BASE_URL+"/api/health"); if(r.ok){ready=true;break}}catch{} await new Promise(resolve=>setTimeout(resolve,1000))} if(!ready)process.exit(1);'
       - run: npm run test:superhub:e2e
+      - run: npm run test:team:e2e

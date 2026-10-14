@@ -7,6 +7,7 @@ import {SellerQuotes} from '@/sales/seller-quotes';
 import {RotorInboxService} from '@/lib/rotor-inbox';
 import {providerStatus} from '@/providers/config';
 import {Communications} from '@/providers/twilio';
+import {TechnicianSettings} from '@/domain/technicians';
 import {CommunicationsHub} from '@/providers/communications';
 import {CommunicationFollowUps} from '@/providers/communication-followups';
 import {StripePayments} from '@/providers/stripe';
@@ -159,6 +160,7 @@ export async function GET(request: NextRequest) {
     if(path==='integrations/communications/conversation')return NextResponse.json(await new CommunicationsHub(prisma).detail(request.nextUrl.searchParams.get('phone'),actor));
     if(path==='finance/stripe/dashboard')return NextResponse.json(await new StripePayments(prisma).dashboard(Object.fromEntries(['status','customerId','from','to','page'].flatMap(key=>{const value=request.nextUrl.searchParams.get(key);return value===null?[]:[[key,value]]})),actor));
     if(path==='finance/stripe')return NextResponse.json(await new StripePayments(prisma).list(actor));
+    if(path==='technicians')return NextResponse.json(await new TechnicianSettings(prisma).list(actor));
     if(path==='dashboard/metrics')return NextResponse.json(await dashboardMetrics(prisma,actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='agreements')return NextResponse.json(await agreements.list(actor));
     if(path==='agreements/options')return NextResponse.json(await agreements.options(actor));
@@ -269,6 +271,8 @@ async function mutate(request: NextRequest) {
     if(path==='integrations/communications/draft'&&request.method==='POST'){const value=z.object({phone:z.string()}).strict().parse(input);return NextResponse.json(await new CommunicationsHub(prisma).draft(value.phone,actor));}
     if(path==='integrations/communications/followups'&&request.method==='POST')return NextResponse.json(await new CommunicationFollowUps(prisma).create(input,actor));
     if(/^integrations\/communications\/followups\/[^/]+$/.test(path)&&request.method==='PATCH')return NextResponse.json(await new CommunicationFollowUps(prisma).review(path.split('/')[3],input,actor));
+    if(path==='technicians'&&request.method==='POST')return NextResponse.json(await new TechnicianSettings(prisma).save(null,input,actor),{status:201});
+    if(/^technicians\/[^/]+$/.test(path)&&request.method==='PATCH')return NextResponse.json(await new TechnicianSettings(prisma).save(path.split('/')[1],input,actor));
     if(path==='finance/stripe/checkout'&&request.method==='POST')return NextResponse.json(await new StripePayments(prisma).checkout(input,actor));
     if(path==='finance/stripe/inspect'&&request.method==='POST')return NextResponse.json(await inspectStripeTest(input,actor));
     if (path === 'session/logout') { const response = NextResponse.json({ok:true}); response.cookies.set(sessionCookie,'',{path:'/',maxAge:0}); return response; }

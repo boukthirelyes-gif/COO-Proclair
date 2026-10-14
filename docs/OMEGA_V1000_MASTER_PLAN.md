@@ -15,7 +15,7 @@ Périmètre : les deux directives fournies le 13 octobre 2026, appliquées au CR
 | P0 | Déploiement Render avec PostgreSQL existant | BLOCKED | Variables privées configurées, santé et parcours authentifié |
 | P1 | Relier les espaces fournisseurs aux dossiers clients | VERIFIED | Visibilité restreinte et navigation réelle |
 | P1 | Stripe réel, remboursements et rapprochement comptable | BLOCKED | Architecture, tests et activation de production explicitement validée |
-| P1 | Dispatch configurable et simulation de routes | TODO | Disponibilités, conflits concurrents et explications |
+| P1 | Horaires configurables et simulation de routes | TODO | Disponibilités, conflits concurrents et explications |
 | P1 | Import/synchronisation Rotor au-delà des archives | BLOCKED | Capacités OAuth réellement accessibles, conflits et provenance |
 | P2 | Recherche, vues direction/vente/opérations/finances | TODO | Sources réelles et permissions |
 | P2 | Hors ligne et synchronisation mobile | TODO | Données cloisonnées, conflits et purge après déconnexion |
@@ -23,4 +23,4 @@ Périmètre : les deux directives fournies le 13 octobre 2026, appliquées au CR
 
 Pas de quota artificiel de tests : couvrir les cas réels, compter les vérifications exécutées, ne pas annoncer 2 000 ou 400 tests sans preuves.
 
-Cette tranche fournit des suggestions locales, pas un éditeur complet d’automatisations ni une synchronisation bidirectionnelle. Les suivis persistants sont VERIFIED dans le second lot : validation humaine, déduplication, versions, STOP, état source, note et audit ; 13 groupes navigateur réussis. L’attribution de conversations, la messagerie vocale et le dispatch configurable restent TODO. Les connexions réelles restent BLOCKED.
+Cette tranche fournit des suggestions locales, pas un éditeur complet d’automatisations ni une synchronisation bidirectionnelle. Les suivis persistants sont VERIFIED dans le second lot : validation humaine, déduplication, versions, STOP, état source, note et audit ; 13 groupes navigateur réussis. Les objectifs par technicien lundi-jeudi/vendredi sont désormais configurables et VERIFIED. L’attribution des conversations, la messagerie vocale, les horaires variables et simulations routières restent TODO. Les connexions réelles restent BLOCKED.

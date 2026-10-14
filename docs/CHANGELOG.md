@@ -1,3 +1,11 @@
+## Équipe configurable et marges OMEGA — 2026-10-13
+
+- Écran Équipe fonctionnel : création, activation et objectifs lundi-jeudi/vendredi, droits Paramètres et versions.
+- Désactivation/réduction incompatible avec les rendez-vous refusée, audit conservé.
+- Premier créneau avec 30 minutes avant/après ; un candidat long ne masque plus un créneau court.
+- Configuration et marge revérifiées avant application, sans déplacement partiel.
+- Migration additive technician_versions ; 100 tests serveur, 5 groupes navigateur Équipe et compilation réussis. Routage routier et déploiement distant non vérifiés.
+
 ## Suivis persistants de communications — 2026-10-13
 
 - Création depuis un SMS entrant ou appel manqué, validation humaine, report, clôture avec note et audit.

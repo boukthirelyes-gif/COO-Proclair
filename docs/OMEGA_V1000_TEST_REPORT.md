@@ -26,3 +26,7 @@ Les contrôles financiers/communications utilisent des fournisseurs simulés et 
 ## Validation des suivis persistants
 
 Suite serveur : 94 tests réussis, zéro ignoré. Test ciblé des suivis repassé après lecture groupée : création concurrente dédupliquée, approbations concurrentes, STOP après approbation, communication plus récente, appels sortants refusés, report, note obligatoire, acteur OMEGA et vendeur refusés, assistant sans droit intégrations restreint, pagination 26 suivis en pages 25/1. Compilation de production et extension navigateur du second lot VERIFIED : 13 groupes réussis, dont création persistante, approbation, note obligatoire et clôture, compte exact via assistant, STOP et affichage mobile. Export des suivis, messages Rotor et événements fournisseurs vérifié. Le contrôle mobile a d’abord détecté un débordement du tableau du worker historique ; son conteneur a été corrigé puis le même contrôle strict a réussi.
+
+## Équipe et remplissage OMEGA
+
+100 tests serveur réussis, zéro ignoré. Six nouveaux tests : marges avant/après, bornes 8–17, candidat trop long puis court, invariance des entrées, validation/droits, protection des rendez-vous et versions. Une marge occupée après preview bloque l’application sans déplacement partiel. Compilation réussie. Cinq groupes navigateur Équipe réussis, zéro erreur JavaScript et largeur mobile vérifiée. Le workflow navigateur inclut désormais ce parcours ; exécution GitHub distante non confirmée.

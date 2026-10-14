@@ -27,3 +27,9 @@ Les vérifications Stripe portent sur l’adaptateur et des réponses simulées.
 Implémentés : création depuis le dernier SMS entrant ou appel manqué admissible, déduplication, validation humaine, versions concurrentes, audit, note de traitement, report de 24 h/48 h/7 jours et exclusion. Les sources plus récentes et désabonnements bloquent les actions ; aucune communication n’est envoyée. Liste de 25 suivis en snapshot PostgreSQL, validation des sources en cinq lectures groupées. L’assistant OMEGA compte les suivis ouverts réels.
 
 Tests serveur : 94 réussis. Le test ciblé a été repassé après l’optimisation, avec 26 suivis et pagination 25/1, concurrence et STOP. Compilation et 13 groupes navigateur du second lot : VERIFIED. Export métier incluant les nouveaux suivis et objets Rotor, index des activités récentes et correction du débordement OMEGA mobile validés.
+
+## Équipe et planification
+
+L’écran Équipe est remplacé par une gestion fonctionnelle : création, modification, activation et objectifs lundi-jeudi/vendredi. Consultation avec lecture CRM ; modifications avec Paramètres. Version optimistic, audit et refus de désactivation/réduction incompatible avec les rendez-vous. Migration additive technician_versions.
+
+Le planificateur recherche le premier créneau admissible en conservant 30 minutes avant/après les interventions. Un candidat trop long ne consomme pas un créneau utile à une visite plus courte. L’application revérifie configuration et marge ; aucun déplacement silencieux. Heuristique fixe, pas de routage routier. Suite serveur : 100 tests réussis, zéro ignoré ; compilation et 5 groupes navigateur Équipe VERIFIED (création, modification, conflit de version, mobile, lecture seule).
