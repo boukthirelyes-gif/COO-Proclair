@@ -15,3 +15,5 @@ Après déploiement : santé PostgreSQL, connexion, utilisateurs, dossier client
 Les modules SMS et Rotorlive récupérés, le thème sombre et les nouveaux centres Stripe/Twilio sont intégrés au code de travail. Suite serveur : 93 tests réussis et TypeScript réussi. Compilation réussie ; 11 groupes navigateur Superhub et 11 groupes de régression fournisseurs réussis. La publication Git et le déploiement restent à consigner après leur vérification réelle.
 
 Deux migrations additives Rotor SMS sont incluses : 20261013200000_rotor_sms_inbox et 20261013203000_rotor_sms_sync. Elles ont été appliquées à la base locale de test ; aucune migration distante de production n’a été exécutée. Le cron Rotor SMS récupéré est opt-in, limité aux 100 messages récents, et n’est pas provisionné sur Render gratuit. Configurer un ordonnanceur autorisé ou utiliser l’import manuel.
+
+Commit applicatif de ce lot : `81bbee8`, après les trois fusions de récupération. La réponse de livraison précise la référence distante publiée ; vérifier `git ls-remote origin refs/heads/main` avant reprise. La dernière inspection des secrets couvre 659 blobs Git sans détection.
