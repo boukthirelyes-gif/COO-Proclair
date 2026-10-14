@@ -84,3 +84,23 @@ export async function rotorMapRead(name:string,args:Record<string,unknown>){
  const text=result.content?.find((v:any)=>v.type==='text')?.text;if(typeof text!=='string')throw new DomainError('ROTOR_PROTOCOL','Données cartographiques absentes.',502);
  try{return JSON.parse(text)}catch{throw new DomainError('ROTOR_PROTOCOL','Données cartographiques invalides.',502)}
 }
+
+/** Closed allowlist: Rotor inbox SMS reader, never sends messages. */
+export async function rotorInboxRead(page:number,limit:number){
+ if(!Number.isInteger(page)||page<1||page>2000||limit!==100)throw new DomainError('ROTOR_PAGE','Pagination SMS invalide.',400);
+ const token=await usableToken();
+ if(!token.scope.split(' ').includes('inbox:read'))throw new DomainError('ROTOR_SCOPE','Reconnectez Rotor avec inbox:read.',403);
+ const headers:Record<string,string>={Authorization:'Bearer '+token.accessToken,Accept:'application/json, text/event-stream'};
+ const init=await remote('/mcp',{jsonrpc:'2.0',id:1,method:'initialize',params:{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'proclair-crm',version:packageInfo.version}}},headers);
+ const info=await rpcResult(init,1);
+ if(!['2025-03-26','2025-06-18','2025-11-25'].includes(info.protocolVersion))throw new DomainError('ROTOR_PROTOCOL','Version MCP non prise en charge.',502);
+ const session=init.headers.get('mcp-session-id');if(session)headers['Mcp-Session-Id']=session;
+ headers['MCP-Protocol-Version']=info.protocolVersion;
+ await remote('/mcp',{jsonrpc:'2.0',method:'notifications/initialized'},headers);
+ const result=await rpcResult(await remote('/mcp',{jsonrpc:'2.0',id:2,method:'tools/call',params:{name:'list_messages',arguments:{page,limit,channel:'sms'}}},headers),2);
+ if(result.isError)throw new DomainError('ROTOR_TOOL','Lecture SMS refusée par Rotor.',502);
+ if(result.structuredContent)return result.structuredContent;
+ const message=result.content?.find((v:any)=>v.type==='text')?.text;
+ if(typeof message!=='string')throw new DomainError('ROTOR_PROTOCOL','SMS Rotor absents.',502);
+ try{return JSON.parse(message)}catch{throw new DomainError('ROTOR_PROTOCOL','Réponse SMS invalide.',502)}
+}

@@ -21,6 +21,7 @@ enum VisitStatus {
  NEEDS_FOLLOWUP
 }
 model Customer {
+ rotorSms RotorInboxMessage[]
  rotorMappings RotorCustomerMapping[]
  normalizedEmail String? @default(dbgenerated())
  normalizedPhone String? @default(dbgenerated())
@@ -734,4 +735,34 @@ model SalesFollowUp {
  closedAt DateTime?
  createdAt DateTime @default(now())
  @@index([ownerId,status,dueAt])
+}
+
+model RotorInboxMessage {
+ customerId String?
+ customer Customer? @relation(fields:[customerId],references:[id])
+ externalId String @id
+ channel String
+ direction String
+ body String
+ phone String?
+ contactId String?
+ contactType String?
+ threadId String?
+ subject String?
+ status String?
+ read Boolean @default(false)
+ messageAt DateTime
+ syncedAt DateTime @default(now())
+ @@index([messageAt])
+ @@index([phone,messageAt])
+ @@index([customerId,messageAt])
+}
+model RotorSmsSyncControl {
+ id String @id @default("rotor-sms")
+ enabled Boolean @default(false)
+ leaseUntil DateTime?
+ lastRunAt DateTime?
+ lastImported Int @default(0)
+ lastErrorCode String?
+ updatedAt DateTime @updatedAt
 }

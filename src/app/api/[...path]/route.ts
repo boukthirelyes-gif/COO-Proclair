@@ -4,6 +4,7 @@ import {verifyProvider} from '@/providers/verification';
 import {RotorFileImports} from '@/lib/rotor-file-import';
 import {SalesFollowUps} from '@/omega/sales-followups';
 import {SellerQuotes} from '@/sales/seller-quotes';
+import {RotorInboxService} from '@/lib/rotor-inbox';
 import {providerStatus} from '@/providers/config';
 import {Communications} from '@/providers/twilio';
 import {StripePayments} from '@/providers/stripe';
@@ -54,6 +55,7 @@ const rotorPromotion=new RotorCustomerPromotion(prisma);
 const rotorImports=new RotorImportService(prisma);
 const registry=new RotorCapabilityRegistry(prisma);
 const rotorMap=new RotorMapService(prisma);
+const rotorInbox=new RotorInboxService(prisma);
 const rotorMonitor=new RotorMonitor(prisma);
 const users=new UserService(prisma);
 const territories=new TerritoryService(prisma);
@@ -109,6 +111,7 @@ function errorResponse(error: unknown) {
 export async function GET(request: NextRequest) {
   try {
     const path = request.nextUrl.pathname.slice('/api/'.length);
+    if(path==='cron/rotor-sms'){if(!cronAuthorized(request.headers.get('authorization')))return NextResponse.json({error:'Authentification cron requise.'},{status:401});return NextResponse.json(await rotorInbox.tick(),{headers:{'Cache-Control':'no-store'}});}
     if(path==='cron/compatibility'){if(!cronAuthorized(request.headers.get('authorization')))return NextResponse.json({error:'Authentification cron requise.'},{status:401});return NextResponse.json(await rotorMonitor.tick());}
     if (path === 'cron/omega') {
       if(!cronAuthorized(request.headers.get('authorization')))return NextResponse.json({error:'Authentification cron requise.'},{status:401});
@@ -133,6 +136,9 @@ export async function GET(request: NextRequest) {
     if(path==='sales/contracts')return NextResponse.json(await agreements.sellerList(actor));
     if(path==='sales/quotes')return NextResponse.json(await new SellerQuotes(prisma).list(actor));
     if(/^sales\/contracts\/[^/]+\/pdf$/.test(path)){const pdf=await agreements.pdf(path.split('/')[2],actor);return new NextResponse(new Uint8Array(pdf.pdfBytes!),{headers:{'Content-Type':'application/pdf','Content-Disposition':'inline; filename=proclair-contract.pdf','Cache-Control':'private, no-store'}});}
+    if(path==='integrations/rotor/messages/auto')return NextResponse.json(await rotorInbox.autoStatus(actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='integrations/rotor/messages/followups')return NextResponse.json(await rotorInbox.followups(actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='integrations/rotor/messages')return NextResponse.json(await rotorInbox.list(actor,{phone:request.nextUrl.searchParams.get('phone')||undefined,q:request.nextUrl.searchParams.get('q')||undefined,page:Number(request.nextUrl.searchParams.get('page')||1)}),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='integrations/providers')return NextResponse.json(providerStatus());
     if(path==='integrations/communications')return NextResponse.json(await new Communications(prisma).list(actor));
     if(path==='finance/stripe')return NextResponse.json(await new StripePayments(prisma).list(actor));
@@ -239,6 +245,8 @@ async function mutate(request: NextRequest) {
     if(/^sales\/quotes\/[^/]+\/issue$/.test(path)&&request.method==='POST')return NextResponse.json(await new SellerQuotes(prisma).issue(path.split('/')[2],input,actor));
     if(/^sales\/contracts\/[^/]+\/issue$/.test(path)&&request.method==='POST')return NextResponse.json(await agreements.issue(path.split('/')[2],input,actor));
     if(/^sales\/contracts\/[^/]+\/submit$/.test(path)&&request.method==='POST')return NextResponse.json(await agreements.submit(path.split('/')[2],input,actor));
+    if(path==='integrations/rotor/messages/auto'&&request.method==='POST')return NextResponse.json(await rotorInbox.configureAuto(input,actor));
+    if(path==='integrations/rotor/messages/sync'&&request.method==='POST')return NextResponse.json(await rotorInbox.sync(input,actor));
     if(path==='integrations/communications/consent'&&request.method==='POST')return NextResponse.json(await new Communications(prisma).consent(input,actor));
     if(path==='integrations/communications/send'&&request.method==='POST')return NextResponse.json(await new Communications(prisma).send(input,actor));
     if(path==='finance/stripe/checkout'&&request.method==='POST')return NextResponse.json(await new StripePayments(prisma).checkout(input,actor));
