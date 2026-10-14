@@ -22,4 +22,14 @@ Finances natives : 17 contrôles navigateur réussis, zéro erreur JavaScript. P
 
 Remplacement du chargement de toutes les factures/lignes/clients/paiements du dashboard par des agrégats PostgreSQL en snapshot. Totaux CAD en centimes, paiements contrepassés exclus des reçus nets, 14 jours de mouvements maximum, dates Toronto. Les factures d’autres devises sont exclues explicitement plutôt que converties ou mélangées.
 
-Deux tests ciblés réussis : droits avant lecture et registre réel PostgreSQL avec paiements partiels, contrepassations, brouillons/annulations, devise étrangère, exclusion de Stripe PAID_TEST, limite de dates et absence d’exposition des dossiers. TypeScript réussi. Compilation finale et navigateur de ce lot : TESTING, à terminer avec le prochain lot leaderboard.
+Deux tests ciblés réussis : droits avant lecture et registre réel PostgreSQL avec paiements partiels, contrepassations, brouillons/annulations, devise étrangère, exclusion de Stripe PAID_TEST, limite de dates et absence d’exposition des dossiers. TypeScript réussi. Compilation finale et vérification navigateur du dashboard réussies avec le lot leaderboard.
+
+## Quatrième lot : commissions et classement
+
+Politique explicitement confirmée par l’utilisateur : ventes signées hors taxes après remises ; année civile, du 1er janvier au 1er janvier suivant à Toronto ; taux rétroactif appliqué à toute l’assiette annuelle du vendeur (20/25/30/35/40 % aux seuils 0/100/200/300/400 k CAD). Arrondi HALF_UP au centime en arithmétique entière. Calcul uniquement, aucun paiement de commission créé.
+
+Leaderboard paginé de 25 vendeurs, rangs ex æquo, compteurs complets et comptes historiques inactifs conservés. Classement global avec sales.write + leads.all + finance ; sinon seules les données personnelles sont consultables. Les ventes sans attribution sont signalées au superviseur et ne sont pas attribuées arbitrairement au créateur. Seuls les accords natifs SIGNED avec date d’accord dans la période sont inclus ; archives Rotor, devis et paiements ne sont pas des ventes signées dans cette assiette.
+
+Validation finale : 121 tests serveur réussis, zéro ignoré ; compilation et TypeScript réussis. Trois tests commissions couvrent seuils, centimes, droits, changement d’année Toronto, ex æquo, exclusions, chiffres personnels et absence d’écriture. Sept groupes navigateur leaderboard réussis (API, montants, année, mobile, vendeur privé/rechargement, anonyme, absence de paiement). La préparation initiale d’un compte de fixture sans leads.read a été refusée conformément aux restrictions ; la fixture a été corrigée sans modifier ces restrictions.
+
+Régressions finales : 23 groupes natifs CRM/Dispatch/dashboard, 17 finances, six contrats signés, dix OMEGA et 14 Superhub réussis, zéro erreur JavaScript. Avec les sept leaderboard, 77 groupes navigateur validés. Deux inspections Stripe du Superhub sont simulées ; aucun appel fournisseur réel. Les anciens parcours de finance/contrats conservent leurs fixtures synthétiques uniquement dans la base navigateur ; les nouveaux parcours nettoient leurs propres fixtures.

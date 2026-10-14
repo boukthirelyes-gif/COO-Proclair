@@ -6,3 +6,7 @@
 4. Valider clients, contrats signés, visites et finances sur proclair_browser_test ; tester le serveur sur proclair_test. Redémarrer les seuls serveurs démarrés ici après compilation.
 5. Conserver imports Rotor, sessions, données et migrations. Fournisseurs réels absents : poursuivre les opérations natives sans attendre les clés.
 6. Routes routières, commissions et moteur événementiel restent à développer ; ne pas activer d’autopilot externe ni présenter une interface comme une connexion active.
+
+Dernier état : quatre lots natifs livrés, dont leaderboard annuel conforme aux réponses utilisateur. 121 tests serveur et 77 groupes navigateur réussis, compilation finale réussie. Méthode commissions fixée sur ventes signées HT, rétroactive par vendeur, année civile Toronto. Les ventes sans propriétaire ne doivent jamais être attribuées à partir de createdBy.
+
+Prochaine priorité indépendante des secrets : pagination/recherche des listes CRM et réduction de /api/state, attribution restreinte des conversations, disponibilités individuelles, puis moteur événementiel supervisé. Contrôler les versions et conserver l’approbation humaine des affectations. Préparer une Preview distante seulement quand des accès réels sont disponibles ; production inchangée.

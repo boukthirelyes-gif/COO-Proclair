@@ -39,7 +39,8 @@
     "test:team:e2e": "node --env-file-if-exists=.env tests/browser-team.mjs",
     "test:omega-operations:e2e": "node --env-file-if-exists=.env tests/browser-omega-operations.mjs",
     "test:access-calendar:e2e": "node --env-file-if-exists=.env tests/browser-access-calendar.mjs",
-    "test:native-core:e2e": "node --env-file-if-exists=.env tests/browser-native-core.mjs"
+    "test:native-core:e2e": "node --env-file-if-exists=.env tests/browser-native-core.mjs",
+    "test:leaderboard:e2e": "node --env-file-if-exists=.env tests/browser-leaderboard.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",

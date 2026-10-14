@@ -79,3 +79,4 @@ jobs:
       - run: npm run test:omega-operations:e2e
       - run: npm run test:access-calendar:e2e
       - run: npm run test:native-core:e2e
+      - run: npm run test:leaderboard:e2e

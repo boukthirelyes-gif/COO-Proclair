@@ -1,3 +1,10 @@
+## Dashboard et leaderboard natifs — 2026-10-14
+
+- Dashboard : totaux CAD en agrégats PostgreSQL, sans lecture de tous les dossiers ; contrepassations, dates Toronto et devises distinctes respectées.
+- Leaderboard annuel : ventes signées HT, rétroactivité par vendeur, paliers 20–40 %, rangs ex æquo et pagination.
+- Période du 1er janvier au 1er janvier suivant ; vue personnelle protégée pour les vendeurs et classement global limité aux droits de supervision/finance.
+- 121 tests serveur, compilation et 77 groupes navigateur réussis. Aucun paiement de commission ni déploiement production.
+
 ## Interventions : sauvegarde atomique — 2026-10-14
 
 - Champs et état sauvegardés dans une seule transaction, sans écriture partielle en cas de transition refusée.
