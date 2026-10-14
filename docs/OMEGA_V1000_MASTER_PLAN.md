@@ -1,5 +1,13 @@
 # OMEGA V1000 — plan de livraison
 
+## Lot OMEGA du 14 octobre 2026
+
+Priorités natives en snapshot PostgreSQL : retards réels (début sans démarrage ou fin dépassée), confirmations, visites confirmées sans créneau, suivis échus, factures natives et échecs du worker. Les droits déterminent les catégories et les compteurs ; dix dossiers maximum par catégorie, compte exact avant limite. Le briefing reprend ce périmètre dans l’assistant.
+
+Analyse de journée en lecture seule : équipe active, objectifs lundi-jeudi/vendredi, visites existantes, créneaux hypothétiques de 60 minutes entre 8 h et 17 h avec marge de 30 minutes. Les créneaux incomplets sont bloquants. Le bouton de préparation reporte uniquement la date au planificateur ; aucune réservation ou plan créé automatiquement.
+
+Limites explicites : règles déterministes, aucun modèle de langage connecté, aucun itinéraire routier calculé, pas de communication ou débit externe. Les attributions des conversations, horaires individuels et comparaisons de scénarios restent TODO.
+
 Périmètre : les deux directives fournies le 13 octobre 2026, appliquées au CRM existant. Les objectifs V1000 ne sont pas une déclaration de fonctionnalités terminées.
 
 États : TODO (à faire), IN_PROGRESS (en cours), BLOCKED (prérequis absent), TESTING (validation en cours), DONE (implémenté), VERIFIED (validation correspondante réussie).

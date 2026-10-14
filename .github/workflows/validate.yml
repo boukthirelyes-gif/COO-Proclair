@@ -74,3 +74,4 @@ jobs:
           node --input-type=module -e 'let ready=false; for(let i=0;i<60;i++){try{const r=await fetch(process.env.E2E_BASE_URL+"/api/health"); if(r.ok){ready=true;break}}catch{} await new Promise(resolve=>setTimeout(resolve,1000))} if(!ready)process.exit(1);'
       - run: npm run test:superhub:e2e
       - run: npm run test:team:e2e
+      - run: npm run test:omega-operations:e2e

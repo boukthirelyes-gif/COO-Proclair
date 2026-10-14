@@ -36,7 +36,8 @@
     "test:sales-followups:e2e": "node --env-file=.env tests/browser-sales-followups.mjs",
     "test:rotor-files:e2e": "node --env-file=.env tests/browser-rotor-file-import.mjs",
     "test:superhub:e2e": "node --env-file-if-exists=.env tests/browser-superhub.mjs",
-    "test:team:e2e": "node --env-file-if-exists=.env tests/browser-team.mjs"
+    "test:team:e2e": "node --env-file-if-exists=.env tests/browser-team.mjs",
+    "test:omega-operations:e2e": "node --env-file-if-exists=.env tests/browser-omega-operations.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",

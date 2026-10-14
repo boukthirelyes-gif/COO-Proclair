@@ -1,3 +1,10 @@
+## OMEGA : priorités, briefing et capacité — 2026-10-14
+
+- Cockpit PostgreSQL : retards, confirmations, visites à placer, suivis, factures et worker selon les droits ; compte exact, dix dossiers affichés et accès aux dossiers.
+- Briefing opérationnel dans l’assistant, avec catégories non autorisées masquées.
+- Analyse quotidienne sans écriture : équipe active, objectifs, horaires 8–17, scénario de 60 minutes et marge de 30 minutes ; report de date au planificateur sans création automatique de plan.
+- 104 tests serveur, dix groupes navigateur OMEGA, 14 groupes Superhub, TypeScript, compilation et trois tests Python réussis. Aucune migration, clé supplémentaire ou activation externe.
+
 ## Filtres SMS et appels manqués — 2026-10-13
 
 - Canal SMS/Appels filtré côté serveur avec compteur exact avant pagination.

@@ -1,5 +1,11 @@
 # OMEGA V1000 — déploiement
 
+## Code préparé — 2026-10-14
+
+Ce lot enrichit OMEGA sans migration, nouvelle dépendance ou variable d’environnement. Conserver les variables privées et la base existantes. Compilation de production réussie et API protégées sans cache public.
+
+La consigne actuelle est de préparer les améliorations avant la prochaine mise en ligne. Un envoi GitHub ne prouve pas que Vercel ou Render a déployé ce code. Aucun fournisseur réel activé par ces modifications ; la préparation d’un plan et son approbation humaine restent distinctes.
+
 GitHub contient le code, jamais les données de production. Base main observée avant les travaux : `f99eb5a`. Un push GitHub ne prouve pas qu'une nouvelle version est servie.
 
 Render gratuit est préparé par `render.yaml` : Node 24, migrations lors de compilation, écoute sur le port fourni et `/api/health`. Lire `deploy-render.md` avant la bascule : sauvegarde PostgreSQL, migrations additives compatibles et conservation du secret de session.

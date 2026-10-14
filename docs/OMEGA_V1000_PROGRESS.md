@@ -1,5 +1,11 @@
 # OMEGA V1000 — avancement
 
+## Livraison OMEGA — 2026-10-14
+
+VERIFIED : cockpit des priorités, briefing de l’assistant, simulation de capacité en lecture seule, raccourcis vers dossiers et tableau de traitement. Les factures Stripe test et archives Rotor ne sont pas confondues avec le registre financier natif. Les catégories non autorisées sont absentes, y compris leurs nombres.
+
+104 tests serveur réussis sans test ignoré ; TypeScript et compilation réussis. Dix groupes navigateur OMEGA et 14 groupes de régression Superhub réussis, sans erreur JavaScript ni écriture planning/paiement ; largeur mobile contrôlée à 390 px. Aucune nouvelle migration, clé ou dépendance nécessaire. Aucune mise en ligne revendiquée : cette session prépare le code pour le prochain déploiement.
+
 Livraison incrémentale sur le CRM existant, base initiale `f99eb5a`. Aucun déploiement distant ni connexion réelle fournisseur n'est annoncé.
 
 | Travail | État | Résultat |

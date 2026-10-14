@@ -1,5 +1,13 @@
 # OMEGA V1000 — rapport de tests
 
+## Validation OMEGA — 2026-10-14
+
+Campagne actuelle : 104 tests serveur réussis, zéro ignoré ; TypeScript et compilation de production réussis ; trois tests Python historiques réussis. Le catalogue de 512 capacités reste un catalogue de candidats, pas une preuve de 512 fonctions livrées.
+
+Quatre nouveaux tests serveur couvrent droits avant lecture, compte exact au-delà de dix dossiers, exclusion d’une intervention encore en cours, paiements annulés et partiels, date locale Toronto, catégories masquées, briefing restreint, objectifs vendredi/week-end, marges avant/après et absence d’écritures. Une occupation de toute la journée bloque les créneaux même si l’objectif quotidien laisse une capacité nominale.
+
+Dix groupes navigateur OMEGA : API réelle, ouverture de visites à confirmer et à placer, actualisation, analyse de capacité avec report de date sans plan créé, briefing, mobile sans débordement, compte répartiteur restreint, session anonyme refusée et invariance des dossiers/plans/jobs/paiements. PostgreSQL navigateur distinct ; fixtures nettoyées ; aucun appel fournisseur prévu. Les 14 groupes de régression Superhub réussissent également : deux réponses Stripe simulées, zéro erreur JavaScript et aucune écriture de paiement natif. Le workflow CI inclut ce parcours ; son exécution distante n’est pas certifiée ici.
+
 ## Résultats de cette session
 
 | Contrôle | État | Preuve |

@@ -1,5 +1,11 @@
 # OMEGA V1000 — blocages
 
+## État actuel — 2026-10-14
+
+Le nouveau cockpit, le briefing et l’analyse de capacité sont validés localement : 104 tests serveur et dix groupes navigateur OMEGA réussis, compilation réussie. Les mentions TESTING ci-dessous sont des étapes historiques et ne concernent pas ce lot final.
+
+Le déploiement distant reste non vérifié. Selon la consigne actuelle, poursuivre les améliorations sans demander de mise en ligne. Aucun modèle de langage, calcul de trajets ou compte Stripe/Twilio réel n’est présenté comme connecté. La simulation fixe de 60 minutes ne garantit pas une affectation réelle.
+
 | Sujet | État | Prérequis / solution |
 | --- | --- | --- |
 | Déploiement Render | BLOCKED | Accès au compte et variables privées ; la directive rapporte DATABASE_URL absente, état distant non vérifié ici |

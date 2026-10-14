@@ -8,6 +8,8 @@ import {RotorInboxService} from '@/lib/rotor-inbox';
 import {providerStatus} from '@/providers/config';
 import {Communications} from '@/providers/twilio';
 import {TechnicianSettings} from '@/domain/technicians';
+import {omegaOperations} from '@/omega/operations';
+import {omegaDayAnalysis} from '@/omega/day-analysis';
 import {CommunicationsHub} from '@/providers/communications';
 import {CommunicationFollowUps} from '@/providers/communication-followups';
 import {StripePayments} from '@/providers/stripe';
@@ -162,6 +164,8 @@ export async function GET(request: NextRequest) {
     if(path==='finance/stripe')return NextResponse.json(await new StripePayments(prisma).list(actor));
     if(path==='technicians')return NextResponse.json(await new TechnicianSettings(prisma).list(actor));
     if(path==='dashboard/metrics')return NextResponse.json(await dashboardMetrics(prisma,actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='omega/operations')return NextResponse.json(await omegaOperations(prisma,actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='omega/day-analysis')return NextResponse.json(await omegaDayAnalysis(prisma,request.nextUrl.searchParams.get('date'),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='agreements')return NextResponse.json(await agreements.list(actor));
     if(path==='agreements/options')return NextResponse.json(await agreements.options(actor));
     if(/^agreements\/[^/]+\/pdf$/.test(path)){const pdf=await agreements.pdf(path.split('/')[1],actor);return new NextResponse(new Uint8Array(pdf.pdfBytes!),{headers:{'Content-Type':'application/pdf','Content-Disposition':'inline; filename=proclair-contract.pdf','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});}
