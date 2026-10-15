@@ -1,8 +1,6 @@
-// Generate using Prisma's npm-distributed WASM compiler. No downloaded Rust engines.
-const path = require('node:path');
-const {getGenerators} = require('@prisma/internals');
-(async () => {
- const generators=await getGenerators({schemaPath:path.resolve('prisma/schema.prisma'),skipDownload:true,registry:{'prisma-client-js':{type:'rpc',generatorPath:path.resolve('node_modules/@prisma/client/generator-build/index.js'),isNode:true}}});
- try { for(const generator of generators) await generator.generate(); console.log('Prisma client generated (JavaScript driver adapter).'); }
- finally { for(const generator of generators) generator.stop(); }
-})().catch(error=>{console.error(error);process.exitCode=1;});
+// Use Prisma's supported CLI generator on Prisma 7: the legacy generator-build
+// path used by Prisma 6 internals no longer exists in @prisma/client 7.
+// This retains engineType="client" from schema.prisma (driver adapter).
+const {execFileSync}=require('node:child_process');
+const path=require('node:path');
+execFileSync(process.execPath,[path.resolve('node_modules/prisma/build/index.js'),'generate','--schema','prisma/schema.prisma'],{stdio:'inherit'});
