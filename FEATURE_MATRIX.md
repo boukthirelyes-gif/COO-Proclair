@@ -21,3 +21,5 @@
 | Paramètres : navigation Entreprise, équipe, rôles, Stripe, intégrations, données | Implémentée sur les modules natifs ; filtres utilisateurs et retour au CRM |
 
 | Fiche entreprise complémentaire | Site Web HTTP(S), nom interne et description de 160 caractères persistés ; pas de sous-domaine portail ni aperçu public automatique |
+
+| Réinitialisation de compte d’équipe | Action dédiée avec confirmation, serveur existant, révocation des sessions et conservation des droits ; pas de récupération par courriel |

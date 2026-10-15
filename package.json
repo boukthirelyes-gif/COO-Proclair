@@ -47,7 +47,8 @@
     "test:omega-workspace:e2e": "node --env-file-if-exists=.env tests/browser-omega-workspace.mjs",
     "test:customer-table:e2e": "node --env-file-if-exists=.env tests/browser-customer-table.mjs",
     "test:settings-workspace:e2e": "node --env-file-if-exists=.env tests/browser-settings-workspace.mjs",
-    "test:business-hours:e2e": "node --env-file-if-exists=.env tests/browser-business-hours.mjs"
+    "test:business-hours:e2e": "node --env-file-if-exists=.env tests/browser-business-hours.mjs",
+    "test:password-reset:e2e": "node --env-file-if-exists=.env tests/browser-password-reset.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",
