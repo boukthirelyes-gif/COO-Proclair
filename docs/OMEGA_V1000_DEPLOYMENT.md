@@ -1,5 +1,17 @@
 # OMEGA V1000 — déploiement
 
+## Correctif de connexion et agendas — 2026-10-14
+
+Aucune migration, dépendance ou nouvelle clé. Sur Vercel, conserver le secret de session existant et le mot de passe privé. PROCLAIR_PUBLIC_ORIGIN doit désigner https://coo-proclair.vercel.app sans chemin ni paramètres ; le slash final est accepté. VERCEL et VERCEL_URL sont les variables système de l’hébergement : aucune liste wildcard de domaines n’est ajoutée.
+
+Après déploiement de main, utiliser le domaine principal. Une ancienne adresse de déploiement garde son ancienne version. Vérifier Production/Preview pour les variables privées existantes, puis redéployer après toute modification. Guide détaillé : ACCESS_AND_CALENDAR.md. La connexion de production n’est pas vérifiée depuis cet environnement.
+
+## Code préparé — 2026-10-14
+
+Ce lot enrichit OMEGA sans migration, nouvelle dépendance ou variable d’environnement. Conserver les variables privées et la base existantes. Compilation de production réussie et API protégées sans cache public.
+
+La consigne actuelle est de préparer les améliorations avant la prochaine mise en ligne. Un envoi GitHub ne prouve pas que Vercel ou Render a déployé ce code. Aucun fournisseur réel activé par ces modifications ; la préparation d’un plan et son approbation humaine restent distinctes.
+
 GitHub contient le code, jamais les données de production. Base main observée avant les travaux : `f99eb5a`. Un push GitHub ne prouve pas qu'une nouvelle version est servie.
 
 Render gratuit est préparé par `render.yaml` : Node 24, migrations lors de compilation, écoute sur le port fourni et `/api/health`. Lire `deploy-render.md` avant la bascule : sauvegarde PostgreSQL, migrations additives compatibles et conservation du secret de session.
@@ -17,3 +29,9 @@ Les modules SMS et Rotorlive récupérés, le thème sombre et les nouveaux cent
 Deux migrations additives Rotor SMS sont incluses : 20261013200000_rotor_sms_inbox et 20261013203000_rotor_sms_sync. Elles ont été appliquées à la base locale de test ; aucune migration distante de production n’a été exécutée. Le cron Rotor SMS récupéré est opt-in, limité aux 100 messages récents, et n’est pas provisionné sur Render gratuit. Configurer un ordonnanceur autorisé ou utiliser l’import manuel.
 
 Commit applicatif de ce lot : `81bbee8`, après les trois fusions de récupération. La réponse de livraison précise la référence distante publiée ; vérifier `git ls-remote origin refs/heads/main` avant reprise. La dernière inspection des secrets couvre 659 blobs Git sans détection.
+
+Second lot : migration additive `20261014020000_communication_followups`. Appliquée à la base locale de test navigateur ; aucune opération sur la base distante. Prévoir une sauvegarde avant le build Render, qui applique les migrations. Les suivis approuvés restent à traiter manuellement et n’activent pas Twilio.
+
+Validation finale du second lot : compilation réussie, 94 tests serveur, 13 groupes navigateur Superhub (plus 11 groupes de régression fournisseurs du premier lot), zéro erreur JavaScript. Migrations appliquées aux bases locales principale et navigateur ; trois contrôles de santé PostgreSQL locaux HTTP 200 après redémarrage. Index additifs `20261014021000_communication_activity_indexes`, export métier des suivis et du miroir SMS inclus. Aucun site de production ni connexion externe n’est annoncé vérifié.
+
+Migration additive `20261014022000_technician_versions` : appliquée aux bases locales principale, navigateur et serveur de test. Les plans récents enregistrent la version du technicien ; une modification invalide leur application. Les anciens plans restent soumis aux validations existantes et expirent normalement. Aucun rendez-vous existant déplacé par le paramétrage.

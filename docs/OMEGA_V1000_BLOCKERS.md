@@ -1,5 +1,17 @@
 # OMEGA V1000 — blocages
 
+## Accès utilisateur — 2026-10-14
+
+Le lien signalé est un déploiement Vercel immuable. Le code actuel pouvait refuser ce domaine lorsque PROCLAIR_PUBLIC_ORIGIN désignait le domaine principal. La correction autorise le seul VERCEL_URL exact configuré côté serveur et conserve les refus de domaines étrangers. Ce cas est reproduit et corrigé en test ; le message réel de l’utilisateur n’a pas été fourni.
+
+Aucune vérification distante : CONNECT 403 au proxy réseau, absence de VERCEL_TOKEN et RENDER_API_KEY. Une publication GitHub ne certifie pas un déploiement ni un accès rétabli. Utiliser le domaine principal et déployer la branche main corrigée. Si les identifiants sont toujours refusés, vérifier le mot de passe privé sur l’environnement Vercel concerné, sans l’envoyer au chat.
+
+## État actuel — 2026-10-14
+
+Le nouveau cockpit, le briefing et l’analyse de capacité sont validés localement : 104 tests serveur et dix groupes navigateur OMEGA réussis, compilation réussie. Les mentions TESTING ci-dessous sont des étapes historiques et ne concernent pas ce lot final.
+
+Le déploiement distant reste non vérifié. Selon la consigne actuelle, poursuivre les améliorations sans demander de mise en ligne. Aucun modèle de langage, calcul de trajets ou compte Stripe/Twilio réel n’est présenté comme connecté. La simulation fixe de 60 minutes ne garantit pas une affectation réelle.
+
 | Sujet | État | Prérequis / solution |
 | --- | --- | --- |
 | Déploiement Render | BLOCKED | Accès au compte et variables privées ; la directive rapporte DATABASE_URL absente, état distant non vérifié ici |
@@ -18,3 +30,5 @@ Audit local : seules les présences/absences des variables sont examinées. Aucu
 Compilation finale et dix groupes navigateur : TESTING. Les 93 tests serveur et TypeScript ont réussi. Les lectures Stripe restent TEST_ONLY ; elles ne prouvent ni activation Live ni encaissement comptable. Les brouillons OMEGA n'envoient rien.
 
 Contrôle de cette session : la requête publique vers `/api/health` du site Vercel a échoué dans le tunnel réseau (HTTP 403), y compris après une nouvelle tentative autorisée. Cela ne prouve pas une erreur du CRM distant. Le dépôt Git HTTPS reste accessible. Les PR et états de déploiement API ne sont pas vérifiés.
+
+Restent à construire indépendamment des clés : attribution/lecture des conversations par propriétaire, scénarios d’automatisation configurables, dispatch paramétrable et simulation des trajets. Les suivis persistants sont désormais livrés ; le moteur n’envoie rien automatiquement.

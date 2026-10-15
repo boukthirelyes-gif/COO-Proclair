@@ -12,3 +12,9 @@ test('working hour boundaries allow 08 to 17 on weekdays',()=>{validateSlot(new 
 test('duration mismatches rejected',()=>{assert.throws(()=>validateSlot(new Date('2026-07-06T12:00:00Z'),new Date('2026-07-06T13:00:00Z'),90),DomainError);});
 test('weekends rejected',()=>{assert.throws(()=>validateSlot(new Date('2026-07-04T12:00:00Z'),new Date('2026-07-04T13:00:00Z'),60),DomainError);});
 test('outside working hours rejected',()=>{assert.throws(()=>validateSlot(new Date('2026-07-06T11:00:00Z'),new Date('2026-07-06T12:00:00Z'),60),DomainError);assert.throws(()=>validateSlot(new Date('2026-07-06T20:30:00Z'),new Date('2026-07-06T21:30:00Z'),60),DomainError);});
+
+test('Toronto transition days cover the complete local 23-hour and 25-hour calendar days',()=>{
+ const spring=dayBounds('2026-03-08'),fall=dayBounds('2026-11-01');
+ assert.equal(spring.start.toISOString(),'2026-03-08T05:00:00.000Z');assert.equal(spring.end.toISOString(),'2026-03-09T04:00:00.000Z');assert.equal(spring.end.getTime()-spring.start.getTime(),23*3600000);
+ assert.equal(fall.start.toISOString(),'2026-11-01T04:00:00.000Z');assert.equal(fall.end.toISOString(),'2026-11-02T05:00:00.000Z');assert.equal(fall.end.getTime()-fall.start.getTime(),25*3600000);
+});

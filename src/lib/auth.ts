@@ -1,15 +1,16 @@
 import { createHmac, randomBytes, timingSafeEqual, scryptSync } from 'node:crypto';
 import { NextRequest } from 'next/server';
+import {DomainError} from '../domain/rules';
 
 const COOKIE = 'proclair_session';
 const secret = () => {
   const value = process.env.PROCLAIR_SESSION_SECRET;
-  if (!value || value.length < 32) throw new Error('PROCLAIR_SESSION_SECRET doit contenir au moins 32 caractères.');
+  if (!value || value.length < 32) throw new DomainError('AUTH_CONFIGURATION_REQUIRED','Connexion indisponible : configurez PROCLAIR_SESSION_SECRET (32 caractères minimum) dans les variables privées de l’hébergement.',503);
   return value;
 };
 export function checkPassword(password: string): boolean {
   const expected = process.env.PROCLAIR_ADMIN_PASSWORD;
-  if (!expected || expected.length < 12) throw new Error('PROCLAIR_ADMIN_PASSWORD doit contenir au moins 12 caractères.');
+  if (!expected || expected.length < 12) throw new DomainError('AUTH_CONFIGURATION_REQUIRED','Connexion administrateur indisponible : configurez PROCLAIR_ADMIN_PASSWORD (12 caractères minimum) dans les variables privées de l’hébergement.',503);
   return timingSafeEqual(scryptSync(password, secret(), 32), scryptSync(expected, secret(), 32));
 }
 export function issueSession(identity: {id:string;role:string;sessionVersion?:number}={id:'admin',role:'ADMIN'},durationMs=8*60*60*1000) {
@@ -28,13 +29,30 @@ export function actorFor(request: NextRequest): {id:string;role:'ADMIN'} | null 
     return session.expires > Date.now() && session.id === 'admin' && session.role === 'ADMIN' ? {id:'admin',role:'ADMIN'} : null;
   } catch { return null; }
 }
+function normalizedOrigin(raw:string):string|null {
+  try {const url=new URL(raw.trim());return ['http:','https:'].includes(url.protocol)&&!url.username&&!url.password&&url.pathname==='/'&&!url.search&&!url.hash?url.origin:null;}catch{return null;}
+}
+/** HTTPS may terminate at the hosting proxy before the request reaches Next. */
+export function requestIsSecure(request:NextRequest) {
+  return request.nextUrl.protocol==='https:' || request.headers.get('x-forwarded-proto')==='https' || process.env.VERCEL==='1' || normalizedOrigin(process.env.PROCLAIR_PUBLIC_ORIGIN||'')?.startsWith('https://')===true;
+}
 export function sameOrigin(request: NextRequest) {
-  const origin = request.headers.get('origin');
-  // Require browser origin for writes; read-only GET can be used by monitoring.
-  const configured = process.env.PROCLAIR_PUBLIC_ORIGIN;
-  const host = request.headers.get('host');
-  const expected = configured || (host ? `${request.nextUrl.protocol}//${host}` : new URL(request.url).origin);
-  return origin === expected;
+  const origin=request.headers.get('origin');if(!origin)return false;
+  const configured=process.env.PROCLAIR_PUBLIC_ORIGIN;
+  const primary=configured?normalizedOrigin(configured):null;
+  if(configured&&!primary)throw new DomainError('AUTH_ORIGIN_CONFIGURATION','Adresse publique invalide : configurez PROCLAIR_PUBLIC_ORIGIN avec le domaine HTTPS du CRM, sans chemin, paramètres ni fragment.',503);
+  const allowed=new Set<string>();if(primary)allowed.add(primary);
+  // VERCEL_URL is trusted server configuration. Never allow all preview domains
+  // or use an untrusted forwarded-host header as an additional origin.
+  const deployment=process.env.VERCEL_URL;
+  if(process.env.VERCEL==='1'&&deployment&&/^[a-zA-Z0-9-]+\.vercel\.app$/.test(deployment))allowed.add('https://'+deployment.toLowerCase());
+  if(!configured){
+    const host=request.headers.get('host');
+    const protocol=requestIsSecure(request)?'https:':'http:';
+    const fallback=host?normalizedOrigin(protocol+'//'+host):normalizedOrigin(new URL(request.url).origin);
+    if(fallback)allowed.add(fallback);
+  }
+  return allowed.has(origin);
 }
 export const sessionCookie = COOKIE;
 

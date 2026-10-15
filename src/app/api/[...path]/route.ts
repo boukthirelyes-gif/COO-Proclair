@@ -1,3 +1,4 @@
+import {OmegaSupervisor} from '@/omega/supervisor';
 import {rotorCustomerReviewList} from '@/lib/rotor-customer-review-list';
 import {rotorMigrationOverview} from '@/lib/rotor-migration-overview';
 import {verifyProvider} from '@/providers/verification';
@@ -7,7 +8,12 @@ import {SellerQuotes} from '@/sales/seller-quotes';
 import {RotorInboxService} from '@/lib/rotor-inbox';
 import {providerStatus} from '@/providers/config';
 import {Communications} from '@/providers/twilio';
+import {TechnicianSettings} from '@/domain/technicians';
+import {exportCalendar} from '@/integrations/calendar';
+import {omegaOperations} from '@/omega/operations';
+import {omegaDayAnalysis} from '@/omega/day-analysis';
 import {CommunicationsHub} from '@/providers/communications';
+import {CommunicationFollowUps} from '@/providers/communication-followups';
 import {StripePayments} from '@/providers/stripe';
 import {inspectStripeTest} from '@/providers/stripe-network-overview';
 import {TerritoryService} from '@/prospecting/territories';
@@ -34,11 +40,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ZodError, z } from 'zod';
 import {previewRotorMirror,applyRotorMirror,listRotorMirror} from '@/lib/rotor-mirror';
 import { prisma } from '@/lib/db';
-import { issueSession, sameOrigin, sessionCookie } from '@/lib/auth';
+import { issueSession, sameOrigin, sessionCookie, requestIsSecure } from '@/lib/auth';
 import { CRMService } from '@/domain/service';
 import { DomainError } from '@/domain/rules';
 import { OmegaWorker } from '@/omega/worker';
 import {saveBusinessProfile} from '@/lib/business-profile';
+import {annualLeaderboard} from '@/finance/commissions';
+import {nativeDispatch} from '@/lib/native-dispatch';
 import {nativeExport} from '@/lib/native-export';
 import {ClientPortal} from '@/sales/client-portal';
 import {QuoteService} from '@/sales/quotes';
@@ -49,6 +57,7 @@ export const runtime = 'nodejs';
 export const maxDuration = 60;
 const service = new CRMService(prisma);
 const worker = new OmegaWorker(prisma);
+const supervisor = new OmegaSupervisor(prisma);
 const finance = new FinanceService(prisma);
 const quotes=new QuoteService(prisma);
 const agreements=new ServiceAgreements(prisma);
@@ -118,7 +127,8 @@ export async function GET(request: NextRequest) {
     if(path==='cron/compatibility'){if(!cronAuthorized(request.headers.get('authorization')))return NextResponse.json({error:'Authentification cron requise.'},{status:401});return NextResponse.json(await rotorMonitor.tick());}
     if (path === 'cron/omega') {
       if(!cronAuthorized(request.headers.get('authorization')))return NextResponse.json({error:'Authentification cron requise.'},{status:401});
-      return NextResponse.json(await worker.tick(),{headers:{'Cache-Control':'no-store'}});
+      const dispatch=await worker.tick(),missions=await supervisor.tick();
+      return NextResponse.json({...dispatch,supervisor:missions},{headers:{'Cache-Control':'no-store'}});
     }
     if (path === 'health') { await prisma.$queryRaw`SELECT 1`; return NextResponse.json({status:'ok',database:'connected'}); }
     if(path==='integrations/rotor/callback') {
@@ -153,11 +163,23 @@ export async function GET(request: NextRequest) {
     }
     if(path==='integrations/providers')return NextResponse.json(providerStatus());
     if(path==='integrations/communications')return NextResponse.json(await new Communications(prisma).list(actor));
-    if(path==='integrations/communications/conversations')return NextResponse.json(await new CommunicationsHub(prisma).list(Object.fromEntries(['query','page','pageSize'].flatMap(key=>{const value=request.nextUrl.searchParams.get(key);return value===null?[]:[[key,value]]})),actor));
+    if(path==='integrations/communications/conversations')return NextResponse.json(await new CommunicationsHub(prisma).list(Object.fromEntries(['query','page','pageSize','channel'].flatMap(key=>{const value=request.nextUrl.searchParams.get(key);return value===null?[]:[[key,value]]})),actor));
+    if(path==='integrations/communications/followups')return NextResponse.json(await new CommunicationFollowUps(prisma).list(Object.fromEntries(['phone','status','page'].flatMap(key=>{const value=request.nextUrl.searchParams.get(key);return value===null?[]:[[key,value]]})),actor));
     if(path==='integrations/communications/conversation')return NextResponse.json(await new CommunicationsHub(prisma).detail(request.nextUrl.searchParams.get('phone'),actor));
     if(path==='finance/stripe/dashboard')return NextResponse.json(await new StripePayments(prisma).dashboard(Object.fromEntries(['status','customerId','from','to','page'].flatMap(key=>{const value=request.nextUrl.searchParams.get(key);return value===null?[]:[[key,value]]})),actor));
     if(path==='finance/stripe')return NextResponse.json(await new StripePayments(prisma).list(actor));
+    if(path==='technicians')return NextResponse.json(await new TechnicianSettings(prisma).list(actor));
     if(path==='dashboard/metrics')return NextResponse.json(await dashboardMetrics(prisma,actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='integrations/calendar/export'){
+      const result=await exportCalendar(prisma,{start:request.nextUrl.searchParams.get('start'),end:request.nextUrl.searchParams.get('end')},actor);
+      return new NextResponse(result.content,{headers:{'Content-Type':'text/calendar; charset=utf-8','Content-Disposition':'attachment; filename=proclair-planning.ics','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','X-Calendar-Events':String(result.eventCount),'X-Calendar-Skipped':String(result.skippedCount)}});
+    }
+    if(path==='sales/leaderboard')return NextResponse.json(await annualLeaderboard(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='operations/dispatch')return NextResponse.json(await nativeDispatch(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='omega/supervisor/mission')return NextResponse.json(await supervisor.detail(Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='omega/supervisor')return NextResponse.json(await supervisor.board(Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='omega/operations')return NextResponse.json(await omegaOperations(prisma,actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='omega/day-analysis')return NextResponse.json(await omegaDayAnalysis(prisma,request.nextUrl.searchParams.get('date'),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='agreements')return NextResponse.json(await agreements.list(actor));
     if(path==='agreements/options')return NextResponse.json(await agreements.options(actor));
     if(/^agreements\/[^/]+\/pdf$/.test(path)){const pdf=await agreements.pdf(path.split('/')[1],actor);return new NextResponse(new Uint8Array(pdf.pdfBytes!),{headers:{'Content-Type':'application/pdf','Content-Disposition':'inline; filename=proclair-contract.pdf','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});}
@@ -224,7 +246,7 @@ export async function GET(request: NextRequest) {
 }
 async function mutate(request: NextRequest) {
   try {
-    if (!sameOrigin(request)) return NextResponse.json({error:'Origine non autorisée.'},{status:403});
+    if (!sameOrigin(request)) return NextResponse.json({error:'Cette adresse du CRM n’est pas autorisée. Ouvrez le domaine principal ou vérifiez la configuration de l’hébergement.',code:'ORIGIN_NOT_ALLOWED'},{status:403});
     const text = await request.text();
     if (Buffer.byteLength(text) > (['/api/integrations/rotor/files/preview','/api/integrations/rotor/files/apply'].includes(request.nextUrl.pathname)?750000:65536)) return NextResponse.json({error:'Requête trop volumineuse.'},{status:413});
     let input: unknown;
@@ -232,11 +254,11 @@ async function mutate(request: NextRequest) {
     const path = request.nextUrl.pathname.slice('/api/'.length);
     if (path === 'session' && request.method === 'POST') {
       const loginName=input&&typeof input==='object'&&'username'in input&&typeof input.username==='string'?input.username.trim().toLowerCase().slice(0,100):'admin';
-      if (!await takeLoginAttempt(prisma,Date.now(),loginName)) return NextResponse.json({error:'Trop de tentatives. Réessayez dans une minute.'},{status:429});
+      if (!await takeLoginAttempt(prisma,Date.now(),loginName)) return NextResponse.json({error:'Trop de tentatives. Réessayez dans une minute.'},{status:429,headers:{'Retry-After':'60','Cache-Control':'no-store'}});
       const identity=await authenticate(prisma,input);
       if(!identity)return NextResponse.json({error:'Identifiants invalides.'},{status:401});
-      const response = NextResponse.json({actor:identity});
-      response.cookies.set(sessionCookie, issueSession({id:identity.id,role:identity.accountRole,sessionVersion:identity.sessionVersion}), {httpOnly:true,sameSite:'strict',secure:request.nextUrl.protocol==='https:'||Boolean(process.env.PROCLAIR_PUBLIC_ORIGIN?.startsWith('https://')),path:'/',maxAge:8*60*60});
+      const response = NextResponse.json({actor:identity},{headers:{'Cache-Control':'private, no-store'}});
+      response.cookies.set(sessionCookie, issueSession({id:identity.id,role:identity.accountRole,sessionVersion:identity.sessionVersion}), {httpOnly:true,sameSite:'strict',secure:requestIsSecure(request),path:'/',maxAge:8*60*60});
       return response;
     }
     if(path==='agreements/portal/read'&&request.method==='POST')return NextResponse.json(await agreements.portalRead(input));
@@ -265,6 +287,10 @@ async function mutate(request: NextRequest) {
     if(path==='integrations/communications/consent'&&request.method==='POST')return NextResponse.json(await new Communications(prisma).consent(input,actor));
     if(path==='integrations/communications/send'&&request.method==='POST')return NextResponse.json(await new Communications(prisma).send(input,actor));
     if(path==='integrations/communications/draft'&&request.method==='POST'){const value=z.object({phone:z.string()}).strict().parse(input);return NextResponse.json(await new CommunicationsHub(prisma).draft(value.phone,actor));}
+    if(path==='integrations/communications/followups'&&request.method==='POST')return NextResponse.json(await new CommunicationFollowUps(prisma).create(input,actor));
+    if(/^integrations\/communications\/followups\/[^/]+$/.test(path)&&request.method==='PATCH')return NextResponse.json(await new CommunicationFollowUps(prisma).review(path.split('/')[3],input,actor));
+    if(path==='technicians'&&request.method==='POST')return NextResponse.json(await new TechnicianSettings(prisma).save(null,input,actor),{status:201});
+    if(/^technicians\/[^/]+$/.test(path)&&request.method==='PATCH')return NextResponse.json(await new TechnicianSettings(prisma).save(path.split('/')[1],input,actor));
     if(path==='finance/stripe/checkout'&&request.method==='POST')return NextResponse.json(await new StripePayments(prisma).checkout(input,actor));
     if(path==='finance/stripe/inspect'&&request.method==='POST')return NextResponse.json(await inspectStripeTest(input,actor));
     if (path === 'session/logout') { const response = NextResponse.json({ok:true}); response.cookies.set(sessionCookie,'',{path:'/',maxAge:0}); return response; }
@@ -286,6 +312,7 @@ async function mutate(request: NextRequest) {
     if(request.method==='PATCH'&&/^quotes\/[^/]+$/.test(path))return NextResponse.json(await quotes.edit(path.split('/')[1],input,actor));
     if (request.method !== 'POST') return NextResponse.json({error:'Méthode non autorisée.'},{status:405});
     if (/^worker\/jobs\/[^/]+\/retry$/.test(path)) return NextResponse.json(await worker.retryJob(path.split('/')[2],input,actor));
+    if (/^visits\/[^/]+\/save$/.test(path)&&request.method==='POST')return NextResponse.json(await service.saveVisit(path.split('/')[1],input,actor));
     if (/^visits\/[^/]+\/transition$/.test(path)) return NextResponse.json(await service.transitionVisit(path.split('/')[1],input,actor));
     if (/^invoices\/[^/]+\/issue$/.test(path)) return NextResponse.json(await finance.issueInvoice(path.split('/')[1],input,actor));
     if (/^invoices\/[^/]+\/void$/.test(path)) return NextResponse.json(await finance.voidInvoice(path.split('/')[1],input,actor));
@@ -328,6 +355,11 @@ async function mutate(request: NextRequest) {
       case 'integrations/rotor/promotion/preview': return NextResponse.json(await rotorPromotion.preview(input,actor));
       case 'integrations/rotor/promotion/apply': return NextResponse.json(await rotorPromotion.apply(input,actor));
       case 'agreements': return NextResponse.json(await agreements.create(input,actor),{status:201});
+      case 'omega/supervisor/configure': return NextResponse.json(await supervisor.configure(input,actor));
+      case 'omega/supervisor/run': z.object({}).strict().parse(input);return NextResponse.json(await supervisor.run(actor));
+      case 'omega/supervisor/review-batch': return NextResponse.json(await supervisor.reviewBatch(input,actor));
+      case 'omega/supervisor/reconcile': return NextResponse.json(await supervisor.reconcile(input,actor));
+      case 'omega/supervisor/review': return NextResponse.json(await supervisor.review(input,actor));
       case 'omega/assistant': return NextResponse.json(await omegaAssistant(prisma,input,actor));
       case 'territories': return NextResponse.json(await territories.save(null,input,actor),{status:201});
       case 'customers': return NextResponse.json(await service.createCustomer(input,actor),{status:201});

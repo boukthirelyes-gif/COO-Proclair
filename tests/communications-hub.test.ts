@@ -19,6 +19,20 @@ test('native conversations paginate and search full history, preserve ambiguous 
  await db.smsConsent.create({data:{phone,granted:false,optedOut:true}});
  const first=await hub.list({pageSize:1},bootstrapActor);assert.equal(first.total,2);assert.equal(first.items.length,1);assert.equal((await hub.list({query:'ancienne facture'},bootstrapActor)).total,1);assert.equal((await hub.list({query:'Unique customer'},bootstrapActor)).items[0].association.status,'UNIQUE');assert.equal((await hub.list({query:'%'},bootstrapActor)).total,0);
  const detail=await hub.detail(phone,bootstrapActor);assert.equal(detail.association.status,'AMBIGUOUS');assert.equal(detail.association.customer,null);assert.equal(detail.messages.length,2);assert.equal(detail.calls[0].durationSeconds,40);const draft=await hub.draft(phone,bootstrapActor);assert.equal(draft.draft,null);assert.equal(draft.canSend,false);assert.equal(await db.smsMessage.count(),3);
+
+ await db.phoneCall.createMany({data:[
+ {sid:'CA'+'a'.repeat(32),phone:'+15145550100',direction:'inbound',status:'no-answer',createdAt:new Date('2026-10-13T12:00:00Z')},
+ {sid:'CA'+'b'.repeat(32),phone:'+15145550101',direction:'inbound',status:'no-answer',createdAt:new Date('2026-10-13T12:00:00Z')},
+ {sid:'CA'+'c'.repeat(32),phone:'+15145550101',direction:'outbound-api',status:'completed',createdAt:new Date('2026-10-13T13:00:00Z')},
+ {sid:'CA'+'d'.repeat(32),phone:'+15145550102',direction:'outbound-api',status:'failed',createdAt:new Date('2026-10-13T12:00:00Z')},
+ {sid:'CA'+'e'.repeat(32),phone:'+15145550103',direction:'inbound',status:'busy',createdAt:new Date('2026-10-13T12:00:00Z')}
+ ]});
+ await db.smsMessage.create({data:{phone:'+15145550103',direction:'OUTBOUND',body:'Réponse déjà faite',status:'sent',createdAt:new Date('2026-10-13T13:00:00Z')}});
+ const missed=await hub.list({channel:'MISSED_CALLS',pageSize:1},bootstrapActor);assert.equal(missed.total,1);assert.equal(missed.items[0].phone,'+15145550100');assert.equal(missed.channel,'MISSED_CALLS');
+ assert.equal((await hub.list({channel:'MISSED_CALLS',query:'Réponse déjà'},bootstrapActor)).total,0);
+ assert.equal((await hub.list({channel:'CALLS',query:'Unique customer'},bootstrapActor)).total,0);
+ assert.equal((await hub.list({channel:'SMS'},bootstrapActor)).total,3);assert.equal((await hub.list({channel:'CALLS'},bootstrapActor)).total,5);
+ await assert.rejects(()=>hub.list({channel:'INVALID'},bootstrapActor),{name:'ZodError'});
  const viewer=userActor({id:'viewer',name:'Viewer',role:'VIEWER',permissions:presets.VIEWER,sessionVersion:1});await assert.rejects(()=>hub.list({},viewer),{code:'FORBIDDEN'});const noOmega={...bootstrapActor,permissions:bootstrapActor.permissions.filter(p=>p!=='omega')};await assert.rejects(()=>hub.draft(other,noOmega),{code:'FORBIDDEN'});await assert.rejects(()=>hub.detail('5145551234',bootstrapActor));
  }finally{await db.$disconnect();await setup.query(`DROP SCHEMA "${schema}" CASCADE`);await setup.end();}
 });

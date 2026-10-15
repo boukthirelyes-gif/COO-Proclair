@@ -26,3 +26,6 @@ prisma/.prisma/
 
 # Downloaded CRM exports must never be published
 proclair-export-*.json
+
+# Sensitive Rotor archives (customer records, payments, messages)
+private-exports/
