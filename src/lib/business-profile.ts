@@ -1,8 +1,9 @@
 import {z} from 'zod';
+import {businessHoursSchema} from './business-hours';
 import type {PrismaClient} from '@prisma/client';
 import {DomainError,type Actor} from '@/domain/rules';
 const optional=(max:number)=>z.string().trim().max(max).nullable().optional().transform(v=>v||null);
-const schema=z.object({expectedVersion:z.number().int().min(0),legalName:z.string().trim().min(1).max(200),address:optional(1000),email:z.union([z.string().trim().email(),z.literal(''),z.null()]).optional().transform(v=>v||null),phone:optional(80),taxInformation:optional(2000)}).strict();
+const schema=z.object({expectedVersion:z.number().int().min(0),legalName:z.string().trim().min(1).max(200),address:optional(1000),email:z.union([z.string().trim().email(),z.literal(''),z.null()]).optional().transform(v=>v||null),phone:optional(80),taxInformation:optional(2000),businessHours:businessHoursSchema.optional()}).strict();
 export async function saveBusinessProfile(db:PrismaClient,input:unknown,actor:Actor){
  if(actor.role!=='ADMIN'||!actor.id)throw new DomainError('FORBIDDEN','Configuration réservée à un administrateur.',403);
  const {expectedVersion,...fields}=schema.parse(input);

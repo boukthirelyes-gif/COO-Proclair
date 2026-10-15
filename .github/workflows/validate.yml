@@ -119,3 +119,6 @@ jobs:
       - run: |
           node tests/reset-browser-login-attempts.mjs
           npm run test:settings-workspace:e2e
+      - run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:business-hours:e2e

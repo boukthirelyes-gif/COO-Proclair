@@ -50,3 +50,5 @@ Ces captures sont des références fonctionnelles et visuelles. Les données de
 compte, noms, coordonnées, moyens de paiement et états de connexion n’en sont pas
 importés. Les réglages absents du serveur Proclair ne sont pas représentés comme
 fonctionnels par de faux interrupteurs.
+
+Horaires entreprise : semaine native persistée avec jours fermés, heures locales Toronto et validation des plages ; accès ADMIN et contrôle de version. Le sous-domaine portail et les champs entreprise supplémentaires restent à développer. Les horaires ne remplacent pas les disponibilités techniciens.

@@ -17,4 +17,5 @@
 | Campagnes | Aucun envoi ni activation automatique |
 | Stripe / Twilio | Intégrations existantes ; aucune validation réelle nouvelle |
 
+| Horaires d’entreprise | Semaine enregistrée, jours fermés, validation serveur, droits ADMIN et version concurrente ; sans modification des disponibilités techniciens |
 | Paramètres : navigation Entreprise, équipe, rôles, Stripe, intégrations, données | Implémentée sur les modules natifs ; filtres utilisateurs et retour au CRM |

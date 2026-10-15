@@ -374,6 +374,7 @@ model Quote {
 }
 
 model BusinessProfile {
+ businessHours Json?
  id String @id @default("proclair")
  legalName String
  address String?
