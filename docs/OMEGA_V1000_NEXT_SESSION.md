@@ -1,13 +1,14 @@
-# OMEGA V1000 — point de reprise
+# OMEGA V1000 — point de reprise au 14 octobre 2026
 
-1. Lire le plan, l'avancement et le rapport de tests de cette livraison ; inspecter Git avant toute modification.
-2. Les branches SMS et Rotorlive ont été récupérées (e17a7ad et ed80979) : continuer leurs tests et leurs connexions autorisées plutôt que les réimplémenter.
-3. Le thème sombre a été activé en cf82ea0 en conservant les styles récents. Ne pas fusionner les mises à jour majeures Dependabot sans migration et tests.
-4. Les centres Stripe/SMS/appels, les liens dossiers et les brouillons locaux OMEGA sont implémentés : compilation et 11 groupes Superhub validés, puis améliorer les workflows supervisés selon le plan.
-5. Suite serveur : 93 tests réussis, zéro ignoré ; TypeScript réussi. Compilation, 11 groupes navigateur Superhub, 11 groupes de régression fournisseurs et 3 tests Python réussis ; contrôle des secrets réussi. Vérifier la publication distante dans le rapport final.
-6. Configurer Render via les paramètres privés et reprendre la même base/secret de session. Vérifier le nouveau domaine avant d'annoncer le CRM en ligne.
-7. Après connexion réelle, tester les fournisseurs en lecture seule, découvrir les permissions Rotor et confirmer le propriétaire du numéro professionnel.
+Dernier lot : correctif de connexion Vercel/proxy HTTPS et intégration agenda iCalendar. 111 tests serveur, trois tests agenda ciblés repassés, compilation finale et 34 groupes navigateur réussis. Consulter ACCESS_AND_CALENDAR.md. La connexion distante reste non vérifiée (proxy de sortie CONNECT 403) ; ne pas annoncer l’accès utilisateur rétabli sans preuve. Ne pas changer le secret de session pour résoudre un problème de mot de passe. L’URL de déploiement fournie par l’utilisateur est immuable ; la mise à jour doit être déployée puis ouverte sur le domaine principal.
 
-Ne jamais exécuter d'envoi, appel, portage ou débit réel pendant les tests. Ne pas présenter des archives Rotor ou PAID_TEST Stripe comme des encaissements natifs.
+Le CRM existant est conservé. Dernier lot : cockpit des priorités respectant les permissions, briefing de l’assistant et analyse de capacité quotidienne en lecture seule. 104 tests serveur, dix groupes navigateur OMEGA, TypeScript, compilation et trois tests Python réussis. Aucun modèle de langage ou routage routier connecté ; aucun contact ou paiement réel pendant les tests.
 
-Prochain lot indépendant : suivis de communication persistants avec validation/version/audit, attributions restreintes des conversations, puis capacité dispatch configurable. Ne pas recycler SalesFollowUp avec des types inconnus sans adapter son contrôle de sources.
+1. Inspecter Git et lire les rapports avant de modifier le code ; préserver les branches récupérées et les migrations appliquées.
+2. Continuer le développement sans demander une mise en ligne : l’utilisateur a demandé de préparer le CRM pour demain.
+3. Prochain lot : attributions persistantes des conversations avec droits par propriétaire, puis disponibilités individuelles et horaires configurables. Conserver les blocages STOP, les versions concurrentes et les permissions côté serveur.
+4. Faire évoluer les scénarios de capacité vers les durées réelles et déplacements, en distinguant une simulation d’un plan réservé. Le bouton actuel ne reporte que la date au planificateur.
+5. Après chaque modification, exécuter les tests adaptés. Les tests navigateur utilisent proclair_browser_test, distinct de la base principale ; redémarrer le serveur après chaque compilation finale.
+6. Quand la mise en ligne redevient possible, réutiliser base et secret de session existants, vérifier les migrations puis la santé PostgreSQL distante. Ne pas assimiler un push GitHub à un déploiement.
+
+Les suivis persistants, filtres SMS/appels/appels manqués, équipe configurable et marge OMEGA sont déjà livrés. Aucun besoin de les réimplémenter. Les lectures Stripe sont TEST_ONLY ; Rotor nécessite une connexion autorisée réelle. Aucun envoi, appel, portage ou débit pendant le développement.

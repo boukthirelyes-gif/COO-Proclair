@@ -1,3 +1,74 @@
+## Export historique privé préservé — 2026-10-14
+
+- Fusion des changements distants de la branche native sans écraser les améliorations CRM.
+- Export historique facultatif : noms d’outils allowlistés, fichiers confinés au répertoire privé ignoré et diagnostics sans données sensibles.
+- 123 tests serveur, compilation finale et régressions natives/leaderboard réussis. Aucun export réel ou déploiement production.
+
+## Interventions : transitions guidées — 2026-10-14
+
+- États proposés limités aux transitions autorisées ; visites annulées/terminées ouvertes en lecture seule.
+- Une requête falsifiée reste refusée atomiquement côté serveur.
+- Compilation finale, 25 contrôles navigateur natifs et régression OMEGA réussis ; couverture de la livraison : 121 tests serveur et 79 groupes navigateur.
+
+## Dashboard et leaderboard natifs — 2026-10-14
+
+- Dashboard : totaux CAD en agrégats PostgreSQL, sans lecture de tous les dossiers ; contrepassations, dates Toronto et devises distinctes respectées.
+- Leaderboard annuel : ventes signées HT, rétroactivité par vendeur, paliers 20–40 %, rangs ex æquo et pagination.
+- Période du 1er janvier au 1er janvier suivant ; vue personnelle protégée pour les vendeurs et classement global limité aux droits de supervision/finance.
+- 121 tests serveur, compilation et 77 groupes navigateur réussis. Aucun paiement de commission ni déploiement production.
+
+## Interventions : sauvegarde atomique — 2026-10-14
+
+- Champs et état sauvegardés dans une seule transaction, sans écriture partielle en cas de transition refusée.
+- Report explicite avec libération du créneau ; annulation sans déplacement ni blocage causé par une configuration devenue inactive.
+- Droits, versions concurrentes, audit unique et prix immuables ; formulaire transmet les suppressions comme NULL.
+- 116 tests serveur, compilation et 22 contrôles navigateur natifs réussis. Aucune migration ni modification directe de production.
+
+## Premier lot natif V2000 — 2026-10-14
+
+- Reprise de feature/proclair-native-operations-20261014 et du module existant.
+- Dispatch PostgreSQL indépendant de Rotor, compteurs exacts, file paginée, objectifs et dossiers modifiables selon les droits.
+- Capacité nulle le week-end et visites retirées exclues ; navigation Rotor dédoublonnée et réservée aux outils historiques.
+- 114 tests serveur, compilation, 17 contrôles navigateur CRM/Dispatch et six contrats signés réussis. Production inchangée.
+
+## Accès Vercel et intégration agenda — 2026-10-14
+
+- Connexion : slash final accepté, domaine exact de déploiement Vercel autorisé sans wildcard, cookies HTTPS derrière proxy et diagnostics distincts. Mot de passe existant conservé.
+- Message réel des identifiants invalides et double soumission du formulaire bloquée.
+- Planning iCalendar pour Google Agenda, Outlook et Apple Calendar : droits CRM/intégrations/export, 31 jours maximum, compteur d’omissions, UID stable et statut TENTATIVE pour visites non confirmées. Import ponctuel sans synchronisation automatique.
+- Bornes Toronto corrigées pour les changements d’heure de 23/25 heures.
+- 111 tests serveur, trois tests ciblés agenda repassés après finalisation, compilation et 34 groupes navigateur réussis. Production non vérifiée ; aucune migration ni nouvelle clé requise.
+
+## OMEGA : priorités, briefing et capacité — 2026-10-14
+
+- Cockpit PostgreSQL : retards, confirmations, visites à placer, suivis, factures et worker selon les droits ; compte exact, dix dossiers affichés et accès aux dossiers.
+- Briefing opérationnel dans l’assistant, avec catégories non autorisées masquées.
+- Analyse quotidienne sans écriture : équipe active, objectifs, horaires 8–17, scénario de 60 minutes et marge de 30 minutes ; report de date au planificateur sans création automatique de plan.
+- 104 tests serveur, dix groupes navigateur OMEGA, 14 groupes Superhub, TypeScript, compilation et trois tests Python réussis. Aucune migration, clé supplémentaire ou activation externe.
+
+## Filtres SMS et appels manqués — 2026-10-13
+
+- Canal SMS/Appels filtré côté serveur avec compteur exact avant pagination.
+- Appels manqués à examiner : dernier appel entrant sans réponse, occupé ou échoué, sans communication plus récente.
+- Recherche combinée au canal sans contournement et sélection du fil réinitialisée au changement de filtre.
+- Tests PostgreSQL ciblés et 14 groupes navigateur Superhub réussis ; compilation réussie. Aucun contact externe, migration ou clé supplémentaire.
+
+## Équipe configurable et marges OMEGA — 2026-10-13
+
+- Écran Équipe fonctionnel : création, activation et objectifs lundi-jeudi/vendredi, droits Paramètres et versions.
+- Désactivation/réduction incompatible avec les rendez-vous refusée, audit conservé.
+- Premier créneau avec 30 minutes avant/après ; un candidat long ne masque plus un créneau court.
+- Configuration et marge revérifiées avant application, sans déplacement partiel.
+- Migration additive technician_versions ; 100 tests serveur, 5 groupes navigateur Équipe et compilation réussis. Routage routier et déploiement distant non vérifiés.
+
+## Suivis persistants de communications — 2026-10-13
+
+- Création depuis un SMS entrant ou appel manqué, validation humaine, report, clôture avec note et audit.
+- Déduplication, versions concurrentes, STOP et communications plus récentes contrôlés avant chaque action.
+- Tableau OMEGA paginé et compte réel dans l’assistant ; lectures groupées et index pour les dernières activités.
+- Export métier des suivis et des messages Rotor ; correction du débordement du tableau worker sur mobile.
+- 94 tests serveur réussis et 13 groupes navigateur Superhub réussis ; compilation validée. Aucune communication ou opération financière réelle.
+
 ## Centres Stripe, SMS et Appels — 2026-10-13
 
 - Branches Rotor SMS, lectures paiements/factures et thème sombre récupérés avec historique Git préservé.

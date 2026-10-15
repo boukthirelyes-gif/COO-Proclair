@@ -98,6 +98,7 @@ model Technician {
  active Boolean @default(true)
  dailyTarget Int @default(4)
  fridayTarget Int @default(2)
+ version Int @default(1)
  visits Visit[]
 }
 model Visit {
@@ -169,6 +170,35 @@ model WorkerControl {
  id String @id @default("omega-dispatch")
  enabled Boolean @default(false)
  updatedAt DateTime @updatedAt
+}
+model OmegaSupervisorControl {
+ id String @id @default("native-supervisor")
+ enabled Boolean @default(false)
+ rules String[] @default([])
+ cursors Json @default("{}")
+ version Int @default(1)
+ updatedAt DateTime @updatedAt
+ lastRunAt DateTime?
+}
+model OmegaMission {
+ id String @id @default(cuid())
+ dedupeKey String @unique
+ rule String
+ sourceId String
+ fingerprint String
+ label String
+ detail String
+ priority Int @default(2)
+ status String @default("DRAFT")
+ version Int @default(1)
+ reviewedBy String?
+ note String?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ closedAt DateTime?
+ @@index([status,createdAt,id])
+ @@index([rule,sourceId])
+ @@index([status,priority,createdAt,id])
 }
 model WorkerJob {
  id String @id @default(cuid())
@@ -344,6 +374,10 @@ model Quote {
 }
 
 model BusinessProfile {
+ internalName String?
+ website String?
+ description String?
+ businessHours Json?
  id String @id @default("proclair")
  legalName String
  address String?
@@ -691,6 +725,7 @@ model SmsMessage {
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
  @@index([phone,createdAt])
+ @@index([phone,createdAt(sort: Desc),id(sort: Desc)],map:"SmsMessage_phone_recent_idx")
 }
 model PhoneCall {
  sid String @id
@@ -700,6 +735,7 @@ model PhoneCall {
  durationSeconds Int?
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
+ @@index([phone,createdAt(sort: Desc),sid(sort: Desc)],map:"PhoneCall_phone_recent_idx")
 }
 model StripeCheckout {
  id String @id @default(cuid())
@@ -765,4 +801,26 @@ model RotorSmsSyncControl {
  lastImported Int @default(0)
  lastErrorCode String?
  updatedAt DateTime @updatedAt
+}
+
+model CommunicationFollowUp {
+ id String @id @default(cuid())
+ sourceKind String
+ sourceId String
+ phone String
+ sourceFingerprint String
+ draft String
+ status String @default("DRAFT")
+ dueAt DateTime
+ version Int @default(1)
+ createdBy String
+ approvedBy String?
+ approvedAt DateTime?
+ completionNote String?
+ closedAt DateTime?
+ dedupeKey String @unique
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([phone,status,dueAt])
+ @@index([status,dueAt])
 }

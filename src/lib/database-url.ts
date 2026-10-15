@@ -1,8 +1,6 @@
 /** Fail closed on Vercel previews: never fall back to production credentials. */
 export function resolveDatabaseUrl(env: NodeJS.ProcessEnv): string {
-  // Some Vercel builds do not expose the system VERCEL_ENV variable.
-  // A preview-only database credential still selects the isolated preview DB.
-  if (env.VERCEL_ENV === 'preview' || (!env.VERCEL_ENV && !!env.PROCLAIR_PREVIEW_DATABASE_URL)) {
+  if (env.VERCEL_ENV === 'preview') {
     const preview = env.PROCLAIR_PREVIEW_DATABASE_URL;
     if (!preview) throw new Error('Preview PostgreSQL isolé requis : PROCLAIR_PREVIEW_DATABASE_URL.');
     const parsed = parsePostgres(preview);

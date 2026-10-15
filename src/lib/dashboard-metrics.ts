@@ -1,4 +1,36 @@
-import type {PrismaClient} from '@prisma/client';
-import {FinanceService} from '@/finance/service';
+import {Prisma,type PrismaClient} from '@prisma/client';
+import {DomainError} from '../domain/rules';
 import {requirePermission,type AccessActor} from './access';
-export async function dashboardMetrics(db:PrismaClient,actor:AccessActor){requirePermission(actor,'crm.read');const [customers,activeContracts]=await Promise.all([db.customer.count(),db.contract.count({where:{active:true}})]);if(!actor.permissions.includes('finance'))return {customers,activeContracts,finance:null};const state=await new FinanceService(db).readState(),issued=state.invoices.filter(i=>!['DRAFT','VOID'].includes(i.status)),date=(value:Date)=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Toronto',year:'numeric',month:'2-digit',day:'2-digit'}).format(value);const daily=new Map<string,number>();for(const payment of state.payments){const day=date(payment.createdAt);daily.set(day,(daily.get(day)||0)+payment.amountCents);if(payment.reversal){const reversed=date(payment.reversal.createdAt);daily.set(reversed,(daily.get(reversed)||0)-payment.amountCents)}}return {customers,activeContracts,finance:{receivedCents:issued.reduce((n,i)=>n+i.paidCents,0),issuedCents:issued.reduce((n,i)=>n+i.totalCents,0),outstandingCents:issued.reduce((n,i)=>n+i.balanceCents,0),unpaidCount:issued.filter(i=>i.balanceCents>0).length,daily:[...daily.entries()].sort((a,b)=>a[0].localeCompare(b[0])).slice(-14).map(([date,cents])=>({date,cents})),recording:'MANUAL_LEDGER',currency:'CAD'}}}
+function exact(value:bigint|number){const result=Number(value);if(!Number.isSafeInteger(result))throw new DomainError('AMOUNT_OVERFLOW','La synthèse dépasse les montants représentables en centimes.',422);return result;}
+/** Aggregate native CAD ledger in PostgreSQL without loading invoice/customer bodies. */
+export async function dashboardMetrics(db:PrismaClient,actor:AccessActor,schema='public'){
+ requirePermission(actor,'crm.read');if(!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(schema))throw new DomainError('INVALID_SCHEMA','Configuration de stockage invalide.',500);
+ const table=(name:string)=>Prisma.raw(`"${schema}"."${name}"`);
+ return db.$transaction(async tx=>{
+  const [customers,activeContracts]=await Promise.all([tx.customer.count(),tx.contract.count({where:{active:true}})]);
+  if(!actor.permissions.includes('finance'))return {customers,activeContracts,finance:null};
+  const [totals]=await tx.$queryRaw<{issued:bigint;paid:bigint;outstanding:bigint;unpaid:bigint;excluded:bigint}[]>(Prisma.sql`
+   WITH paid AS (
+    SELECT p."invoiceId",SUM(p."amountCents"::bigint) AS cents FROM ${table('Payment')} p
+    WHERE NOT EXISTS(SELECT 1 FROM ${table('PaymentReversal')} r WHERE r."paymentId"=p."id") GROUP BY p."invoiceId"
+   ), invoices AS (
+    SELECT i."currency",i."totalCents"::bigint AS total,COALESCE(p.cents,0) AS paid
+    FROM ${table('Invoice')} i LEFT JOIN paid p ON p."invoiceId"=i."id" WHERE i."status" NOT IN ('DRAFT','VOID')
+   ) SELECT COALESCE(SUM(total) FILTER(WHERE "currency"='CAD'),0)::bigint AS issued,
+    COALESCE(SUM(paid) FILTER(WHERE "currency"='CAD'),0)::bigint AS paid,
+    COALESCE(SUM(GREATEST(total-paid,0)) FILTER(WHERE "currency"='CAD'),0)::bigint AS outstanding,
+    COUNT(*) FILTER(WHERE "currency"='CAD' AND total>paid)::bigint AS unpaid,
+    COUNT(*) FILTER(WHERE "currency"<>'CAD')::bigint AS excluded FROM invoices
+  `);
+  const daily=await tx.$queryRaw<{date:string;cents:bigint}[]>(Prisma.sql`
+   WITH movements AS (
+    SELECT to_char(p."createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'America/Toronto','YYYY-MM-DD') AS date,p."amountCents"::bigint AS cents
+    FROM ${table('Payment')} p JOIN ${table('Invoice')} i ON i."id"=p."invoiceId" WHERE i."currency"='CAD'
+    UNION ALL
+    SELECT to_char(r."createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'America/Toronto','YYYY-MM-DD') AS date,-p."amountCents"::bigint AS cents
+    FROM ${table('PaymentReversal')} r JOIN ${table('Payment')} p ON p."id"=r."paymentId" JOIN ${table('Invoice')} i ON i."id"=p."invoiceId" WHERE i."currency"='CAD'
+   ) SELECT date,SUM(cents)::bigint AS cents FROM movements GROUP BY date ORDER BY date DESC LIMIT 14
+  `);
+  return {customers,activeContracts,finance:{receivedCents:exact(totals.paid),issuedCents:exact(totals.issued),outstandingCents:exact(totals.outstanding),unpaidCount:exact(totals.unpaid),excludedCurrencyCount:exact(totals.excluded),daily:daily.reverse().map(row=>({date:row.date,cents:exact(row.cents)})),recording:'MANUAL_LEDGER',currency:'CAD'}};
+ },{isolationLevel:Prisma.TransactionIsolationLevel.RepeatableRead});
+}

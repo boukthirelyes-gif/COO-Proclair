@@ -1,3 +1,4 @@
+import {stripeSecretKey,stripeKeyProblem} from './stripe-credentials';
 import Stripe from 'stripe';
 import {z} from 'zod';
 import {DomainError} from '../domain/rules';
@@ -12,7 +13,7 @@ const charge=z.object({id:z.string().regex(/^ch_[a-zA-Z0-9]{1,100}$/),livemode:z
 const response=z.object({balance:z.object({livemode:z.literal(false),available:z.array(money).max(100),pending:z.array(money).max(100)}),charges:z.object({has_more:z.boolean(),data:z.array(charge).max(25)})});
 export type StripeOverviewReader=(params:Stripe.ChargeListParams)=>Promise<{balance:unknown;charges:unknown}>;
 const read:StripeOverviewReader=async params=>{
- const client=new Stripe(process.env.STRIPE_SECRET_KEY!,{timeout:10000,maxNetworkRetries:0});
+ const client=new Stripe(stripeSecretKey(),{timeout:10000,maxNetworkRetries:0});
  const [balance,charges]=await Promise.all([client.balance.retrieve(),client.charges.list(params)]);
  return {balance,charges};
 };
@@ -21,7 +22,7 @@ const read:StripeOverviewReader=async params=>{
 export async function inspectStripeTest(input:unknown,actor:AccessActor,reader:StripeOverviewReader=read){
  for(const permission of ['finance','integrations','crm.read'] as const)requirePermission(actor,permission);
  const query=querySchema.parse(input);
- if(!process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_'))throw new DomainError('TEST_KEY_REQUIRED','Configurez une clé Stripe de test. Les opérations réelles sont désactivées.',409);
+ if(stripeKeyProblem()!==null)throw new DomainError('TEST_KEY_REQUIRED','Configurez une clé Stripe de test. Les opérations réelles sont désactivées.',409);
  const created:{gte?:number;lt?:number}={};
  if(query.from)created.gte=Math.floor(new Date(query.from+'T00:00:00Z').getTime()/1000);
  if(query.to)created.lt=Math.floor(new Date(query.to+'T00:00:00Z').getTime()/1000)+86400;

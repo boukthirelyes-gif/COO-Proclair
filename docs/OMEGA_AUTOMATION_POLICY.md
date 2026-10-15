@@ -1,5 +1,7 @@
 # Politique OMEGA — état livré
 
+Mise à jour du 14 octobre 2026 : le [superviseur natif](OMEGA_SUPERVISOR.md) ajoute quatre scénarios configurables, des missions persistantes, reprise par curseur, décisions humaines et arrêt immédiat. Le cycle ne confirme aucune visite, n'envoie aucune communication et ne touche pas au registre financier. Les commissions annuelles rétroactives sur ventes signées hors taxes sont désormais livrées dans le leaderboard ; les paragraphes historiques ci-dessous ne décrivent pas cette fonction récente.
+
 OMEGA est actuellement un planificateur déterministe, pas un modèle d’IA général. Ses préparations résident dans PostgreSQL, avec déduplication par période, états, tentatives, erreurs bornées, reprise et kill switch. Le moteur est désactivé par défaut.
 
 Il observe et propose des affectations de visites déjà confirmées. L’application vérifie les horaires de Toronto (lundi–vendredi, 08–17), durées, chevauchements, capacités des techniciens et versions des données. Le vendredi a une cible de deux visites ; les autres jours quatre. La marge de déplacement est fixe : elle ne constitue pas un temps routier réel.

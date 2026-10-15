@@ -1,0 +1,53 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {readFile,readdir} from 'node:fs/promises';
+import {createRequire} from 'node:module';
+import {PrismaClient} from '@prisma/client';
+import {PrismaPg} from '@prisma/adapter-pg';
+import {omegaAssistant} from '../src/omega/assistant';
+import {omegaOperations} from '../src/omega/operations';
+import {bootstrapActor,type AccessActor} from '../src/lib/access';
+const {Client}=createRequire(import.meta.url)('pg');
+test('OMEGA cockpit requires both omega and crm.read before database access',async()=>{
+ for(const permission of ['omega','crm.read'])await assert.rejects(()=>omegaOperations({} as PrismaClient,{...bootstrapActor,permissions:bootstrapActor.permissions.filter(p=>p!==permission)}),{code:'FORBIDDEN'});
+});
+test('OMEGA priorities use exact native records, Toronto due dates and permission-hidden groups without writes',{skip:!process.env.TEST_DATABASE_URL,timeout:60000},async()=>{
+ const database=process.env.TEST_DATABASE_URL!,schema='omega_ops_'+randomUUID().replaceAll('-',''),setup=new Client({connectionString:database});
+ await setup.connect();await setup.query(`CREATE SCHEMA "${schema}"`);await setup.query(`SET search_path TO "${schema}"`);
+ const db=new PrismaClient({adapter:new PrismaPg({connectionString:database},{schema})});
+ try{
+  for(const entry of (await readdir('prisma/migrations',{withFileTypes:true})).filter(e=>e.isDirectory()).sort((a,b)=>a.name.localeCompare(b.name)))await setup.query(await readFile(`prisma/migrations/${entry.name}/migration.sql`,'utf8'));
+  const now=new Date('2026-10-15T02:00:00Z'),past=new Date(now.getTime()-3600000),future=new Date(now.getTime()+3600000);
+  const customer=await db.customer.create({data:{name:'Operational fixture'}}),property=await db.property.create({data:{customerId:customer.id,address:'Fixture'}});
+  const contract=await db.contract.create({data:{customerId:customer.id,propertyId:property.id,name:'Active fixture',service:'Cleaning',totalVisits:30,priceCents:10000}});
+  const inactive=await db.contract.create({data:{customerId:customer.id,propertyId:property.id,name:'Inactive fixture',service:'Cleaning',totalVisits:1,priceCents:10000,active:false}});
+  const job=await db.job.create({data:{customerId:customer.id,propertyId:property.id,contractId:contract.id,name:'Fixture job'}});
+  const base={customerId:customer.id,propertyId:property.id,contractId:contract.id,jobId:job.id,service:'Cleaning',durationMinutes:60,priceCents:10000};
+  await db.visit.createMany({data:[...Array.from({length:12},(_,i)=>({...base,id:'late-'+i,status:'SCHEDULED' as const,startsAt:past,endsAt:past,passageNumber:i+1})),{...base,id:'ongoing',status:'IN_PROGRESS',startsAt:past,endsAt:future,passageNumber:13},{...base,id:'overdue-ongoing',status:'IN_PROGRESS',startsAt:past,endsAt:past,passageNumber:14},{...base,status:'COMPLETED',startsAt:past,endsAt:past,passageNumber:15},{...base,status:'PENDING',passageNumber:16},{...base,status:'PROPOSED',passageNumber:17},{...base,status:'RESCHEDULED',passageNumber:18},{...base,status:'CONFIRMED',passageNumber:19},{...base,contractId:inactive.id,status:'CONFIRMED',passageNumber:1}]});
+  await db.workerJob.create({data:{key:'ops-dead',date:'2026-10-14',status:'DEAD_LETTER',attempts:3,lastError:'PRIVATE sk_test_secret'}});
+  await db.workerJob.create({data:{key:'ops-good',date:'2026-10-14',status:'COMPLETED'}});
+  await db.communicationFollowUp.createMany({data:[{sourceKind:'SMS',sourceId:'fixture',phone:'+15145551234',sourceFingerprint:'fixture',draft:'PRIVATE draft',dueAt:past,dedupeKey:'ops-open',createdBy:'admin'},{sourceKind:'SMS',sourceId:'fixture',phone:'+15145551234',sourceFingerprint:'fixture',draft:'PRIVATE draft',dueAt:past,dedupeKey:'ops-done',createdBy:'admin',status:'DONE'}]});
+  const invoice=async(key:string,status:string,dueDate:string)=>db.invoice.create({data:{customerId:customer.id,status,dueDate,subtotalCents:10000,taxCents:0,totalCents:10000,idempotencyKey:key,payloadHash:'fixture'}});
+  const partial=await invoice('partial','ISSUED','2026-10-13');
+  const paid=await invoice('paid','ISSUED','2026-10-13');
+  await invoice('today','ISSUED','2026-10-14');await invoice('void','VOID','2026-10-13');await invoice('draft','DRAFT','2026-10-13');
+  await db.payment.create({data:{invoiceId:partial.id,amountCents:3000,method:'CASH',idempotencyKey:'ops-partial',payloadHash:'fixture'}});
+  const reversed=await db.payment.create({data:{invoiceId:partial.id,amountCents:2000,method:'CASH',idempotencyKey:'ops-reversed',payloadHash:'fixture'}});
+  await db.paymentReversal.create({data:{paymentId:reversed.id,reason:'fixture',actorId:'admin'}});
+  await db.payment.create({data:{invoiceId:paid.id,amountCents:10000,method:'CASH',idempotencyKey:'ops-paid',payloadHash:'fixture'}});
+  await db.stripeCheckout.create({data:{invoiceId:partial.id,amountCents:7000,currency:'CAD',status:'PAID_TEST',idempotencyKey:'ops-test'}});
+  const before={visits:await db.visit.findMany(),payments:await db.payment.findMany(),audit:await db.auditEvent.count()};
+  const result=await omegaOperations(db,bootstrapActor,now,schema),group=(key:string)=>result.groups.find(g=>g.key===key)!;
+  assert.equal(result.scope.today,'2026-10-14');assert.equal(result.mode,'READ_ONLY');assert.equal(result.externalEffects,false);
+  assert.equal(group('OVERDUE_VISITS').total,13);assert.equal(group('OVERDUE_VISITS').items.length,10);assert.equal(group('OVERDUE_VISITS').items.some(i=>i.id==='ongoing'),false);
+  assert.equal(group('UNCONFIRMED_VISITS').total,3);assert.equal(group('CONFIRMED_UNSCHEDULED').total,1);
+  assert.equal(group('WORKER_FAILURES').total,1);assert.equal(group('COMMUNICATION_FOLLOWUPS').total,1);
+  assert.equal(group('OVERDUE_INVOICES').total,1);assert.equal(group('OVERDUE_INVOICES').items[0].id,partial.id);assert.match(group('OVERDUE_INVOICES').items[0].detail,/70[,.]00/);
+  assert.equal(JSON.stringify(result).includes('PRIVATE'),false);
+  const limited={...bootstrapActor,accountRole:'DISPATCHER',role:'DISPATCHER',permissions:['omega','crm.read']} as AccessActor;
+  const hidden=await omegaOperations(db,limited,now,schema);assert.deepEqual(hidden.groups.map(g=>g.key),['OVERDUE_VISITS','UNCONFIRMED_VISITS','CONFIRMED_UNSCHEDULED']);
+  assert.deepEqual(await db.visit.findMany(),before.visits);assert.deepEqual(await db.payment.findMany(),before.payments);assert.equal(await db.auditEvent.count(),before.audit);
+  const brief=await omegaAssistant(db,{message:'Donne mon briefing et mes priorités'},bootstrapActor,schema);assert.equal(brief.intent,'OPERATIONS_BRIEFING');assert.equal(brief.executed,false);assert.equal(brief.action,'OPEN_OPERATIONS');assert.ok(brief.rows.length<=10);const restricted=await omegaAssistant(db,{message:'Quelles sont mes priorités ?'},limited,schema);assert.equal(restricted.scope.finance,false);assert.equal(restricted.answer.includes('Factures natives'),false);
+ }finally{await db.$disconnect();await setup.query(`DROP SCHEMA "${schema}" CASCADE`);await setup.end()}
+});
