@@ -52,3 +52,5 @@ importés. Les réglages absents du serveur Proclair ne sont pas représentés c
 fonctionnels par de faux interrupteurs.
 
 Horaires entreprise : semaine native persistée avec jours fermés, heures locales Toronto et validation des plages ; accès ADMIN et contrôle de version. Le sous-domaine portail et les champs entreprise supplémentaires restent à développer. Les horaires ne remplacent pas les disponibilités techniciens.
+
+Capture Entreprise : site Web, nom interne et description courte désormais enregistrables ; le sous-domaine portail reste absent.

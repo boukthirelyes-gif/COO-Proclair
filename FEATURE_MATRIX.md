@@ -19,3 +19,5 @@
 
 | Horaires d’entreprise | Semaine enregistrée, jours fermés, validation serveur, droits ADMIN et version concurrente ; sans modification des disponibilités techniciens |
 | Paramètres : navigation Entreprise, équipe, rôles, Stripe, intégrations, données | Implémentée sur les modules natifs ; filtres utilisateurs et retour au CRM |
+
+| Fiche entreprise complémentaire | Site Web HTTP(S), nom interne et description de 160 caractères persistés ; pas de sous-domaine portail ni aperçu public automatique |
