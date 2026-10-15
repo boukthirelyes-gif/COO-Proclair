@@ -125,3 +125,13 @@ jobs:
       - run: |
           node tests/reset-browser-login-attempts.mjs
           npm run test:password-reset:e2e
+      - name: Save server diagnostics on browser failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: proclair-browser-server-diagnostics
+          path: |
+            /tmp/proclair-browser.log
+            /tmp/proclair-preview.log
+          retention-days: 7
+          if-no-files-found: ignore
