@@ -16,7 +16,7 @@ export async function stripeDashboard(db:PrismaClient,input:unknown,actor:Access
  const createdAt:Prisma.DateTimeFilter={};
  if(query.from)createdAt.gte=new Date(query.from+'T00:00:00.000Z');
  if(query.to)createdAt.lt=new Date(new Date(query.to+'T00:00:00.000Z').getTime()+86400000);
- const where:Prisma.StripeCheckoutWhereInput={...(query.status==='ALL'?{}:{status:query.status}),...(query.customerId?{invoice:{customerId:query.customerId}}:{}),...(query.from||query.to?{createdAt}:{})};
+ const where:Prisma.StripeCheckoutWhereInput={enterprise:false,mode:'TEST',...(query.status==='ALL'?{}:{status:query.status}),...(query.customerId?{invoice:{customerId:query.customerId}}:{}),...(query.from||query.to?{createdAt}:{})};
  return db.$transaction(async tx=>{
   const total=await tx.stripeCheckout.count({where});
   const items=await tx.stripeCheckout.findMany({where,take:pageSize,skip:(query.page-1)*pageSize,orderBy:[{createdAt:'desc'},{id:'desc'}],select:{id:true,invoiceId:true,amountCents:true,currency:true,status:true,createdAt:true,invoice:{select:{number:true,customer:{select:{id:true,name:true}}}}}});

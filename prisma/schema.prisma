@@ -102,6 +102,7 @@ model Technician {
  visits Visit[]
 }
 model Visit {
+ invoice Invoice?
  id String @id @default(cuid())
  customerId String
  propertyId String
@@ -216,6 +217,9 @@ model WorkerJob {
 }
 
 model Invoice {
+ paymentMode String @default("LIVE")
+ sourceVisitId String? @unique
+ sourceVisit Visit? @relation(fields:[sourceVisitId],references:[id],onDelete:Restrict)
  stripeCheckouts StripeCheckout[]
  issuerSnapshot Json?
  sourceQuote Quote? @relation("ConvertedQuote")
@@ -241,6 +245,10 @@ model Invoice {
  payments Payment[]
 }
 model InvoiceItem {
+ discountCents Int @default(0)
+ taxMode String @default("CUSTOM")
+ gstCents Int @default(0)
+ qstCents Int @default(0)
  id String @id @default(cuid())
  invoiceId String
  invoice Invoice @relation(fields: [invoiceId], references: [id])
@@ -254,6 +262,10 @@ model InvoiceItem {
  @@unique([invoiceId, position])
 }
 model Payment {
+ mode String @default("LIVE")
+ stripeCheckoutId String? @unique
+ stripeCheckout StripeCheckout? @relation(fields:[stripeCheckoutId],references:[id],onDelete:Restrict)
+ stripeRefunds StripeRefund[]
  id String @id @default(cuid())
  invoiceId String
  invoice Invoice @relation(fields: [invoiceId], references: [id])
@@ -738,6 +750,12 @@ model PhoneCall {
  @@index([phone,createdAt(sort: Desc),sid(sort: Desc)],map:"PhoneCall_phone_recent_idx")
 }
 model StripeCheckout {
+ mode String @default("TEST")
+ enterprise Boolean @default(false)
+ active Boolean @default(false)
+ paymentIntentId String?
+ payment Payment?
+ @@unique([mode,paymentIntentId])
  id String @id @default(cuid())
  invoice Invoice @relation(fields:[invoiceId],references:[id])
  invoiceId String
@@ -823,4 +841,101 @@ model CommunicationFollowUp {
  updatedAt DateTime @updatedAt
  @@index([phone,status,dueAt])
  @@index([status,dueAt])
+}
+
+model CommissionPolicy {
+ id String @id
+ basis String
+ application String
+ timezone String
+ tiers Json
+ registeredAt DateTime @default(now())
+}
+
+model StripeRefund {
+ id String @id @default(cuid())
+ mode String
+ paymentId String
+ payment Payment @relation(fields:[paymentId],references:[id],onDelete:Restrict)
+ providerRefundId String?
+ amountCents Int
+ status String @default("REQUESTED")
+ reason String
+ idempotencyKey String @unique
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([mode,providerRefundId])
+ @@index([paymentId,status])
+}
+model StripeEventReceipt {
+ id String @id
+ mode String
+ stripeEventId String
+ kind String
+ payloadHash String
+ snapshot Json
+ receivedAt DateTime @default(now())
+ decisions StripeEventDecision[]
+ @@unique([mode,stripeEventId])
+ @@index([mode,receivedAt])
+}
+model StripeEventDecision {
+ id String @id @default(cuid())
+ receiptId String
+ receipt StripeEventReceipt @relation(fields:[receiptId],references:[id],onDelete:Restrict)
+ outcome String
+ code String?
+ createdAt DateTime @default(now())
+ @@index([receiptId,createdAt])
+}
+
+model CommunicationPreference {
+ customerId String @id
+ doNotDisturb Boolean @default(false)
+ emailGranted Boolean @default(false)
+ emailOptedOut Boolean @default(false)
+ voiceGranted Boolean @default(false)
+ evidence String
+ updatedAt DateTime @updatedAt
+}
+model CommunicationDispatch {
+ id String @id @default(cuid())
+ customerId String
+ channel String
+ template String
+ destination String
+ subject String?
+ body String
+ sourceKind String?
+ sourceId String?
+ sourceHash String?
+ dueAt DateTime
+ status String @default("DRAFT")
+ idempotencyKey String @unique
+ payloadHash String
+ providerId String? @unique
+ errorCode String?
+ createdBy String
+ approvedBy String?
+ approvedAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([customerId,createdAt])
+ @@index([status,dueAt])
+}
+model CommunicationNote {
+ id String @id @default(cuid())
+ customerId String
+ callSid String?
+ body String
+ createdBy String
+ createdAt DateTime @default(now())
+ @@index([customerId,createdAt])
+}
+model CommunicationProof {
+ provider String @id
+ fingerprint String
+ verified Boolean
+ detail String
+ checkedAt DateTime @default(now())
 }
