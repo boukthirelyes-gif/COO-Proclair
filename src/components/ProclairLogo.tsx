@@ -7,10 +7,10 @@
 export default function ProclairLogo({placement='sidebar'}:{placement?:'sidebar'|'login'}){
  return <span className={'proclair-wordmark proclair-wordmark-'+placement}>
   <img
-   src="/proclair-wordmark.webp"
+   src="/proclair-logo-vector.svg"
    alt="Proclair"
-   width={500}
-   height={78}
+   width={775}
+   height={123}
    loading={placement==='login'?'eager':'lazy'}
    decoding="async"
   />

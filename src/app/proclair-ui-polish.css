@@ -176,3 +176,10 @@
 @media(prefers-reduced-motion:reduce){
  .shell *{scroll-behavior:auto!important;transition-duration:.01ms!important}
 }
+
+/* A scalable trace of the original lettering prevents fuzzy login and sidebar artwork. */
+@media screen {
+ .shell .proclair-wordmark img { aspect-ratio:775/123; object-fit:contain; }
+ .shell .proclair-wordmark-sidebar img { filter:grayscale(1) brightness(0) invert(1); mix-blend-mode:normal; }
+ .shell.auth-shell .proclair-wordmark-login img { aspect-ratio:775/123; }
+}
