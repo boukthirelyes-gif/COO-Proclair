@@ -39,3 +39,9 @@ Le démarrage direct sur la carte utilise `/api/state?scope=map`, y compris pour
 La suite navigateur `browser-map-filters` conserve les contrôles de filtre, pagination et mobile et ajoute des chargements 100/1 000/10 000 portes, un contrôle du payload géographique et de l'état léger, puis une résolution tablette. Son rapport est distinct : `.local/omega-ultra/browser-map-benchmark.json`. Le fond de secours Leaflet testé ne valide pas le service Google réel.
 
 Pour Google Maps, activer Maps JavaScript API, restreindre la clé navigateur à cette API et aux origines HTTPS autorisées, puis reconstruire l'application. Une clé publique de navigateur n'est pas un secret serveur. Les restrictions, la facturation et le rendu du projet Google réel nécessitent une recette avec sa configuration effective ; aucun statut « vérifié » n'est déduit de la seule présence de la variable.
+
+## Actualisation de la base distante
+
+Pendant la validation, `develop` est passé à `47564b0f9dc39b51ec87b52970c5993992a28625` (intégration PR 30). Cette référence a été récupérée explicitement et intégrée sans conflit dans la branche OMEGA ULTRA. Les PR 28/29/30 sont donc conservées, dont le contrôle en lecture seule qui renvoie un échec de santé si le schéma Preview est incomplet. La mention initiale de `268c55e` décrit le début de l'audit, pas la base finale de livraison.
+
+Le contrôle tablette a détecté un débordement des compteurs à 768 px. Les compteurs de prospection utilisent désormais une grille adaptative. Le clic sur un groupe agrandit jusqu'au zoom maximal du fond concerné, sans revenir à un zoom inférieur. Les tests de groupe vérifient la somme des membres après zoom, même si un groupe se sépare en plusieurs marqueurs.
