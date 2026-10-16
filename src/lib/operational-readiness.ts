@@ -11,7 +11,7 @@ export function operationalReadiness(env:Record<string,string|undefined>, provid
  add('cron','Authentification des tâches planifiées',(env.CRON_SECRET?.length??0)>=32,'Configurer CRON_SECRET et vérifier une exécution planifiée authentifiée.');
  add('maps','Google Maps',!!env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim(),'Configurer la clé Google Maps restreinte aux domaines du CRM, reconstruire puis vérifier les pins.');
  add('stripe','Configuration Stripe',providers.stripe.configured,'Configurer Stripe et son secret de webhook, puis vérifier un paiement de test et sa réception.');
- add('live-payments','Encaissements Stripe réels',providers.stripe.livePaymentsEnabled,'Les encaissements réels restent désactivés dans cette version ; terminer et valider leur prise en charge avant utilisation commerciale.');
+ add('live-payments','Encaissements Stripe réels',providers.stripe.livePaymentsEnabled,'Les encaissements réels exigent les clés LIVE distinctes, une autorisation serveur explicite et une recette avant utilisation.');
  add('sms','Envoi SMS Twilio',providers.twilio.configured&&providers.twilio.sendingEnabled,'Configurer Twilio ; activer les envois uniquement après validation du numéro, du consentement et des webhooks.');
  add('voice','Appels Twilio',providers.twilio.configured&&providers.twilio.voiceEnabled,'Configurer Twilio et une destination de transfert valide, puis vérifier un appel.');
  for(const [id,label,action] of [
