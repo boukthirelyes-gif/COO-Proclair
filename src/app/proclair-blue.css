@@ -225,3 +225,197 @@
   .shell .dashboard-action-center,.shell .map-command-bar{border-radius:13px}
  }
 }
+
+/*
+ * Proclair identity refinement — coherent wordmark system and less visual noise.
+ * The source logo's lettering has NOT been re-generated or distorted.
+ * The original navy/blue gradient is prominent at login; other dark surfaces
+ * use a monochrome white version via CSS screen blending, not white logo cards.
+ */
+@media screen {
+ .shell .brand.proclair-brand {
+  padding: 14px 9px 18px;
+  margin-bottom: 18px;
+  gap: 11px;
+  background: transparent;
+  border-bottom: 1px solid #274c6c;
+ }
+ .shell .proclair-wordmark-sidebar {
+  display:block;
+  width:100%;
+  max-width:215px;
+  min-width:0;
+  padding:0;
+  min-height:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  overflow:hidden;
+ }
+ .shell .proclair-wordmark-sidebar img{
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:500/78;
+  object-fit:contain;
+  filter: grayscale(1) invert(1) contrast(1.65);
+  mix-blend-mode:screen;
+  opacity:.96;
+ }
+ .shell .proclair-brand-subtitle{
+  display:block;
+  text-align:left;
+  width:100%;
+  margin:0;
+  color:#8cbcdf;
+  font-size:9px;
+  line-height:1.55;
+  font-weight:650;
+  letter-spacing:.1em;
+ }
+ .shell .app-topbar-service{
+  display:inline-flex;
+  align-items:center;
+  flex:none;
+  gap:6px;
+  font-size:10px;
+  font-weight:760;
+  letter-spacing:.08em;
+  color:#92c9e9;
+  border-right:1px solid #355776;
+  padding-right:13px;
+  white-space:nowrap;
+ }
+ .shell .app-topbar-service span{color:#47ade2}
+ .shell .hero-service-identity{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  font-weight:740;
+  font-size:9px;
+  letter-spacing:.12em;
+  color:#b7e5fb;
+  margin:0 0 3px;
+  white-space:nowrap;
+ }
+ .shell .hero-service-identity b{color:#52bce8;font-weight:900}
+ .shell .hero-service-icon{
+  display:grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border:1px solid #3a83b5;
+  border-radius:8px;
+  background:#163d62;
+  font-size:15px;
+  color:#8ddcff;
+ }
+ .shell.auth-shell{
+  width:100%;
+  min-height:100vh;
+ }
+ .shell.auth-shell>aside{display:none}
+ .shell.auth-shell>main{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  width:100%;
+  max-width:none;
+  min-height:100vh;
+  margin-left:0;
+  padding:55px 20px;
+  background:
+   radial-gradient(ellipse 600px 360px at 50% 27%,#267bb942,transparent 79%),
+   radial-gradient(ellipse 900px 650px at 90% 90%,#14618a27,transparent 70%),
+   linear-gradient(160deg,#07172a,#102c49 58%,#07182c);
+ }
+ .shell.auth-shell>main>.app-topbar{display:none}
+ .shell.auth-shell .login{
+  width:min(100%,492px);
+  max-width:492px;
+  margin:0;
+  padding:clamp(25px,4vw,42px);
+  border-radius:22px;
+  border:1px solid #3b6891;
+  background:linear-gradient(145deg,#153651,#0d273f);
+  box-shadow:0 27px 74px #020e214d, inset 0 1px #a6dfff1a;
+ }
+ .shell.auth-shell .login-brand{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:17px;
+  margin:0 0 29px;
+  padding:0;
+ }
+ .shell.auth-shell .proclair-wordmark-login{
+  display:block;
+  width:min(100%,336px);
+  max-width:336px;
+  min-height:0;
+  margin:0;
+  padding:21px 23px;
+  border:0;
+  border-radius:14px;
+  background:linear-gradient(145deg,#fff,#f6fbff);
+  box-shadow:0 12px 30px #010f2457;
+ }
+ .shell.auth-shell .proclair-wordmark-login img{
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:500/78;
+ }
+ .shell.auth-shell .login-brand-kicker{
+  color:#a5d9fb;
+  font-size:10px;
+  font-weight:780;
+  letter-spacing:.12em;
+  text-align:center;
+ }
+ .shell.auth-shell .login h2{
+  color:#f6fbff;
+  font-weight:760;
+  letter-spacing:-.032em;
+  font-size:28px;
+  text-align:left;
+  margin:0 0 6px;
+ }
+ .shell.auth-shell .login p{
+  color:#b5cee3;
+  font-size:13px;
+  line-height:1.5;
+  margin-bottom:22px;
+ }
+ .shell.auth-shell .login button.primary{
+  background:linear-gradient(90deg,#197cc5,#279fdf);
+  border-color:#319ce2;
+  min-height:48px;
+  font-weight:760;
+  border-radius:11px;
+ }
+ .shell.auth-shell .login button.primary:hover{
+  background:linear-gradient(90deg,#268fdf,#3bade9);
+ }
+ @media(max-width:1380px){
+  .shell .app-topbar-service{display:none}
+ }
+ @media(max-width:700px){
+  .shell .brand.proclair-brand{
+   margin:0;
+   padding:2px 0 10px;
+   gap:6px;
+  }
+  .shell .proclair-wordmark-sidebar{width:178px;max-width:178px}
+  .shell .proclair-brand-subtitle{font-size:8px;letter-spacing:.085em;padding:0}
+  .shell.auth-shell>main{padding:24px 15px}
+  .shell.auth-shell .login{padding:27px 22px;border-radius:18px}
+  .shell.auth-shell .proclair-wordmark-login{padding:18px 20px;width:min(100%,280px)}
+  .shell.auth-shell .login-brand-kicker{font-size:9px;line-height:1.5}
+  .shell .hero-service-identity{justify-content:flex-start;white-space:normal;font-size:8px}
+ }
+}
