@@ -1,6 +1,6 @@
 # Audit OMEGA ULTRA — état vérifiable
 
-Base distante consultée : develop/main 268c55e. Référence Git de PR 28 : f4ddfdb. La fusion distante annoncée n'est pas démontrée ; ses changements sont présents dans la branche de travail par ascendance. Les lots métier, Stripe et communications sont conservés. Aucune modification de main.
+Base finale : develop 47564b0, incluant PR 28/29/30. Au début de l'audit, la référence locale develop/main était 268c55e ; une récupération explicite a permis d'intégrer l'avancement distant. Les lots métier, Stripe, communications et diagnostic du schéma Preview sont conservés. Aucune modification de main.
 
 L'inventaire reproductible `node scripts/audit-surface.mjs` répertorie les composants interactifs, formulaires, routes, modèles, migrations, workflows et tests. C'est un inventaire, pas une preuve d'exécution de chaque bouton. Les 32 suites existantes restent obligatoires. Les validations de 2a17e33 sont locales ; aucun résultat GitHub Actions ou Vercel récent n'est certifié.
 
@@ -45,3 +45,7 @@ Pour Google Maps, activer Maps JavaScript API, restreindre la clé navigateur à
 Pendant la validation, `develop` est passé à `47564b0f9dc39b51ec87b52970c5993992a28625` (intégration PR 30). Cette référence a été récupérée explicitement et intégrée sans conflit dans la branche OMEGA ULTRA. Les PR 28/29/30 sont donc conservées, dont le contrôle en lecture seule qui renvoie un échec de santé si le schéma Preview est incomplet. La mention initiale de `268c55e` décrit le début de l'audit, pas la base finale de livraison.
 
 Le contrôle tablette a détecté un débordement des compteurs à 768 px. Les compteurs de prospection utilisent désormais une grille adaptative. Le clic sur un groupe agrandit jusqu'au zoom maximal du fond concerné, sans revenir à un zoom inférieur. Les tests de groupe vérifient la somme des membres après zoom, même si un groupe se sépare en plusieurs marqueurs.
+
+## Génération Prisma après installation propre
+
+Une installation `npm ci` dans un dossier neuf a permis de reproduire une génération silencieusement incomplète lorsque `node_modules` est lié symboliquement. Le point d’entrée du générateur Prisma compare son chemin exécuté au chemin réel ; le sous-processus quittait avec 0 avant de répondre au RPC. Le script résout désormais le chemin réel, vérifie les modèles du client produit et échoue si le processus se termine avant génération complète. Un test génère réellement un client dans un projet temporaire à dépendances liées, puis vérifie le refus d’un schéma invalide. Aucun téléchargement de moteur Rust ou contournement de somme de contrôle n’est nécessaire pour le générateur WASM existant.
