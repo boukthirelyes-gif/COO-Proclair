@@ -74,64 +74,16 @@ jobs:
           DATABASE_URL="$E2E_DATABASE_URL" node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3102 > /tmp/proclair-browser.log 2>&1 &
           DATABASE_URL="$E2E_DATABASE_URL" VERCEL=1 VERCEL_URL=coo-proclair-access-fixture.vercel.app PROCLAIR_PUBLIC_ORIGIN=https://coo-proclair.vercel.app/ node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3103 > /tmp/proclair-preview.log 2>&1 &
           node --input-type=module -e 'for(const base of [process.env.E2E_BASE_URL,process.env.E2E_PREVIEW_BASE_URL]){let ready=false; for(let i=0;i<60;i++){try{const r=await fetch(base+"/api/health"); if(r.ok){ready=true;break}}catch{} await new Promise(resolve=>setTimeout(resolve,1000))} if(!ready)process.exit(1);}'
-      - run: |
-          node tests/reset-browser-login-attempts.mjs
-          npm run test:superhub:e2e
-      - run: |
-          node tests/reset-browser-login-attempts.mjs
-          npm run test:team:e2e
-      - run: |
-          node tests/reset-browser-login-attempts.mjs
-          npm run test:omega-operations:e2e
-      - run: |
-          node tests/reset-browser-login-attempts.mjs
-          npm run test:omega-supervisor:e2e
-      - run: |
-          node tests/reset-browser-login-attempts.mjs
-          npm run test:access-calendar:e2e
-      - run: |
-          node tests/reset-browser-login-attempts.mjs
-          npm run test:native-core:e2e
-      - run: |
-          node tests/reset-browser-login-attempts.mjs
-          npm run test:leaderboard:e2e
-      - run: |
-          node tests/reset-browser-login-attempts.mjs
-          npm run test:archive-gates:e2e
-      - run: |
-          node tests/reset-browser-login-attempts.mjs
-          npm run test:omega-workspace:e2e
-      - run: |
-          node tests/reset-browser-login-attempts.mjs
-          npm run test:lead-table:e2e
-      - run: |
-          node tests/reset-browser-login-attempts.mjs
-          npm run test:map-filters:e2e
-      - run: |
-          node tests/reset-browser-login-attempts.mjs
-          npm run test:territories:e2e
-      - run: |
-          node tests/reset-browser-login-attempts.mjs
-          npm run test:users-map:e2e
-      - run: |
-          node tests/reset-browser-login-attempts.mjs
-          npm run test:customer-table:e2e
-      - run: |
-          node tests/reset-browser-login-attempts.mjs
-          npm run test:settings-workspace:e2e
-      - run: |
-          node tests/reset-browser-login-attempts.mjs
-          npm run test:business-hours:e2e
-      - run: |
-          node tests/reset-browser-login-attempts.mjs
-          npm run test:password-reset:e2e
-      - name: Save server diagnostics on browser failure
-        if: failure()
+      - name: Run all 32 browser suites (no skipped failures)
+        run: npm run test:browser:all
+      - name: Save browser reports and server diagnostics
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: proclair-browser-server-diagnostics
+          name: proclair-browser-diagnostics
           path: |
+            .local/browser-audit/
             /tmp/proclair-browser.log
             /tmp/proclair-preview.log
           retention-days: 7
-          if-no-files-found: ignore
+          if-no-files-found: warn

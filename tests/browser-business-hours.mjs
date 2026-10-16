@@ -1,4 +1,4 @@
-import {chromium} from 'playwright';
+import {chromium} from './support/browser.mjs';
 import assert from 'node:assert/strict';
 if(!process.env.E2E_DATABASE_URL?.endsWith('/proclair_browser_test'))throw Error('Base navigateur isolée obligatoire.');
 const base=process.env.E2E_BASE_URL||'http://127.0.0.1:3115';

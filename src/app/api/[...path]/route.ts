@@ -188,7 +188,7 @@ export async function GET(request: NextRequest) {
     if(/^leads\/[^/]+\/history$/.test(path))return NextResponse.json(await leads.history(path.split('/')[1],actor));
     if(/^leads\/[^/]+$/.test(path))return NextResponse.json(await leads.get(path.split('/')[1],actor));
     if(/^prospecting\/[^/]+$/.test(path))return NextResponse.json(await prospecting.get(path.split('/')[1],actor));
-    if(path==='system/health')return NextResponse.json(await systemHealth(prisma));
+    if(path==='system/health')return NextResponse.json(await systemHealth(prisma),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='system/parity')return NextResponse.json(parity);
     if(path==='integrations/rotor/migration-overview')return NextResponse.json(await rotorMigrationOverview(prisma,actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='integrations/rotor/files')return NextResponse.json(await new RotorFileImports(prisma).history(actor),{headers:{'Cache-Control':'private, no-store'}});

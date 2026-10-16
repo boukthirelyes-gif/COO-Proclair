@@ -1,4 +1,4 @@
-import {chromium} from 'playwright';
+import {chromium} from './support/browser.mjs';
 import {randomUUID} from 'node:crypto';
 import assert from 'node:assert/strict';
 if(!process.env.E2E_DATABASE_URL)throw Error('Base séparée requise.');

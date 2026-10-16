@@ -1,0 +1,796 @@
+{
+  "baseline": {
+    "branch": "develop",
+    "commit": "268c55eaf55e731c6be278286ad6150190d124a7"
+  },
+  "localValidation": {
+    "install": {
+      "command": "npm ci --ignore-scripts --cache /tmp/proclair-npm-cache",
+      "exitCode": 0
+    },
+    "prismaGenerate": {
+      "exitCode": 0
+    },
+    "testMigrations": {
+      "exitCode": 0,
+      "target": "dedicated PostgreSQL container on 127.0.0.1:5435",
+      "productionMigrations": false
+    },
+    "typecheck": {
+      "exitCode": 0
+    },
+    "unitTests": {
+      "passed": 140,
+      "failed": 0,
+      "skipped": 0,
+      "newSafetyTests": 2
+    },
+    "pythonTests": {
+      "passed": 3,
+      "failed": 0
+    },
+    "productionBuild": {
+      "exitCode": 0
+    },
+    "parityCatalogue": {
+      "exitCode": 0
+    },
+    "testDataCleanup": "Owned test container and its volume removed after validation",
+    "secretsScan": {
+      "exitCode": 0
+    },
+    "diffCheck": {
+      "exitCode": 0
+    }
+  },
+  "reproducedBefore": {
+    "startedAt": "2026-10-16T15:46:37.675Z",
+    "finishedAt": "2026-10-16T15:49:20.433Z",
+    "expectedSuites": 6,
+    "passed": 0,
+    "failed": 6,
+    "suites": [
+      {
+        "suite": "test:e2e",
+        "status": "failed",
+        "exitCode": 1,
+        "durationMs": 39967
+      },
+      {
+        "suite": "test:integrations:e2e",
+        "status": "failed",
+        "exitCode": 1,
+        "durationMs": 33940
+      },
+      {
+        "suite": "test:compatibility:e2e",
+        "status": "failed",
+        "exitCode": 1,
+        "durationMs": 5517
+      },
+      {
+        "suite": "test:portal:e2e",
+        "status": "failed",
+        "exitCode": 1,
+        "durationMs": 34685
+      },
+      {
+        "suite": "test:sales-followups:e2e",
+        "status": "failed",
+        "exitCode": 1,
+        "durationMs": 45067
+      },
+      {
+        "suite": "test:v30:e2e",
+        "status": "failed",
+        "exitCode": 1,
+        "durationMs": 3574
+      }
+    ]
+  },
+  "browserRuns": [
+    {
+      "startedAt": "2026-10-16T15:57:02.422Z",
+      "finishedAt": "2026-10-16T16:01:58.266Z",
+      "expectedSuites": 32,
+      "passed": 32,
+      "failed": 0,
+      "suites": [
+        {
+          "suite": "test:superhub:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 13497
+        },
+        {
+          "suite": "test:team:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 6155
+        },
+        {
+          "suite": "test:omega-operations:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 10175
+        },
+        {
+          "suite": "test:omega-supervisor:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 17935
+        },
+        {
+          "suite": "test:access-calendar:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 7189
+        },
+        {
+          "suite": "test:native-core:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 17643
+        },
+        {
+          "suite": "test:leaderboard:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 6737
+        },
+        {
+          "suite": "test:archive-gates:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 1302
+        },
+        {
+          "suite": "test:omega-workspace:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 5681
+        },
+        {
+          "suite": "test:lead-table:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 6518
+        },
+        {
+          "suite": "test:map-filters:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 10030
+        },
+        {
+          "suite": "test:territories:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 10652
+        },
+        {
+          "suite": "test:users-map:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 7402
+        },
+        {
+          "suite": "test:customer-table:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 5584
+        },
+        {
+          "suite": "test:settings-workspace:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 5325
+        },
+        {
+          "suite": "test:business-hours:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 6919
+        },
+        {
+          "suite": "test:password-reset:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 5068
+        },
+        {
+          "suite": "test:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 13793
+        },
+        {
+          "suite": "test:finance:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 16418
+        },
+        {
+          "suite": "test:integrations:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 5329
+        },
+        {
+          "suite": "test:agreements:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 9046
+        },
+        {
+          "suite": "test:compatibility:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 7358
+        },
+        {
+          "suite": "test:leads:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 11252
+        },
+        {
+          "suite": "test:portal:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 5911
+        },
+        {
+          "suite": "test:providers:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 10096
+        },
+        {
+          "suite": "test:quotes:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 6616
+        },
+        {
+          "suite": "test:rotor-files:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 10809
+        },
+        {
+          "suite": "test:sales-followups:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 12128
+        },
+        {
+          "suite": "test:seller-sales:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 14625
+        },
+        {
+          "suite": "test:usability:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 8783
+        },
+        {
+          "suite": "test:v30-import:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 7858
+        },
+        {
+          "suite": "test:v30:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 11990
+        }
+      ]
+    },
+    {
+      "startedAt": "2026-10-16T16:03:00.529Z",
+      "finishedAt": "2026-10-16T16:08:06.365Z",
+      "expectedSuites": 32,
+      "passed": 31,
+      "failed": 1,
+      "suites": [
+        {
+          "suite": "test:superhub:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 18082
+        },
+        {
+          "suite": "test:team:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 7021
+        },
+        {
+          "suite": "test:omega-operations:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 14199
+        },
+        {
+          "suite": "test:omega-supervisor:e2e",
+          "status": "failed",
+          "exitCode": 1,
+          "durationMs": 19430
+        },
+        {
+          "suite": "test:access-calendar:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 10473
+        },
+        {
+          "suite": "test:native-core:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 13200
+        },
+        {
+          "suite": "test:leaderboard:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 6203
+        },
+        {
+          "suite": "test:archive-gates:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 1277
+        },
+        {
+          "suite": "test:omega-workspace:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 5364
+        },
+        {
+          "suite": "test:lead-table:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 5687
+        },
+        {
+          "suite": "test:map-filters:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 7489
+        },
+        {
+          "suite": "test:territories:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 10523
+        },
+        {
+          "suite": "test:users-map:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 8364
+        },
+        {
+          "suite": "test:customer-table:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 4955
+        },
+        {
+          "suite": "test:settings-workspace:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 5135
+        },
+        {
+          "suite": "test:business-hours:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 6827
+        },
+        {
+          "suite": "test:password-reset:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 5940
+        },
+        {
+          "suite": "test:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 14478
+        },
+        {
+          "suite": "test:finance:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 18637
+        },
+        {
+          "suite": "test:integrations:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 4987
+        },
+        {
+          "suite": "test:agreements:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 9340
+        },
+        {
+          "suite": "test:compatibility:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 7027
+        },
+        {
+          "suite": "test:leads:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 8094
+        },
+        {
+          "suite": "test:portal:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 11550
+        },
+        {
+          "suite": "test:providers:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 12807
+        },
+        {
+          "suite": "test:quotes:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 7014
+        },
+        {
+          "suite": "test:rotor-files:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 9919
+        },
+        {
+          "suite": "test:sales-followups:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 8734
+        },
+        {
+          "suite": "test:seller-sales:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 15497
+        },
+        {
+          "suite": "test:usability:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 9033
+        },
+        {
+          "suite": "test:v30-import:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 8208
+        },
+        {
+          "suite": "test:v30:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 10321
+        }
+      ]
+    },
+    {
+      "startedAt": "2026-10-16T16:09:45.655Z",
+      "finishedAt": "2026-10-16T16:14:29.966Z",
+      "expectedSuites": 32,
+      "passed": 32,
+      "failed": 0,
+      "suites": [
+        {
+          "suite": "test:superhub:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 14683
+        },
+        {
+          "suite": "test:team:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 7821
+        },
+        {
+          "suite": "test:omega-operations:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 11654
+        },
+        {
+          "suite": "test:omega-supervisor:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 17808
+        },
+        {
+          "suite": "test:access-calendar:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 6123
+        },
+        {
+          "suite": "test:native-core:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 14797
+        },
+        {
+          "suite": "test:leaderboard:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 5820
+        },
+        {
+          "suite": "test:archive-gates:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 1168
+        },
+        {
+          "suite": "test:omega-workspace:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 4684
+        },
+        {
+          "suite": "test:lead-table:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 5170
+        },
+        {
+          "suite": "test:map-filters:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 7994
+        },
+        {
+          "suite": "test:territories:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 11473
+        },
+        {
+          "suite": "test:users-map:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 8414
+        },
+        {
+          "suite": "test:customer-table:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 5710
+        },
+        {
+          "suite": "test:settings-workspace:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 5578
+        },
+        {
+          "suite": "test:business-hours:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 7041
+        },
+        {
+          "suite": "test:password-reset:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 4329
+        },
+        {
+          "suite": "test:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 14684
+        },
+        {
+          "suite": "test:finance:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 15760
+        },
+        {
+          "suite": "test:integrations:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 5709
+        },
+        {
+          "suite": "test:agreements:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 7701
+        },
+        {
+          "suite": "test:compatibility:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 7443
+        },
+        {
+          "suite": "test:leads:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 9165
+        },
+        {
+          "suite": "test:portal:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 5390
+        },
+        {
+          "suite": "test:providers:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 10015
+        },
+        {
+          "suite": "test:quotes:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 6428
+        },
+        {
+          "suite": "test:rotor-files:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 10227
+        },
+        {
+          "suite": "test:sales-followups:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 9962
+        },
+        {
+          "suite": "test:seller-sales:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 16685
+        },
+        {
+          "suite": "test:usability:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 8167
+        },
+        {
+          "suite": "test:v30-import:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 7453
+        },
+        {
+          "suite": "test:v30:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 9228
+        }
+      ]
+    }
+  ],
+  "supervisorRepeatsAfterFix": [
+    {
+      "startedAt": "2026-10-16T16:08:23.442Z",
+      "finishedAt": "2026-10-16T16:08:38.888Z",
+      "expectedSuites": 1,
+      "passed": 1,
+      "failed": 0,
+      "suites": [
+        {
+          "suite": "test:omega-supervisor:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 15443
+        }
+      ]
+    },
+    {
+      "startedAt": "2026-10-16T16:08:38.943Z",
+      "finishedAt": "2026-10-16T16:08:53.321Z",
+      "expectedSuites": 1,
+      "passed": 1,
+      "failed": 0,
+      "suites": [
+        {
+          "suite": "test:omega-supervisor:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 14375
+        }
+      ]
+    },
+    {
+      "startedAt": "2026-10-16T16:08:53.380Z",
+      "finishedAt": "2026-10-16T16:09:09.648Z",
+      "expectedSuites": 1,
+      "passed": 1,
+      "failed": 0,
+      "suites": [
+        {
+          "suite": "test:omega-supervisor:e2e",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 16265
+        }
+      ]
+    }
+  ],
+  "finalBrowserSourceHashes": {
+    "package.json": "706929197f3186375fa5ff7facdd52f2de7c616273fc4900d795ef4766cf93d6",
+    "package-lock.json": "dd48f41e8d30fecf29950a1b1653e8a2f1e67ff8a30a3cfe7549c6d504a85489",
+    "scripts/run-browser-suites.mjs": "dad441515f1835dd5f1edb440a141d40bd5342420105f09ee13fa016fff9aa29",
+    "tests/browser-suites.json": "255c55beeebeec377f9a31f481c299b03fbd21ebcfc8c2f7acbd59da0ee2a46a",
+    "tests/support/browser.mjs": "c49a92c851773171c132bf3d7d9ca3534ab5bdd7e819b9815e0bfc42b2626323",
+    "tests/browser-superhub.mjs": "f6e2fb8ec01ad902ab31f56c94b6173dd2c0c886461af7d5e343777b6ea7c495",
+    "tests/browser-team.mjs": "99ba5e5ad6b3dceccce2baacfc5b13d5f1b087d88e7369f217fb687d63d42a6f",
+    "tests/browser-omega-operations.mjs": "7ea19aa821b719c1e69da9eec18c8dd067b1e71f07e375e24629f0c43ac7f2dc",
+    "tests/browser-omega-supervisor.mjs": "93f5c8b1db8f7895f67cf2085f54000e69e9e2dc4aad783ee8924b1739441b27",
+    "tests/browser-access-calendar.mjs": "b7f5a6703cbeb0f71dc2a10860dda9cea1606422775170106fff5e37eb34cc20",
+    "tests/browser-native-core.mjs": "d3a99e0ad13a1598d74c6a16f516d26c35970d6dd6642ab8fd09caa0caafd737",
+    "tests/browser-leaderboard.mjs": "4a746a7612067cae760c807b3f669c4d3649e321377ea4eaf47870c537949686",
+    "tests/browser-archive-gates.mjs": "515b9c82af90b15f9abe6a7e99df9733e97cf093fd93a2a2b3d85a801144ab52",
+    "tests/browser-omega-workspace.mjs": "e6a666fbe43d137adeaf6a337a1b38020a3cab69f0049b69333f25dae9822b75",
+    "tests/browser-lead-table.mjs": "e955f18db1b8df2245aa1b124ed3f2bf8168ca567ae6e5ae6092e389156fbe58",
+    "tests/browser-map-filters.mjs": "989f3151c4cbf55595571a13ad13fc015fae86b392efa4523fd2a89c964ce528",
+    "tests/browser-territories.mjs": "4575c05fb9e4bee9434b74b2ee4f243f83dffcc630fc7b979b4d564470ff0fd6",
+    "tests/browser-users-map.mjs": "a173e54e68c626a20dc9b60977cae7acdb3014388269b06c53bf205fcc60d749",
+    "tests/browser-customer-table.mjs": "e07bf6a372faa3e66b769c47e968580427e07e83c7fbf8328bbd5c9adf1a332e",
+    "tests/browser-settings-workspace.mjs": "175e6a9bc58d1ff09491198b469a63fc201dbeda6eb02e8c74282dee714c5e58",
+    "tests/browser-business-hours.mjs": "53c5b2de03625a621ec080e697586603800d5d1f274ec3e249ce308af3347bab",
+    "tests/browser-password-reset.mjs": "66705c2e01daca21977ac41510ba1a19c44f9e6367b0a8a59da60fff9e10c4aa",
+    "tests/browser.mjs": "31659f5ce9b9a4ae11bf6f01336ba0b1a6301686674e06d6cec245cf59c9ddf1",
+    "tests/browser-finance.mjs": "bd8b762dda282d72abc0cc42d4b920528d435a77cc6b757f2bb49e0624ae20bf",
+    "tests/browser-integrations.mjs": "6c17ed5dd6d25a2155e3a9e37616d95844236b61cb2bc3b351faac7ebe1d530a",
+    "tests/browser-agreements.mjs": "3235c9acc3eca4cbf0332669ef7db0bcf754b01c439e6cbc420968c2314fb56d",
+    "tests/browser-compatibility.mjs": "dece863e13c1925649f354e30bd1aef13d54aec2a45b9d592dbe563aa6f21379",
+    "tests/browser-leads.mjs": "1c4fbe956ee0dc9727173b98cb4b3a4c6e420357a1269cd0e0c53ce12088204b",
+    "tests/browser-portal.mjs": "25711286c9f6e09f3ef27947d0f48f5e73b6c16fd94025d007423b87b44d3e44",
+    "tests/browser-providers.mjs": "c4bde2e46a65f503c4bc58ae81cffcbe181b80fe958f90bb33fa7ba070d5a733",
+    "tests/browser-quotes.mjs": "cffe0cb8dbd2246431c3947c20d86cdca59deb45a9d4706303aca5385834db4d",
+    "tests/browser-rotor-file-import.mjs": "32e4b667738cc376287e6980c6f81ea810323d53ba31d2cd3f10fff4baf217b5",
+    "tests/browser-sales-followups.mjs": "6e7d324898e995cd6cc5586b5b1113f883402f8008c4fc9da8adcb08af5ad7d4",
+    "tests/browser-seller-sales.mjs": "14d02a0649aff0c71966b3cdfa0e843ed55f76921fbebfeb14c4d2868991e2df",
+    "tests/browser-usability.mjs": "f297ce9c5ed8f7c06e2de60be359f69ee9a6042c0ceb4a6c9c5786b073eb5791",
+    "tests/browser-v30-import.mjs": "b027098b691b50191e19f80b20c2912cf6a8d3a8234cc571366140996e4d94e2",
+    "tests/browser-v30.mjs": "6e136caa9ebc3700d84f882fa13e2b152f52a0ab22fb094e73a35240f1249f55"
+  },
+  "remoteValidation": {
+    "githubAuditRun": "38924416504",
+    "githubIssue": 27,
+    "githubApi": "Forbidden",
+    "githubChecks": "UNVERIFIED",
+    "vercelPreview": "UNVERIFIED",
+    "pullRequestCreated": false,
+    "target": "develop",
+    "compareUrl": "https://github.com/boukthirelyes-gif/COO-Proclair/compare/develop...fix/proclair-full-crm-reliability?expand=1"
+  },
+  "productionModified": false,
+  "realClientDataModified": false,
+  "realProviderOperationsVerified": false,
+  "rawLocalArtifacts": ".local/reliability/"
+}

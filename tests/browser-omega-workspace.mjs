@@ -1,4 +1,4 @@
-import {chromium} from 'playwright';
+import {chromium} from './support/browser.mjs';
 import assert from 'node:assert/strict';
 if(!process.env.E2E_DATABASE_URL?.endsWith('/proclair_browser_test'))throw Error('Base navigateur séparée obligatoire.');
 const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});let checks=0;

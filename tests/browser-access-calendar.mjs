@@ -1,4 +1,4 @@
-import {chromium,request} from 'playwright';
+import {chromium,request} from './support/browser.mjs';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
