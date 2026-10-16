@@ -134,8 +134,9 @@ export async function GET(request: NextRequest) {
     if (path === 'health') {
       // SELECT 1 alone is insufficient: a database may connect while Prisma
       // fails to serve authenticated routes because its schema was not migrated.
-      const probe = await prisma.$queryRaw<Array<{loginBucket:string|null;customer:string|null;migrations:string|null}>>`
+      const probe = await prisma.$queryRaw<Array<{loginBucket:string|null;appUser:string|null;customer:string|null;migrations:string|null}>>`
         SELECT to_regclass('"LoginBucket"')::text AS "loginBucket",
+               to_regclass('"AppUser"')::text AS "appUser",
                to_regclass('"Customer"')::text AS "customer",
                to_regclass('"_proclair_migrations"')::text AS "migrations"
       `;
