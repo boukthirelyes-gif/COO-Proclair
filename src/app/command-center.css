@@ -77,3 +77,46 @@
 @media(max-width:1180px){.shell>aside{width:235px;padding:21px 11px}.shell>main{margin-left:235px;width:calc(100% - 235px);padding:24px 21px}.shell .dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.shell .dashboard-action-center .dashboard-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.shell .global-search-trigger{min-width:180px}}
 @media(max-width:700px){.shell>aside{position:relative;width:100%;padding:12px 16px;border-right:0;border-bottom:1px solid #34363f}.shell .brand{padding:0 0 9px;border:0;margin:0}.shell .brand>b{width:37px;height:37px;font-size:20px}.shell .brand>span{font-size:14px}.shell .brand-mark,.shell .nav-shortcuts{display:none}.shell>main{width:100%;margin-left:0;padding:18px 15px 100px}.shell .app-topbar{min-height:65px;padding-bottom:13px;margin-bottom:18px}.shell .app-topbar h1{font-size:24px}.shell .app-topbar-title small{display:none}.shell .app-topbar-title .eyebrow{font-size:8px}.shell .global-search-trigger{min-width:39px;width:39px;padding:6px}.shell .header-actions{gap:5px}.shell .header-actions>button:not(.global-search-trigger){padding:8px;font-size:11px}.shell .dashboard-hero{padding:21px;border-radius:17px;min-height:0;gap:18px}.shell .dashboard-hero:after{right:-20px;top:-22px;font-size:240px}.shell .dashboard-hero h2{font-size:32px}.shell .hero-summary{gap:6px}.shell .hero-summary>span{font-size:10px;padding:8px 9px}.shell .hero-side{flex:1 1 100%}.shell .hero-today{display:none}.shell .hero-side .quick-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.shell .dashboard-action-center{padding:15px}.shell .dashboard-action-center .dashboard-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.shell .dashboard-action-center .dashboard-actions button{padding:10px;font-size:11px}.shell .dashboard-stats{gap:9px}.shell .dashboard-stats .stat{min-height:120px;padding:15px}.shell .dashboard-stats .stat b{font-size:30px}.shell .two{gap:0}}
 }
+
+/* Prospecting Command Bar – visual-only map workspace shared by Google Maps and OSM. */
+@media screen{
+.shell .prospecting-workspace{padding:clamp(18px,2.1vw,30px);overflow:visible}
+.shell .prospecting-workspace>.panel-heading{align-items:center;margin-bottom:10px}
+.shell .prospecting-workspace>.panel-heading h2{font-size:clamp(24px,2.5vw,33px);letter-spacing:-.045em}
+.shell .prospecting-workspace>.panel-heading>.primary{background:#f26343;border-color:#f26343;font-weight:720}
+.shell .map-command-bar{background:linear-gradient(135deg,#303037,#28292f);border:1px solid #565059;border-radius:17px;padding:20px;margin:19px 0 16px}
+.shell .map-command-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:17px}
+.shell .map-command-heading h3{font-size:20px;letter-spacing:-.045em;margin:5px 0}
+.shell .map-command-heading p{color:#b7b7c0;font-size:12px;margin:5px 0 0}
+.shell .map-command-heading .eyebrow{color:#ffab8b}
+.shell .map-source{flex:none;text-align:right;color:#ffcca9;background:#332b2b;border:1px solid #725343;border-radius:12px;padding:9px 12px;font-size:12px;font-weight:720}
+.shell .map-source-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#71daa2;margin-right:6px;box-shadow:0 0 11px #71daa277}
+.shell .map-source small{color:#b8b2b6;font-size:10px;margin-top:4px}
+.shell .map-fast-filters{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:15px}
+.shell .map-fast-filters button{display:flex;align-items:center;gap:8px;background:#27282f;border:1px solid #51515a;border-radius:10px;padding:10px 12px;min-height:42px;color:#d2d2db;font-size:12px}
+.shell .map-fast-filters button[aria-pressed=true]{background:#51352f;border-color:#ff9571;color:#fff;box-shadow:inset 0 -2px #ff8663}
+.shell .map-fast-filters i{height:9px;width:9px;border-radius:50%;flex:none}
+.shell .map-fast-filters button b{color:#efeff2;border-radius:7px;padding:2px 5px;background:#44444c;font-size:10px}
+.shell .map-sector-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-top:13px;border-top:1px solid #494950}
+.shell .map-sector-controls label{font-size:12px;font-weight:700;color:#e3e3e8}
+.shell .map-sector-controls select{max-width:240px;min-width:175px;width:auto;flex:1;padding:10px}
+.shell .map-sector-controls button{background:#ff684a;border-color:#ff684a;color:#fff;font-weight:700;white-space:nowrap}
+.shell .map-sector-controls a{font-size:12px;color:#ffb399;padding:10px 4px;text-decoration:underline;text-underline-offset:3px}
+.shell .prospecting-workspace .toolbar{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:16px}
+.shell .prospecting-workspace .toolbar>select,.shell .prospecting-workspace .toolbar>input{width:auto;min-width:170px;flex:1}
+.shell .prospecting-workspace .toolbar>label{min-width:140px}
+.shell .prospecting-workspace .toolbar>button{white-space:nowrap}
+.shell .prospecting-map-large{height:650px;min-height:520px;border:1px solid #66616b;border-radius:17px;overflow:hidden;box-shadow:0 16px 32px #07070b60}
+.shell .prospecting-map-large:fullscreen{width:100vw;height:100vh;max-height:none;border:0;border-radius:0}
+.map-google-setup{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:19px 23px;background:#342c2c;border:1px solid #966349;border-left:4px solid #ff7954;border-radius:15px;margin:0 0 20px;color:#f5f5f6}
+.map-google-setup .eyebrow{display:block;color:#ffb399;margin-bottom:5px}
+.map-google-setup strong{display:block;color:#fff;font-size:17px}
+.map-google-setup p{font-size:12px;color:#d8caca;max-width:810px;line-height:1.6;margin:7px 0}
+.map-google-setup b{color:#fff}
+.map-google-setup code{overflow-wrap:anywhere}
+.map-google-setup-actions{display:flex;gap:8px;flex-wrap:wrap;flex:0 0 195px}
+.map-google-setup-actions a{display:block;padding:11px 12px;text-decoration:none;border:1px solid #a96850;border-radius:10px;color:#fff;font-size:12px;font-weight:710;width:100%;text-align:center;background:#5a392f}
+.map-google-setup-actions a:hover{background:#714537}
+@media(max-width:900px){.map-google-setup{display:block}.map-google-setup-actions{margin-top:12px}.map-google-setup-actions a{width:auto}.shell .map-command-heading{display:block}.shell .map-source{margin-top:12px;text-align:left;display:inline-block}}
+@media(max-width:700px){.shell .prospecting-workspace{padding:14px}.shell .map-command-bar{padding:14px;margin:13px 0}.shell .map-command-heading h3{font-size:19px}.shell .map-fast-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.shell .map-fast-filters button{font-size:11px;padding:10px}.shell .map-sector-controls{align-items:stretch}.shell .map-sector-controls label{width:100%}.shell .map-sector-controls select{max-width:none;min-width:0;width:100%}.shell .map-sector-controls button{flex:1}.shell .map-sector-controls a{width:100%;text-align:center}.shell .prospecting-map-large{height:490px;min-height:400px}.shell .prospecting-workspace .toolbar>select,.shell .prospecting-workspace .toolbar>input{width:100%}.map-google-setup{padding:14px}.map-google-setup-actions{display:grid;grid-template-columns:1fr 1fr}.map-google-setup-actions a{width:100%;padding:9px;font-size:11px}}
+}
