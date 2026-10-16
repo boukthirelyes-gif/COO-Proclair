@@ -1,0 +1,20 @@
+import {Prisma,type PrismaClient} from '@prisma/client';
+import {z} from 'zod';
+import {DomainError} from '../domain/rules';
+import {requirePermission,type AccessActor} from '../lib/access';
+import {mapQuery,mapWhere} from './query';
+export const viewportQuery=mapQuery.extend({south:z.coerce.number().finite().min(-90).max(90),north:z.coerce.number().finite().min(-90).max(90),west:z.coerce.number().finite().min(-180).max(180),east:z.coerce.number().finite().min(-180).max(180),zoom:z.coerce.number().int().min(0).max(22)}).strict().refine(v=>v.south<=v.north,'Limites géographiques invalides.');
+const projectedY=(lat:number)=>{const r=Math.max(-85.05112878,Math.min(85.05112878,lat))*Math.PI/180;return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2};
+export type MapPoint={id:string|null;address:string|null;latitude:number;longitude:number;status:string|null;color:string|null;count:number;south:number;north:number;west:number;east:number;viewport:true};
+export async function prospectingViewport(db:PrismaClient,input:unknown,actor:AccessActor,schema='public'){
+ requirePermission(actor,'map.read');if(!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(schema))throw new DomainError('INVALID_SCHEMA','Stockage invalide.',500);
+ const v=viewportQuery.parse(input),{south,north,west,east,zoom,...filters}=v,where=mapWhere(filters,actor),parts:Prisma.Sql[]=[Prisma.sql`p.latitude BETWEEN ${south} AND ${north}`,west<=east?Prisma.sql`p.longitude BETWEEN ${west} AND ${east}`:Prisma.sql`(p.longitude>=${west} OR p.longitude<=${east})`];
+ if(where.ownerId)parts.push(Prisma.sql`p."ownerId"=${where.ownerId}`);
+ for(const name of ['status','typeId','territoryId'] as const)if(v[name])parts.push(Prisma.sql`${Prisma.raw('p."'+name+'"')}=${v[name]}`);
+ if(where.createdAt?.gte)parts.push(Prisma.sql`p."createdAt">=${where.createdAt.gte}`);if(where.createdAt?.lt)parts.push(Prisma.sql`p."createdAt"<${where.createdAt.lt}`);
+ if(v.search){const search='%'+v.search.replace(/[\\%_]/g,'\\$&')+'%';parts.push(Prisma.sql`(p.address ILIKE ${search} OR p.notes ILIKE ${search})`)}
+ const scale=256*2**zoom,width=(east>=west?east-west:360-west+east)/360*scale,height=Math.abs(projectedY(south)-projectedY(north))*scale,cell=Math.max(60,width/20,height/20),table=Prisma.raw('"'+schema+'"."ProspectPin"'),types=Prisma.raw('"'+schema+'"."MapPinType"');
+ const rows=await db.$queryRaw<MapPoint[]>(Prisma.sql`WITH eligible AS (SELECT p.id,p.address,p.latitude,p.longitude,p.status,t.color,((p.longitude+180)/360.0+CASE WHEN ${west>east} AND p.longitude<${west} THEN 1 ELSE 0 END)*${scale} AS x,(1-ln(tan(radians(greatest(-85.05112878,least(85.05112878,p.latitude))))+1/cos(radians(greatest(-85.05112878,least(85.05112878,p.latitude)))))/pi())/2*${scale} AS y FROM ${table} p LEFT JOIN ${types} t ON t.id=p."typeId" WHERE ${Prisma.join(parts,' AND ')}), bucketed AS (SELECT *,floor(x/${cell}) AS gx,floor(y/${cell}) AS gy FROM eligible) SELECT CASE WHEN count(*)=1 THEN min(id) ELSE NULL END AS id,CASE WHEN count(*)=1 THEN min(address) ELSE NULL END AS address,avg(latitude)::float8 AS latitude,CASE WHEN ${west>east} THEN CASE WHEN avg(CASE WHEN longitude<${west} THEN longitude+360 ELSE longitude END)>180 THEN avg(CASE WHEN longitude<${west} THEN longitude+360 ELSE longitude END)-360 ELSE avg(CASE WHEN longitude<${west} THEN longitude+360 ELSE longitude END) END ELSE avg(longitude) END::float8 AS longitude,CASE WHEN count(*)=1 THEN min(status) ELSE NULL END AS status,CASE WHEN count(*)=1 THEN min(color) ELSE NULL END AS color,count(*)::int AS count,min(latitude)::float8 AS south,max(latitude)::float8 AS north,min(longitude)::float8 AS west,max(longitude)::float8 AS east,true AS viewport FROM bucketed GROUP BY gx,gy ORDER BY gx,gy LIMIT 513`);
+ if(rows.length>512)throw new DomainError('MAP_DENSITY_LIMIT','Réduisez la zone affichée.',413);
+ return {points:rows,total:rows.reduce((sum,p)=>sum+p.count,0),markerCount:rows.length,maxMarkers:512,cellPixels:cell,scope:actor.permissions.includes('map.all')?'AUTHORIZED_TEAM':'OWN_ONLY',bounds:{south,north,west,east},zoom,source:'POSTGRESQL_VIEWPORT'};
+}

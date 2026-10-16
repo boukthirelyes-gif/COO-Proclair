@@ -432,6 +432,8 @@ model AppUser {
  pins ProspectPin[]
 }
 model ProspectPin {
+ @@index([ownerId,latitude,longitude])
+ @@index([latitude,longitude])
  @@index([createdAt,id])
  @@index([ownerId,createdAt,id])
  territoryId String?

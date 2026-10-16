@@ -1,3 +1,4 @@
+import {prospectingViewport} from '@/prospecting/viewport';
 import {CommunicationCenter} from '@/providers/communication-center';
 import {StripeEnterprise} from '@/providers/stripe-enterprise';
 import {stripeAdmin} from '@/providers/stripe-modes';
@@ -195,6 +196,7 @@ export async function GET(request: NextRequest) {
     if(path==='leads')return NextResponse.json(await leads.list(actor));
     if(/^leads\/[^/]+\/history$/.test(path))return NextResponse.json(await leads.history(path.split('/')[1],actor));
     if(/^leads\/[^/]+$/.test(path))return NextResponse.json(await leads.get(path.split('/')[1],actor));
+    if(path==='prospecting/viewport')return NextResponse.json(await prospectingViewport(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(/^prospecting\/[^/]+$/.test(path))return NextResponse.json(await prospecting.get(path.split('/')[1],actor));
     if(path==='system/health')return NextResponse.json(await systemHealth(prisma),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='system/parity')return NextResponse.json(parity);
@@ -243,7 +245,7 @@ export async function GET(request: NextRequest) {
     }
     if (path === 'state') {
       const capabilities={actor,permissions:actor.permissions};
-      if(!actor.permissions.includes('crm.read'))return NextResponse.json({...capabilities,customers:[],properties:[],contracts:[],jobs:[],visits:[],technicians:[],audits:[],plans:[]});
+      if(request.nextUrl.searchParams.get('scope')==='map'||!actor.permissions.includes('crm.read'))return NextResponse.json({...capabilities,scope:request.nextUrl.searchParams.get('scope')==='map'?'MAP':'CAPABILITIES',customers:[],properties:[],contracts:[],jobs:[],visits:[],technicians:[],audits:[],plans:[]});
       const [customers,properties,contracts,jobs,visits,technicians,audits,plans] = await Promise.all([service.listCustomers(),service.listProperties(),service.listContracts(),service.listJobs(),service.listVisits(),service.listTechnicians(),actor.permissions.includes('audit')?service.listAudit():Promise.resolve([]),actor.permissions.includes('omega')?prisma.omegaPlan.findMany({orderBy:{createdAt:'desc'},take:30}):Promise.resolve([])]);
       return NextResponse.json({...capabilities,customers,properties,contracts,jobs,visits,technicians,audits:actor.permissions.includes('audit')?audits:[],plans:actor.permissions.includes('omega')?plans:[]});
     }
