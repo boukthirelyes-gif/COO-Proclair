@@ -1,3 +1,4 @@
+import {googleMapsBrowserConfiguration} from '@/prospecting/google-config';
 import {prospectingViewport} from '@/prospecting/viewport';
 import {CommunicationCenter} from '@/providers/communication-center';
 import {StripeEnterprise} from '@/providers/stripe-enterprise';
@@ -208,6 +209,7 @@ export async function GET(request: NextRequest) {
     if(path==='leads')return NextResponse.json(await leads.list(actor));
     if(/^leads\/[^/]+\/history$/.test(path))return NextResponse.json(await leads.history(path.split('/')[1],actor));
     if(/^leads\/[^/]+$/.test(path))return NextResponse.json(await leads.get(path.split('/')[1],actor));
+    if(path==='prospecting/map-config')return NextResponse.json(googleMapsBrowserConfiguration(process.env),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='prospecting/viewport')return NextResponse.json(await prospectingViewport(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(/^prospecting\/[^/]+$/.test(path))return NextResponse.json(await prospecting.get(path.split('/')[1],actor));
     if(path==='system/health')return NextResponse.json(await systemHealth(prisma),{headers:{'Cache-Control':'private, no-store'}});
