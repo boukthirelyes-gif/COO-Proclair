@@ -127,7 +127,7 @@ jobs:
           npm run test:password-reset:e2e
       - name: Save server diagnostics on browser failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: proclair-browser-server-diagnostics
           path: |
