@@ -27,6 +27,7 @@ import {RotorImportService} from '@/lib/rotor-import';
 import {globalSearch} from '@/lib/global-search';
 import {LeadService} from '@/sales/leads';
 import parity from '@/data/rotor-parity.json';
+import {commissionImpact} from '@/finance/commission-impact';
 import {systemHealth} from '@/lib/system-health';
 import {RotorCapabilityRegistry} from '@/lib/rotor-capabilities';
 import {RotorMapService,validateRotorSchema} from '@/lib/rotor-map';
@@ -51,7 +52,7 @@ import {nativeExport} from '@/lib/native-export';
 import {ClientPortal} from '@/sales/client-portal';
 import {QuoteService} from '@/sales/quotes';
 import { FinanceService } from '@/finance/service';
-import {invoiceDocument,invoiceDocumentCsp} from '@/lib/invoice-document';
+import {invoiceDocument,invoiceDocumentCsp,paymentReceipt} from '@/lib/invoice-document';
 import {csvRows, sumCents} from '@/lib/finance-export';
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -174,6 +175,7 @@ export async function GET(request: NextRequest) {
       const result=await exportCalendar(prisma,{start:request.nextUrl.searchParams.get('start'),end:request.nextUrl.searchParams.get('end')},actor);
       return new NextResponse(result.content,{headers:{'Content-Type':'text/calendar; charset=utf-8','Content-Disposition':'attachment; filename=proclair-planning.ics','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','X-Calendar-Events':String(result.eventCount),'X-Calendar-Skipped':String(result.skippedCount)}});
     }
+    if(path==='finance/commission-impact')return NextResponse.json(await commissionImpact(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store','Content-Disposition':'attachment; filename=proclair-commission-impact.json'}});
     if(path==='sales/leaderboard')return NextResponse.json(await annualLeaderboard(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='operations/dispatch')return NextResponse.json(await nativeDispatch(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='omega/supervisor/mission')return NextResponse.json(await supervisor.detail(Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
@@ -222,6 +224,7 @@ export async function GET(request: NextRequest) {
       const rows = kind==='expenses' ? expenses : kind==='invoices' ? invoices.map(invoice=>({...invoice,customer:invoice.customer.name})) : payments.map(payment=>({...payment,invoice:payment.invoice.number||payment.invoice.id,customer:payment.invoice.customer.name,currency:payment.invoice.currency,createdAt:payment.createdAt.toISOString(),reversalReason:payment.reversal?.reason||''}));
       return new NextResponse(csvRows(columns,rows),{headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':`attachment; filename="proclair-${kind}.csv"`,'Cache-Control':'no-store'}});
     }
+    if(/^payments\/[^/]+\/receipt$/.test(path)){const receipt=await finance.getReceipt(path.split('/')[1]);return new NextResponse(paymentReceipt(receipt.invoice,receipt.payment),{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'private, no-store','Content-Security-Policy':invoiceDocumentCsp,'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'}});}
     if (/^invoices\/[^/]+\/print$/.test(path)) {
       const invoice=await finance.getInvoice(path.split('/')[1]);
       return new NextResponse(invoiceDocument(invoice),{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'private, no-store','Content-Security-Policy':invoiceDocumentCsp,'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'}});
@@ -291,6 +294,7 @@ async function mutate(request: NextRequest) {
     if(/^integrations\/communications\/followups\/[^/]+$/.test(path)&&request.method==='PATCH')return NextResponse.json(await new CommunicationFollowUps(prisma).review(path.split('/')[3],input,actor));
     if(path==='technicians'&&request.method==='POST')return NextResponse.json(await new TechnicianSettings(prisma).save(null,input,actor),{status:201});
     if(/^technicians\/[^/]+$/.test(path)&&request.method==='PATCH')return NextResponse.json(await new TechnicianSettings(prisma).save(path.split('/')[1],input,actor));
+    if(/^invoices\/from-visit\/[^/]+$/.test(path)&&request.method==='POST')return NextResponse.json(await finance.invoiceCompletedVisit(path.split('/')[2],input,actor),{status:201});
     if(path==='finance/stripe/checkout'&&request.method==='POST')return NextResponse.json(await new StripePayments(prisma).checkout(input,actor));
     if(path==='finance/stripe/inspect'&&request.method==='POST')return NextResponse.json(await inspectStripeTest(input,actor));
     if (path === 'session/logout') { const response = NextResponse.json({ok:true}); response.cookies.set(sessionCookie,'',{path:'/',maxAge:0}); return response; }

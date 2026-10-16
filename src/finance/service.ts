@@ -1,23 +1,25 @@
 import {createHash} from 'node:crypto';
 import {Prisma,PrismaClient} from '@prisma/client';
 import {z} from 'zod';
+import {priceLine} from './line-pricing';
 import {Actor,authorize,DomainError} from '../domain/rules';
 const text=z.string().trim().min(1).max(500),id=z.string().min(1).max(100),key=z.string().min(8).max(200),version=z.number().int().positive();
 const cents=z.number().int().min(0).max(2147483647);
 const day=z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(v=>{const d=new Date(v+'T00:00:00Z');return Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===v;},'Date ISO valide requise');
-export const invoiceItemSchema=z.object({description:text,quantity:z.number().int().min(1).max(1000000),unitPriceCents:cents,taxRateBps:z.number().min(0).max(10000).refine(v=>Math.abs(v*1000-Math.round(v*1000))<0.000001,'Trois décimales maximum pour les points de base.').default(0)}).strict();
+export const invoiceItemSchema=z.object({description:text,quantity:z.number().int().min(1).max(1000000),unitPriceCents:cents,discountCents:cents.optional(),taxMode:z.enum(['CUSTOM','QUEBEC']).optional(),taxRateBps:z.number().min(0).max(10000).refine(v=>Math.abs(v*1000-Math.round(v*1000))<0.000001,'Trois décimales maximum pour les points de base.').default(0)}).strict();
 export const createInvoiceSchema=z.object({customerId:id,contractId:id.optional(),dueDate:day,currency:z.literal('CAD').default('CAD'),items:z.array(invoiceItemSchema).min(1).max(100),idempotencyKey:key}).strict();
 export const updateDraftSchema=z.object({expectedVersion:version,dueDate:day,items:z.array(invoiceItemSchema).min(1).max(100)}).strict();
 export const issueInvoiceSchema=z.object({expectedVersion:version}).strict();
 export const voidInvoiceSchema=z.object({expectedVersion:version,reason:text}).strict();
 export const paymentSchema=z.object({expectedVersion:version,amountCents:cents.refine(v=>v>0),method:z.enum(['CASH','BANK_TRANSFER','CHEQUE','OTHER']),reference:z.string().trim().max(500).optional(),note:z.string().trim().max(2000).optional(),idempotencyKey:key}).strict();
 export const reversalSchema=z.object({expectedVersion:version,reason:text}).strict();
-const include={items:{orderBy:{position:'asc' as const}},payments:{include:{reversal:true}},customer:true,contract:true};
+const include={sourceVisit:true,items:{orderBy:{position:'asc' as const}},payments:{include:{reversal:true}},customer:true,contract:true};
 type Tx=Prisma.TransactionClient;
 const json=(v:unknown)=>JSON.parse(JSON.stringify(v)) as Prisma.InputJsonValue;
 const hash=(v:unknown)=>createHash('sha256').update(JSON.stringify(v)).digest('hex');
 function checked(n:bigint){if(n<0n||n>2147483647n)throw new DomainError('AMOUNT_OVERFLOW','Le montant dépasse la limite prise en charge.');return Number(n);}
-export function calculateItems(items:z.infer<typeof invoiceItemSchema>[]){let subtotal=0n,taxes=0n;const lines=items.map((item,position)=>{const amount=BigInt(item.quantity)*BigInt(item.unitPriceCents),tax=(amount*BigInt(Math.round(item.taxRateBps*1000))+5000000n)/10000000n;subtotal+=amount;taxes+=tax;return {...item,position,subtotalCents:checked(amount),taxCents:checked(tax)};});return {items:lines,subtotalCents:checked(subtotal),taxCents:checked(taxes),totalCents:checked(subtotal+taxes)};}
+export function calculateItems(items:z.infer<typeof invoiceItemSchema>[]){let subtotal=0n,taxes=0n;const lines=items.map((item,position)=>{const {net:amount,tax,gst,qst}=priceLine(item);subtotal+=amount;taxes+=tax;return {...item,discountCents:item.discountCents??0,taxMode:item.taxMode??'CUSTOM',taxRateBps:item.taxMode==='QUEBEC'?1497.5:item.taxRateBps,gstCents:checked(gst),qstCents:checked(qst),position,subtotalCents:checked(amount),taxCents:checked(tax)};});return {items:lines,subtotalCents:checked(subtotal),taxCents:checked(taxes),totalCents:checked(subtotal+taxes)};}
+
 function dto(row:any){const paidCents=row.payments.filter((p:any)=>!p.reversal).reduce((sum:number,p:any)=>sum+p.amountCents,0);const balanceCents=row.totalCents-paidCents;return {...row,items:row.items.map((item:any)=>({...item,taxRateBps:Number(item.taxRateBps)})),paidCents,balanceCents,status:row.status==='ISSUED'?(balanceCents===0?'PAID':paidCents>0?'PARTIAL':'ISSUED'):row.status};}
 function required<T>(v:T|null):T{if(!v)throw new DomainError('NOT_FOUND','Facture ou paiement introuvable.',404);return v;}
 function human(actor:Actor){authorize(actor);if(actor.role==='OMEGA')throw new DomainError('APPROVAL_REQUIRED','Action financière réservée à un humain.',403);}
@@ -30,8 +32,32 @@ export class FinanceService {
  async readState(){return this.db.$transaction(async tx=>({expenses:await tx.expense.findMany({orderBy:{paidDate:'desc'}}),invoices:(await tx.invoice.findMany({include,orderBy:{createdAt:'desc'}})).map(dto),payments:(await tx.payment.findMany({include:{reversal:true,invoice:{include:{customer:true,contract:true}}},orderBy:{createdAt:'desc'}})).map(p=>({...p,status:p.reversal?'REVERSED':'ACTIVE'}))}),{isolationLevel:Prisma.TransactionIsolationLevel.RepeatableRead});}
  async listInvoices(){return (await this.db.invoice.findMany({include,orderBy:{createdAt:'desc'}})).map(dto);}
  async getInvoice(invoiceId:string){return dto(required(await this.db.invoice.findUnique({where:{id:invoiceId},include})));}
+ async getReceipt(paymentId:string){const payment=required(await this.db.payment.findUnique({where:{id:paymentId},include:{reversal:true,invoice:{include}}}));return {payment,invoice:dto(payment.invoice)}}
  async listPayments(){return (await this.db.payment.findMany({include:{reversal:true,invoice:{include:{customer:true,contract:true}}},orderBy:{createdAt:'desc'}})).map(p=>({...p,status:p.reversal?'REVERSED':'ACTIVE'}));}
  async createInvoice(input:unknown,actor:Actor){authorize(actor);const data=createInvoiceSchema.parse(input),payloadHash=hash(data),totals=calculateItems(data.items);return this.transaction(async tx=>{const prior=await tx.invoice.findUnique({where:{idempotencyKey:data.idempotencyKey},include});if(prior){if(prior.payloadHash!==payloadHash)throw new DomainError('IDEMPOTENCY_CONFLICT','Clé utilisée pour une autre facture.',409);return dto(prior);}required(await tx.customer.findUnique({where:{id:data.customerId}}));if(data.contractId){const c=required(await tx.contract.findUnique({where:{id:data.contractId}}));if(c.customerId!==data.customerId)throw new DomainError('RELATION_MISMATCH','Le contrat doit appartenir au client.');}const {items,...amounts}=totals;const row=await tx.invoice.create({data:{customerId:data.customerId,contractId:data.contractId,dueDate:data.dueDate,currency:data.currency,idempotencyKey:data.idempotencyKey,payloadHash,...amounts,items:{create:items}},include});await audit(tx,actor,'INVOICE_DRAFT',row.id,null,row);return dto(row);});}
+ async invoiceCompletedVisit(visitId:string,input:unknown,actor:Actor){
+  human(actor);
+  const v=z.object({expectedVisitVersion:version,dueDate:day,idempotencyKey:key}).strict().parse(input);
+  return this.transaction(async tx=>{
+   await tx.$executeRaw`SELECT pg_advisory_xact_lock(714928365)`;
+   const visit=required(await tx.visit.findUnique({where:{id:visitId},include:{contract:{include:{agreement:true}}}}));
+   const keyOwner=await tx.invoice.findUnique({where:{idempotencyKey:v.idempotencyKey}});if(keyOwner&&keyOwner.sourceVisitId!==visitId)throw new DomainError('IDEMPOTENCY_CONFLICT','Cette clé est utilisée pour une autre facture.',409);
+   const previous=await tx.invoice.findUnique({where:{sourceVisitId:visitId},include});
+   if(previous){if(previous.dueDate!==v.dueDate)throw new DomainError('IDEMPOTENCY_CONFLICT','Cette visite possède déjà une facture avec une autre échéance.',409);return dto(previous)}
+   if(await tx.invoice.findFirst({where:{contractId:visit.contractId,sourceVisitId:null,status:{not:'VOID'}}}))throw new DomainError('EXISTING_CONTRACT_INVOICE_REVIEW','Une facture sans passage existe déjà pour ce contrat. Rapprochez-la avant de facturer la visite.',409);
+   if(visit.version!==v.expectedVisitVersion)throw new DomainError('VERSION_CONFLICT','La visite a changé.',409);
+   if(visit.status!=='COMPLETED')throw new DomainError('VISIT_NOT_COMPLETED','Terminez l’intervention avant facturation.',409);
+   const agreement=visit.contract.agreement;
+   if(!agreement||agreement.status!=='SIGNED'||!visit.contract.active)throw new DomainError('AGREEMENT_NOT_SIGNED','Contrat signé et actif requis.',409);
+   const lines=(agreement.lines as any[]).filter(line=>line.passageNumber===visit.passageNumber);
+   if(!lines.length)throw new DomainError('MISSING_CONTRACT_LINES','Aucune ligne contractuelle pour ce passage.',409);
+   const totals=calculateItems(lines.map(({description,quantity,unitPriceCents,discountCents,taxRateBps,taxMode})=>invoiceItemSchema.parse({description,quantity,unitPriceCents,discountCents,taxRateBps,taxMode})));
+   if(totals.subtotalCents!==visit.priceCents)throw new DomainError('CONTRACT_PRICE_MISMATCH','Le prix de la visite diffère du contrat signé.',409);
+   const {items,...amounts}=totals;
+   const row=await tx.invoice.create({data:{sourceVisitId:visit.id,customerId:visit.customerId,contractId:visit.contractId,dueDate:v.dueDate,idempotencyKey:v.idempotencyKey,payloadHash:hash({visitId,...v}),...amounts,items:{create:items}},include});
+   await audit(tx,actor,'COMPLETED_VISIT_INVOICED',row.id,null,{visitId:visit.id,contractId:visit.contractId,agreementId:agreement.id,totalCents:row.totalCents});return dto(row);
+  });
+ }
  async updateDraft(invoiceId:string,input:unknown,actor:Actor){authorize(actor);const data=updateDraftSchema.parse(input),totals=calculateItems(data.items);return this.transaction(async tx=>{const before=required(await tx.invoice.findUnique({where:{id:invoiceId},include}));current(before,data.expectedVersion);if(before.status!=='DRAFT')throw new DomainError('IMMUTABLE_INVOICE','Seul un brouillon peut être modifié.');await tx.invoiceItem.deleteMany({where:{invoiceId}});const {items,...amounts}=totals;const row=await tx.invoice.update({where:{id:invoiceId,version:data.expectedVersion},data:{dueDate:data.dueDate,...amounts,items:{create:items},version:{increment:1}},include});await audit(tx,actor,'INVOICE_DRAFT_UPDATED',invoiceId,before,row);return dto(row);});}
  async issueInvoice(invoiceId:string,input:unknown,actor:Actor){human(actor);const data=issueInvoiceSchema.parse(input);return this.transaction(async tx=>{const before=required(await tx.invoice.findUnique({where:{id:invoiceId},include}));current(before,data.expectedVersion);if(before.status!=='DRAFT')throw new DomainError('INVALID_TRANSITION','Seul un brouillon peut être émis.');const counter=await tx.invoiceCounter.upsert({where:{id:'PROCLAIR'},create:{id:'PROCLAIR',value:1},update:{value:{increment:1}}});const row=await tx.invoice.update({where:{id:invoiceId,version:data.expectedVersion},data:{number:`PC-${String(counter.value).padStart(6,'0')}`,issuerSnapshot:json(await tx.businessProfile.findUnique({where:{id:'proclair'}})??{}),issuedAt:new Date(),status:'ISSUED',version:{increment:1}},include});await audit(tx,actor,'INVOICE_ISSUED',invoiceId,before,row);return dto(row);});}
  async voidInvoice(invoiceId:string,input:unknown,actor:Actor){human(actor);const data=voidInvoiceSchema.parse(input);return this.transaction(async tx=>{const before=required(await tx.invoice.findUnique({where:{id:invoiceId},include}));current(before,data.expectedVersion);if(!['DRAFT','ISSUED'].includes(before.status)||dto(before).paidCents!==0)throw new DomainError('INVALID_TRANSITION','Seule une facture brouillon ou émise sans paiement actif peut être annulée.');const row=await tx.invoice.update({where:{id:invoiceId,version:data.expectedVersion},data:{status:'VOID',voidReason:data.reason,version:{increment:1}},include});await audit(tx,actor,'INVOICE_VOID',invoiceId,before,row);return dto(row);});}

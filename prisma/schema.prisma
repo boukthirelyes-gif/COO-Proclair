@@ -102,6 +102,7 @@ model Technician {
  visits Visit[]
 }
 model Visit {
+ invoice Invoice?
  id String @id @default(cuid())
  customerId String
  propertyId String
@@ -216,6 +217,8 @@ model WorkerJob {
 }
 
 model Invoice {
+ sourceVisitId String? @unique
+ sourceVisit Visit? @relation(fields:[sourceVisitId],references:[id],onDelete:Restrict)
  stripeCheckouts StripeCheckout[]
  issuerSnapshot Json?
  sourceQuote Quote? @relation("ConvertedQuote")
@@ -241,6 +244,10 @@ model Invoice {
  payments Payment[]
 }
 model InvoiceItem {
+ discountCents Int @default(0)
+ taxMode String @default("CUSTOM")
+ gstCents Int @default(0)
+ qstCents Int @default(0)
  id String @id @default(cuid())
  invoiceId String
  invoice Invoice @relation(fields: [invoiceId], references: [id])
@@ -823,4 +830,13 @@ model CommunicationFollowUp {
  updatedAt DateTime @updatedAt
  @@index([phone,status,dueAt])
  @@index([status,dueAt])
+}
+
+model CommissionPolicy {
+ id String @id
+ basis String
+ application String
+ timezone String
+ tiers Json
+ registeredAt DateTime @default(now())
 }
