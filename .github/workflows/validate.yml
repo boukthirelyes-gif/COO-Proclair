@@ -16,10 +16,10 @@ jobs:
       DATABASE_URL: postgresql://proclair:ci_only_password@localhost:5433/proclair_test
       TEST_DATABASE_URL: postgresql://proclair:ci_only_password@localhost:5433/proclair_test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -53,8 +53,8 @@ jobs:
       TWILIO_SEND_ENABLED: 'false'
       TWILIO_VOICE_ENABLED: 'false'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -125,3 +125,13 @@ jobs:
       - run: |
           node tests/reset-browser-login-attempts.mjs
           npm run test:password-reset:e2e
+      - name: Save server diagnostics on browser failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: proclair-browser-server-diagnostics
+          path: |
+            /tmp/proclair-browser.log
+            /tmp/proclair-preview.log
+          retention-days: 7
+          if-no-files-found: ignore
