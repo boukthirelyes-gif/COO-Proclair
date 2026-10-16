@@ -888,3 +888,54 @@ model StripeEventDecision {
  createdAt DateTime @default(now())
  @@index([receiptId,createdAt])
 }
+
+model CommunicationPreference {
+ customerId String @id
+ doNotDisturb Boolean @default(false)
+ emailGranted Boolean @default(false)
+ emailOptedOut Boolean @default(false)
+ voiceGranted Boolean @default(false)
+ evidence String
+ updatedAt DateTime @updatedAt
+}
+model CommunicationDispatch {
+ id String @id @default(cuid())
+ customerId String
+ channel String
+ template String
+ destination String
+ subject String?
+ body String
+ sourceKind String?
+ sourceId String?
+ sourceHash String?
+ dueAt DateTime
+ status String @default("DRAFT")
+ idempotencyKey String @unique
+ payloadHash String
+ providerId String? @unique
+ errorCode String?
+ createdBy String
+ approvedBy String?
+ approvedAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([customerId,createdAt])
+ @@index([status,dueAt])
+}
+model CommunicationNote {
+ id String @id @default(cuid())
+ customerId String
+ callSid String?
+ body String
+ createdBy String
+ createdAt DateTime @default(now())
+ @@index([customerId,createdAt])
+}
+model CommunicationProof {
+ provider String @id
+ fingerprint String
+ verified Boolean
+ detail String
+ checkedAt DateTime @default(now())
+}

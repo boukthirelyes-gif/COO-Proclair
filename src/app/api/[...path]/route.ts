@@ -1,3 +1,4 @@
+import {CommunicationCenter} from '@/providers/communication-center';
 import {StripeEnterprise} from '@/providers/stripe-enterprise';
 import {stripeAdmin} from '@/providers/stripe-modes';
 import {OmegaSupervisor} from '@/omega/supervisor';
@@ -165,10 +166,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(await rotorLivePage(liveMatch[1] as 'payments'|'sms'|'invoices',page,limit,prisma),{headers:{'Cache-Control':'private, no-store'}});
     }
     if(path==='integrations/providers')return NextResponse.json(providerStatus());
+    if(path==='integrations/communications/center')return NextResponse.json(await new CommunicationCenter(prisma).state(actor),{headers:{'Cache-Control':'no-store'}});
+    if(path==='integrations/communications/dispatches')return NextResponse.json(await new CommunicationCenter(prisma).list(Object.fromEntries(['customerId','page'].flatMap(k=>{const v=request.nextUrl.searchParams.get(k);return v?[[k,v]]:[]})),actor));
     if(path==='integrations/communications')return NextResponse.json(await new Communications(prisma).list(actor));
     if(path==='integrations/communications/conversations')return NextResponse.json(await new CommunicationsHub(prisma).list(Object.fromEntries(['query','page','pageSize','channel'].flatMap(key=>{const value=request.nextUrl.searchParams.get(key);return value===null?[]:[[key,value]]})),actor));
     if(path==='integrations/communications/followups')return NextResponse.json(await new CommunicationFollowUps(prisma).list(Object.fromEntries(['phone','status','page'].flatMap(key=>{const value=request.nextUrl.searchParams.get(key);return value===null?[]:[[key,value]]})),actor));
-    if(path==='integrations/communications/conversation')return NextResponse.json(await new CommunicationsHub(prisma).detail(request.nextUrl.searchParams.get('phone'),actor));
+    if(path==='integrations/communications/conversation')return NextResponse.json(await new CommunicationsHub(prisma).detail(request.nextUrl.searchParams.get('phone'),actor,request.nextUrl.searchParams.get('historyPage')||1));
     if(path==='finance/stripe/dashboard')return NextResponse.json(await new StripePayments(prisma).dashboard(Object.fromEntries(['status','customerId','from','to','page'].flatMap(key=>{const value=request.nextUrl.searchParams.get(key);return value===null?[]:[[key,value]]})),actor));
     if(path==='finance/stripe')return NextResponse.json(await new StripePayments(prisma).list(actor));
     if(path==='technicians')return NextResponse.json(await new TechnicianSettings(prisma).list(actor));
@@ -290,6 +293,11 @@ async function mutate(request: NextRequest) {
     if(/^sales\/contracts\/[^/]+\/submit$/.test(path)&&request.method==='POST')return NextResponse.json(await agreements.submit(path.split('/')[2],input,actor));
     if(path==='integrations/rotor/messages/auto'&&request.method==='POST')return NextResponse.json(await rotorInbox.configureAuto(input,actor));
     if(path==='integrations/rotor/messages/sync'&&request.method==='POST')return NextResponse.json(await rotorInbox.sync(input,actor));
+    if(path==='integrations/communications/center/verify'&&request.method==='POST'){const v=z.object({provider:z.enum(['EMAIL','TWILIO'])}).strict().parse(input);return NextResponse.json(await new CommunicationCenter(prisma).verify(v.provider,actor));}
+    if(path==='integrations/communications/preferences'&&request.method==='POST')return NextResponse.json(await new CommunicationCenter(prisma).preference(input,actor));
+    if(path==='integrations/communications/dispatches'&&request.method==='POST')return NextResponse.json(await new CommunicationCenter(prisma).prepare(input,actor));
+    if(/^integrations\/communications\/dispatches\/[^/]+\/send$/.test(path)&&request.method==='POST')return NextResponse.json(await new CommunicationCenter(prisma).send(path.split('/')[3],input,actor));
+    if(path==='integrations/communications/notes'&&request.method==='POST')return NextResponse.json(await new CommunicationCenter(prisma).note(input,actor));
     if(path==='integrations/communications/consent'&&request.method==='POST')return NextResponse.json(await new Communications(prisma).consent(input,actor));
     if(path==='integrations/communications/send'&&request.method==='POST')return NextResponse.json(await new Communications(prisma).send(input,actor));
     if(path==='integrations/communications/draft'&&request.method==='POST'){const value=z.object({phone:z.string()}).strict().parse(input);return NextResponse.json(await new CommunicationsHub(prisma).draft(value.phone,actor));}
