@@ -28,6 +28,7 @@ import {globalSearch} from '@/lib/global-search';
 import {LeadService} from '@/sales/leads';
 import parity from '@/data/rotor-parity.json';
 import {systemHealth} from '@/lib/system-health';
+import {schemaProbeReady} from '@/lib/schema-health';
 import {RotorCapabilityRegistry} from '@/lib/rotor-capabilities';
 import {RotorMapService,validateRotorSchema} from '@/lib/rotor-map';
 import {RotorMonitor} from '@/lib/rotor-monitor';
@@ -130,7 +131,18 @@ export async function GET(request: NextRequest) {
       const dispatch=await worker.tick(),missions=await supervisor.tick();
       return NextResponse.json({...dispatch,supervisor:missions},{headers:{'Cache-Control':'no-store'}});
     }
-    if (path === 'health') { await prisma.$queryRaw`SELECT 1`; return NextResponse.json({status:'ok',database:'connected'}); }
+    if (path === 'health') {
+      // SELECT 1 alone is insufficient: a database may connect while Prisma
+      // fails to serve authenticated routes because its schema was not migrated.
+      const probe = await prisma.$queryRaw<Array<{loginBucket:string|null;appUser:string|null;customer:string|null;migrations:string|null}>>`
+        SELECT to_regclass('"LoginBucket"')::text AS "loginBucket",
+               to_regclass('"AppUser"')::text AS "appUser",
+               to_regclass('"Customer"')::text AS "customer",
+               to_regclass('"_proclair_migrations"')::text AS "migrations"
+      `;
+      if (!schemaProbeReady(probe)) return NextResponse.json({status:'degraded',database:'schema_incomplete'},{status:503,headers:{'Cache-Control':'no-store'}});
+      return NextResponse.json({status:'ok',database:'connected'},{headers:{'Cache-Control':'no-store'}});
+    }
     if(path==='integrations/rotor/callback') {
       const cookie=request.cookies.get('rotor_oauth')?.value;
       // OAuth redirects are cross-site: the normal Strict session cookie is absent.
