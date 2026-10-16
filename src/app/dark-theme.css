@@ -396,3 +396,6 @@
  @media(max-width:1100px){.settings-workspace{grid-template-columns:170px minmax(0,1fr);gap:16px}.settings-workspace-content .panel{padding:18px}}
  @media(max-width:700px){.settings-workspace{display:block;margin-top:16px}.settings-workspace-menu{position:static;margin-bottom:18px;padding:12px}.settings-workspace-menu nav{flex-direction:row;overflow:auto;margin:10px 0}.settings-workspace-menu a{white-space:nowrap;padding:10px}.settings-workspace-menu>button{width:auto;padding:9px 12px}.settings-workspace-content .panel{padding:16px}.settings-workspace-content .form-grid{grid-template-columns:minmax(0,1fr)}}
 }
+
+/* Keep prospecting counters within the available tablet workspace. */
+.prospecting-workspace .stats{grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr))}.prospecting-workspace .stat{min-width:0;overflow-wrap:anywhere}
