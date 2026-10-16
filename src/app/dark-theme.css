@@ -403,3 +403,4 @@
 @media screen{nav button.active,nav button[aria-current="page"]{background:#dbeafe;color:#102b57}nav button.active span,nav button[aria-current="page"] span{color:#102b57}.notice.map-connection-status{background:#132e50;border-color:#3566a2;color:#dbeafe}.notice.map-connection-status p{color:#c2d8f5}.google-map-ready{color:#93c5fd}}
 
 .prospecting-map{position:relative}.google-map-loading{position:absolute;z-index:3;top:8px;left:12px;background:#132e50;color:#dbeafe;padding:8px 12px;border-radius:8px;margin:0}.map-connection-status details{margin-top:12px}
+@media screen{.shell button.primary,.shell .primary{background:var(--pc-blue);border-color:var(--pc-blue);color:#fff}.shell button.primary:hover,.shell .primary:hover{background:var(--pc-blue-hover);border-color:var(--pc-blue-hover)}}
