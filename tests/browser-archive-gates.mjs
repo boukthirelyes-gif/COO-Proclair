@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {request} from 'playwright';
+import {request} from './support/browser.mjs';
 const url=process.env.E2E_DATABASE_URL,base=process.env.E2E_BASE_URL||'http://127.0.0.1:3102';
 if(!url||!new URL(url).pathname.endsWith('/proclair_browser_test')||new URL(url).pathname===new URL(process.env.DATABASE_URL).pathname)throw Error('Base navigateur distincte requise.');
 const context=await request.newContext();let checks=0;

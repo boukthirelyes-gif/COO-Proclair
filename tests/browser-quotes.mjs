@@ -1,4 +1,4 @@
-import {chromium} from 'playwright';
+import {chromium} from './support/browser.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 if(!process.env.E2E_DATABASE_URL)throw new Error('Base de test séparée requise.');

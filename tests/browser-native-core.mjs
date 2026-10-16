@@ -1,4 +1,4 @@
-import { chromium } from 'playwright';
+import { chromium } from './support/browser.mjs';
 import {PrismaClient} from '@prisma/client';
 import {PrismaPg} from '@prisma/adapter-pg';
 import assert from 'node:assert/strict';

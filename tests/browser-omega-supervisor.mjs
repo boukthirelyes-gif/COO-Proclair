@@ -1,4 +1,4 @@
-import {chromium} from 'playwright';
+import {chromium} from './support/browser.mjs';
 import {PrismaClient} from '@prisma/client';
 import {PrismaPg} from '@prisma/adapter-pg';
 import {randomUUID} from 'node:crypto';
@@ -76,12 +76,12 @@ try{
  await panel.getByRole('button',{name:'Écarter les propositions obsolètes de cette page',exact:true}).click();await panel.getByRole('status').filter({hasText:'2 proposition(s) obsolète(s) écartée(s).'}).waitFor();assert.equal(await db.omegaMission.count({where:{id:{in:draftsToClean.map(m=>m.id)},status:'DISMISSED'}}),2);assert.equal((await db.omegaMission.findUniqueOrThrow({where:{id:approvedToKeep.id}})).status,'APPROVED');checks++;
  await panel.getByRole('combobox',{name:/Afficher/}).selectOption('CLOSED');await panel.getByLabel('Rechercher une mission',{exact:true}).fill(draftsToClean[0].sourceId);await panel.getByRole('button',{name:'Rechercher les missions',exact:true}).click();await panel.getByText('1 mission(s) correspondant aux filtres · page 1',{exact:true}).waitFor();await panel.getByRole('button',{name:'Historique de la mission',exact:true}).click();await dialog.getByRole('listitem').filter({hasText:'Proposition obsolète écartée'}).waitFor();await dialog.getByRole('button',{name:'Fermer la fiche de mission',exact:true}).click();checks++;
  await panel.getByRole('combobox',{name:/Afficher/}).selectOption('APPROVED');await panel.getByLabel('Rechercher une mission',{exact:true}).fill(prefix+'-bulk-00');await panel.getByRole('button',{name:'Rechercher les missions',exact:true}).click();await panel.getByText('1 mission(s) correspondant aux filtres · page 1',{exact:true}).waitFor();
- let mockedCycles=0;
- await page.route('**/api/omega/supervisor/run',async route=>{mockedCycles++;await new Promise(resolve=>setTimeout(resolve,100));await route.fulfill({json:{enabled:true,busy:false,created:0,scanned:25,continuation:true,externalEffects:false}})});
+ let mockedCycles=0,holdCycle=true;let releaseCycle;const cycleGate=new Promise(resolve=>{releaseCycle=resolve});
+ await page.route('**/api/omega/supervisor/run',async route=>{mockedCycles++;if(holdCycle)await cycleGate;await route.fulfill({json:{enabled:true,busy:false,created:0,scanned:25,continuation:true,externalEffects:false}})});
  const request=page.waitForRequest(r=>r.url().endsWith('/api/omega/supervisor/run'));
- await panel.getByRole('button',{name:'Analyser en continu',exact:true}).click();await request;await panel.getByRole('button',{name:'Suspendre cette analyse',exact:true}).click();
+ await panel.getByRole('button',{name:'Analyser en continu',exact:true}).click();await request;await panel.getByRole('button',{name:'Suspendre cette analyse',exact:true}).click();releaseCycle();
  await panel.getByRole('status').filter({hasText:'Analyse suspendue après le cycle en cours'}).waitFor();assert.equal(mockedCycles,1);checks++;
- mockedCycles=0;await panel.getByRole('button',{name:'Analyser en continu',exact:true}).click();await panel.getByRole('status').filter({hasText:'Limite de 20 cycles atteinte'}).waitFor();assert.equal(mockedCycles,20);await page.unroute('**/api/omega/supervisor/run');checks++;
+ mockedCycles=0;holdCycle=false;await panel.getByRole('button',{name:'Analyser en continu',exact:true}).click();await panel.getByRole('status').filter({hasText:'Limite de 20 cycles atteinte'}).waitFor();assert.equal(mockedCycles,20);await page.unroute('**/api/omega/supervisor/run');checks++;
  assert.deepEqual(errors,[]);console.log(JSON.stringify({omegaSupervisorChecks:checks,pageErrors:errors,providerCalls:0,mockedAnalysisCycles:21}));
 }finally{
  await browser.close();await db.omegaMission.deleteMany({where:{id:{notIn:prior.map(r=>r.id)}}});
