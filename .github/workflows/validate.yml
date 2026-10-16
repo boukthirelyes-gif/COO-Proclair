@@ -135,3 +135,63 @@ jobs:
             /tmp/proclair-preview.log
           retention-days: 7
           if-no-files-found: ignore
+      - name: Extended CRM browser audit 1/15 — test:e2e
+        run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:e2e
+      - name: Extended CRM browser audit 2/15 — test:finance:e2e
+        run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:finance:e2e
+      - name: Extended CRM browser audit 3/15 — test:integrations:e2e
+        run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:integrations:e2e
+      - name: Extended CRM browser audit 4/15 — test:agreements:e2e
+        run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:agreements:e2e
+      - name: Extended CRM browser audit 5/15 — test:compatibility:e2e
+        run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:compatibility:e2e
+      - name: Extended CRM browser audit 6/15 — test:leads:e2e
+        run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:leads:e2e
+      - name: Extended CRM browser audit 7/15 — test:portal:e2e
+        run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:portal:e2e
+      - name: Extended CRM browser audit 8/15 — test:providers:e2e
+        run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:providers:e2e
+      - name: Extended CRM browser audit 9/15 — test:quotes:e2e
+        run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:quotes:e2e
+      - name: Extended CRM browser audit 10/15 — test:rotor-files:e2e
+        run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:rotor-files:e2e
+      - name: Extended CRM browser audit 11/15 — test:sales-followups:e2e
+        run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:sales-followups:e2e
+      - name: Extended CRM browser audit 12/15 — test:seller-sales:e2e
+        run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:seller-sales:e2e
+      - name: Extended CRM browser audit 13/15 — test:usability:e2e
+        run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:usability:e2e
+      - name: Extended CRM browser audit 14/15 — test:v30-import:e2e
+        run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:v30-import:e2e
+      - name: Extended CRM browser audit 15/15 — test:v30:e2e
+        run: |
+          node tests/reset-browser-login-attempts.mjs
+          npm run test:v30:e2e
