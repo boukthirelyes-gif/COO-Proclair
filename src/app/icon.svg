@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+ <defs><linearGradient id="proclair" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#10386b"/><stop offset="1" stop-color="#46bbed"/></linearGradient></defs>
+ <rect width="64" height="64" rx="16" fill="#f3fbff"/>
+ <path fill="url(#proclair)" d="M14 11h22c13 0 20 7 20 17S49 46 36 46H25v8H14zm11 10v15h11c5 0 9-3 9-8s-4-7-9-7z"/>
+ <path d="M11 57h41" stroke="#42b8ee" stroke-width="3" stroke-linecap="round"/>
+</svg>

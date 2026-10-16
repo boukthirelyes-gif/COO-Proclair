@@ -30,7 +30,7 @@ export default function MapCommandBar({pins,total,status,onStatus,ready,onSector
   return <section className="map-command-bar" aria-label="Raccourcis de la carte">
     <div className="map-command-heading"><div>
       <span className="eyebrow">PROCLAIR / TERRITOIRES</span>
-      <h3>Votre terrain de prospection</h3>
+      <h3>Prospection terrain Proclair</h3>
       <p>Retrouvez vos portes, suivez leur état et déplacez-vous rapidement d’un secteur à l’autre.</p>
     </div><div className="map-source">
       <span className="map-source-dot" aria-hidden="true"/>
