@@ -1,3 +1,5 @@
+import {StripeEnterprise} from '@/providers/stripe-enterprise';
+import {stripeAdmin} from '@/providers/stripe-modes';
 import {OmegaSupervisor} from '@/omega/supervisor';
 import {rotorCustomerReviewList} from '@/lib/rotor-customer-review-list';
 import {rotorMigrationOverview} from '@/lib/rotor-migration-overview';
@@ -175,6 +177,7 @@ export async function GET(request: NextRequest) {
       const result=await exportCalendar(prisma,{start:request.nextUrl.searchParams.get('start'),end:request.nextUrl.searchParams.get('end')},actor);
       return new NextResponse(result.content,{headers:{'Content-Type':'text/calendar; charset=utf-8','Content-Disposition':'attachment; filename=proclair-planning.ics','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','X-Calendar-Events':String(result.eventCount),'X-Calendar-Skipped':String(result.skippedCount)}});
     }
+    if(path==='finance/stripe/enterprise')return NextResponse.json(await new StripeEnterprise(prisma).dashboard(Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='finance/commission-impact')return NextResponse.json(await commissionImpact(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store','Content-Disposition':'attachment; filename=proclair-commission-impact.json'}});
     if(path==='sales/leaderboard')return NextResponse.json(await annualLeaderboard(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='operations/dispatch')return NextResponse.json(await nativeDispatch(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
@@ -220,7 +223,7 @@ export async function GET(request: NextRequest) {
       if (path === 'finance/state') return NextResponse.json({invoices,payments,expenses,summary});
       const kind = request.nextUrl.searchParams.get('kind') || 'invoices';
       if (!['invoices','payments','expenses'].includes(kind)) return NextResponse.json({error:'Export inconnu.'},{status:400});
-      const columns = kind==='expenses' ? ['id','vendor','category','description','paidDate','amountCents','currency','reference','status','voidReason'] : kind==='invoices' ? ['number','customer','status','currency','dueDate','subtotalCents','taxCents','totalCents','paidCents','balanceCents'] : ['id','invoice','customer','status','currency','amountCents','method','reference','createdAt','reversalReason'];
+      const columns = kind==='expenses' ? ['id','vendor','category','description','paidDate','amountCents','currency','reference','status','voidReason'] : kind==='invoices' ? ['number','customer','status','currency','dueDate','subtotalCents','taxCents','totalCents','paidCents','balanceCents'] : ['id','invoice','customer','status','currency','amountCents','method','reference','createdAt','reversalReason','refundedCents','netAmountCents'];
       const rows = kind==='expenses' ? expenses : kind==='invoices' ? invoices.map(invoice=>({...invoice,customer:invoice.customer.name})) : payments.map(payment=>({...payment,invoice:payment.invoice.number||payment.invoice.id,customer:payment.invoice.customer.name,currency:payment.invoice.currency,createdAt:payment.createdAt.toISOString(),reversalReason:payment.reversal?.reason||''}));
       return new NextResponse(csvRows(columns,rows),{headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':`attachment; filename="proclair-${kind}.csv"`,'Cache-Control':'no-store'}});
     }
@@ -295,6 +298,12 @@ async function mutate(request: NextRequest) {
     if(path==='technicians'&&request.method==='POST')return NextResponse.json(await new TechnicianSettings(prisma).save(null,input,actor),{status:201});
     if(/^technicians\/[^/]+$/.test(path)&&request.method==='PATCH')return NextResponse.json(await new TechnicianSettings(prisma).save(path.split('/')[1],input,actor));
     if(/^invoices\/from-visit\/[^/]+$/.test(path)&&request.method==='POST')return NextResponse.json(await finance.invoiceCompletedVisit(path.split('/')[2],input,actor),{status:201});
+    if(path==='finance/stripe/enterprise/checkout'&&request.method==='POST')return NextResponse.json(await new StripeEnterprise(prisma).checkout(input,actor));
+    if(path==='finance/stripe/enterprise/refund'&&request.method==='POST')return NextResponse.json(await new StripeEnterprise(prisma).requestRefund(input,actor));
+    if(path==='finance/stripe/enterprise/reconcile'&&request.method==='POST')return NextResponse.json(await new StripeEnterprise(prisma).reconcile(input,actor));
+    if(path==='finance/stripe/enterprise/expire'&&request.method==='POST')return NextResponse.json(await new StripeEnterprise(prisma).expire(input,actor));
+    if(path==='finance/stripe/enterprise/refund-refresh'&&request.method==='POST')return NextResponse.json(await new StripeEnterprise(prisma).refreshRefund(input,actor));
+    if(path==='finance/stripe/enterprise/test-invoice'&&request.method==='POST'){stripeAdmin(actor);const data=z.object({mode:z.literal('TEST'),customerId:z.string(),amountCents:z.number().int().positive().max(2147483647),dueDate:z.string(),idempotencyKey:z.string().min(8).max(100),approved:z.literal(true)}).strict().parse(input);let row=await finance.createInvoice({customerId:data.customerId,paymentMode:'TEST',dueDate:data.dueDate,items:[{description:'Facture de test Stripe — aucun encaissement réel',quantity:1,unitPriceCents:data.amountCents,taxRateBps:0}],idempotencyKey:'test-invoice:'+data.idempotencyKey},actor);if(row.status==='DRAFT')row=await finance.issueInvoice(row.id,{expectedVersion:row.version},actor);return NextResponse.json(row);}
     if(path==='finance/stripe/checkout'&&request.method==='POST')return NextResponse.json(await new StripePayments(prisma).checkout(input,actor));
     if(path==='finance/stripe/inspect'&&request.method==='POST')return NextResponse.json(await inspectStripeTest(input,actor));
     if (path === 'session/logout') { const response = NextResponse.json({ok:true}); response.cookies.set(sessionCookie,'',{path:'/',maxAge:0}); return response; }
