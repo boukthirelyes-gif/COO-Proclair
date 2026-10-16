@@ -1,0 +1,178 @@
+/* Proclair OS — final visual polish: accessible native controls, blue-brand surfaces.
+   Screen-only; PDF/print exports and domain status colors are unchanged. */
+@media screen {
+:root {
+ --proclair-brand:#188ddb;
+ --proclair-glow:#65d5ff;
+ --proclair-elevated:#1b3854;
+ --proclair-muted:#afc9df;
+ --proclair-border:#3a617f;
+ --proclair-radius:12px;
+}
+.shell :is(button,a,input,select,textarea,summary){
+ transition:background-color .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease;
+}
+.shell button:disabled,.shell input:disabled,.shell select:disabled{cursor:not-allowed;opacity:.56}
+.shell :is(input,textarea)::placeholder{color:#91aec6;opacity:1}
+.shell input[type="checkbox"],.shell input[type="radio"]{
+ -webkit-appearance:none;appearance:none;
+ box-sizing:border-box;
+ display:inline-grid;place-items:center;vertical-align:middle;
+ flex:none;width:19px;height:19px;margin:0 8px 0 0;
+ background:linear-gradient(135deg,#09253f,#133553);
+ border:1.5px solid #6387a3;
+ box-shadow:inset 0 1px 1px #03142755;
+ cursor:pointer;position:relative;
+}
+.shell input[type="checkbox"]{border-radius:6px}
+.shell input[type="radio"]{border-radius:50%}
+.shell input[type="checkbox"]:hover,.shell input[type="radio"]:hover{border-color:#90d9ff;background:#19476d}
+.shell input[type="checkbox"]:checked,.shell input[type="radio"]:checked{
+ background:linear-gradient(145deg,#157fd2,#3cadf1);border-color:#55bff2;box-shadow:0 0 0 1px #126cab44;
+}
+.shell input[type="checkbox"]:checked::after{
+ content:'';width:8px;height:4px;border-left:2px solid white;border-bottom:2px solid white;
+ transform:translateY(-1px) rotate(-45deg);
+}
+.shell input[type="radio"]:checked::after{
+ content:'';height:7px;width:7px;background:white;border-radius:50%;box-shadow:0 0 3px #fff7;
+}
+.shell input[type="checkbox"]:focus-visible,.shell input[type="radio"]:focus-visible{
+ outline:3px solid #8ddfff;outline-offset:3px;
+}
+.shell input[type="checkbox"]:disabled,.shell input[type="radio"]:disabled{cursor:not-allowed;opacity:.52}
+.shell :is(label.grant,.grant):has(> input[type="checkbox"]){
+ display:inline-flex;align-items:center;gap:6px;
+ min-height:34px;border:1px solid #355773;border-radius:11px;
+ background:#12324b;padding:7px 11px;color:#d6ecf8;
+}
+.shell :is(label.grant,.grant):has(> input[type="checkbox"]:checked){
+ border-color:#468ebd;background:#174466;
+}
+.shell input[role="switch"][type="checkbox"]{
+ width:39px;height:23px;border-radius:999px;justify-items:start;padding:2px;
+}
+.shell input[role="switch"][type="checkbox"]::after{
+ content:'';width:16px;height:16px;border:0;border-radius:50%;
+ background:#dcefff;transform:none;box-shadow:0 1px 3px #041425aa;
+}
+.shell input[role="switch"][type="checkbox"]:checked::after{
+ transform:translateX(15px);
+}
+.shell :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea){
+ border-radius:10px;
+ border:1px solid #446c89;
+ background:#102c45;color:#f5faff;min-height:39px;
+}
+.shell textarea{line-height:1.6;min-height:85px;resize:vertical}
+.shell :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea):hover{
+ border-color:#659ac0;
+}
+.shell :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea):focus{
+ outline:none;border-color:#77cbfc;
+ box-shadow:0 0 0 3px #3299df36,inset 0 1px 2px #01162c33;
+}
+.shell select{
+ cursor:pointer;padding-right:32px;
+ color-scheme:dark;
+}
+.shell fieldset{
+ border-radius:13px;background:#15334e;border:1px solid #3b6080;
+ padding:17px;margin:12px 0;
+}
+.shell fieldset legend{
+ background:#14344e;border-radius:6px;color:#aad9f6;
+ padding:4px 9px;font-size:12px;font-weight:700;
+}
+.shell :is(button,[role="button"]):not(.danger):not(.destructive):not(.primary):not(.pin-marker){
+ border-radius:10px;
+}
+.shell :is(button.primary,.primary){
+ background:linear-gradient(135deg,#1686d7,#209ce5);
+ border:1px solid #3da5e9;color:#fff;
+ font-weight:750;
+ box-shadow:0 5px 16px #06568f40;
+}
+.shell :is(button.primary,.primary):hover{
+ background:linear-gradient(135deg,#2399e8,#43b6f2);
+ border-color:#6acbff;
+}
+.shell button[aria-selected="true"]:not(.danger),.shell button[aria-pressed="true"]:not(.danger){
+ border-color:#5cbaf0;
+}
+.shell :is(button,a,input,select,textarea,summary,[role="tab"]):focus-visible{
+ outline:3px solid #7fd8ff;outline-offset:2px;
+}
+.shell :is(.panel,.card,.stat,.provider-card,.settings-workspace,.prospect-drawer){
+ border-radius:14px;
+ border-color:#385e7d;
+}
+.shell :is(.panel,.provider-card,.stat):hover{
+ border-color:#46799c;
+}
+.shell .panel-heading{gap:12px;align-items:center}
+.shell .panel-heading h2{font-weight:750;letter-spacing:-.025em}
+.shell .table-wrap{border-radius:12px;border-color:#365b76;overflow:auto}
+.shell table{border-collapse:separate;border-spacing:0}
+.shell th{
+ background:#15324c;border-bottom:1px solid #476c8a;
+ text-transform:none;letter-spacing:.015em;
+ color:#b9dbf0;font-weight:750;
+}
+.shell td{border-bottom:1px solid #2d4c69}
+.shell tbody tr:hover{background:#23405e55}
+.shell :is(.modal,.dialog,.prospect-drawer){
+ border-color:#417292;box-shadow:0 20px 55px #020e2380;
+}
+.shell .search-results button>span,.shell .dashboard-actions button>span,.shell .stat-button small,
+.shell .mobile-dock a[aria-current="page"],.shell .lead-table th[aria-sort],
+.shell .customer-list th[aria-sort] button,
+.shell .dossier-tabs button[aria-selected="true"],
+.shell .agreement-steps .active,.shell .migration-badge,
+.shell .migration-history summary,.shell .rotor-scopes>summary,
+.shell .omega-workspace-mode,.shell .omega-workspace .omega-mission-metrics strong,
+.shell .omega-workspace-supervisor-hero .eyebrow{
+ color:#81d4fc;
+}
+.shell .dossier-tabs button[aria-selected="true"],
+.shell .omega-workspace-tabs button[aria-selected="true"]{border-color:#52b9ec}
+.shell .progress-track>div{background:linear-gradient(90deg,#0a77c4,#70d5ff)}
+.shell .migration-steps .current{border-color:#488eb7;background:#153d5e;color:#c5e9ff}
+.shell .migration-steps .current b{background:#178fdb}
+.shell .migration-workspace input::file-selector-button{
+ background:#16466d;border-radius:8px;color:#c9eaff;
+}
+.shell .provider-card>button{border-color:#4c90b9;color:#a3dcfb}
+.shell .provider-card>button:hover{background:#18446a}
+.shell .assistant-answer>strong{color:#9bdfff}
+.shell .omega-workspace-supervisor-hero{
+ background:linear-gradient(120deg,#123d62,#152c46);
+ border-color:#356f97;border-left-color:#329fd7;
+}
+.shell .omega-workspace .omega-mission-metrics button:hover{
+ border-color:#5aaede;background:#1f4568;
+}
+.shell .lead-pagination button[aria-current="page"]{border-color:#5cbafa;background:#1a5480}
+.shell .map-google-setup-actions button{
+ border:1px solid #4a9bc6;background:#155987;
+ color:#fff;border-radius:11px;padding:10px 14px;font-weight:700;
+}
+.shell .map-google-setup-actions button:hover{background:#1979b8}
+.shell .map-fast-filters button{border-radius:11px}
+.shell .map-sector-controls select{background:#102f4d}
+.shell .prospecting-map-large{outline:1px solid #2d6695}
+.shell .leaflet-container a,.shell .leaflet-popup-content a{color:#228fdb}
+.shell :is(.notice.error,.error,.danger,.destructive,.lead-state.restricted,.user-access-state.inactive){color:inherit}
+@media(max-width:700px){
+ .shell :is(input,select,textarea){font-size:16px}
+ .shell .panel{padding:14px}
+ .shell .panel-heading{flex-wrap:wrap}
+ .shell .table-wrap{overscroll-behavior-x:contain}
+ .shell fieldset{padding:13px}
+ .shell :is(input[type="checkbox"],input[type="radio"]){width:20px;height:20px}
+ .shell input[role="switch"][type="checkbox"]{width:39px;height:23px}
+}
+}
+@media(prefers-reduced-motion:reduce){
+ .shell *{scroll-behavior:auto!important;transition-duration:.01ms!important}
+}

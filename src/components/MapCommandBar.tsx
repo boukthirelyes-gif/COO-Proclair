@@ -31,7 +31,7 @@ export default function MapCommandBar({pins,total,status,onStatus,ready,onSector
     <div className="map-command-heading"><div>
       <span className="eyebrow">PROCLAIR / TERRITOIRES</span>
       <h3>Prospection terrain Proclair</h3>
-      <p>Retrouvez vos portes, suivez leur état et déplacez-vous rapidement d’un secteur à l’autre.</p>
+      <p>Retrouvez vos portes et votre équipe, suivez les résultats terrain et gérez vos secteurs en temps réel.</p>
     </div><div className="map-source">
       <span className="map-source-dot" aria-hidden="true"/>
       {provider==='google'?'Google Maps':'OpenStreetMap · fond provisoire'}
