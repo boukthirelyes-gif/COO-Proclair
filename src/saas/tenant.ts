@@ -5,6 +5,7 @@ import { DomainError } from '@/domain/rules';
 import { CRMService } from '@/domain/service';
 import { requirePermission, userActor } from '@/lib/access';
 import { ProspectingService } from '@/prospecting/service';
+import {mapQuery} from '@/prospecting/query';
 import { SaasControl, organizationLock, type SaasIdentity } from './control';
 import { entitlement, tenantSchema, type features } from './policy';
 import { tenantVersion } from './provision';
@@ -62,7 +63,7 @@ export class SaasTenant {
             }, { isolationLevel: 'ReadCommitted' });
         });
     }
-    async pins(slug: string, query: unknown, identity: SaasIdentity) { return this.withTenant(slug, identity, 'prospecting', (db, actor) => new ProspectingService(db).list(actor, undefined, query)); }
+    async pins(slug: string, query: unknown, identity: SaasIdentity) {const {after,...filters}=mapQuery.extend({after:z.string().min(1).max(100).optional()}).parse(query);return this.withTenant(slug,identity,'prospecting',(db,actor)=>new ProspectingService(db).list(actor,after,filters));}
     async omega(slug: string, identity: SaasIdentity) { return this.withTenant(slug, identity, 'omega', async (db, actor, m) => { requirePermission(actor, 'crm.read'); requirePermission(actor, 'omega'); const [customers, contracts, visits] = await Promise.all([db.customer.count(), db.contract.count(), db.visit.count({ where: { status: { notIn: ['COMPLETED', 'CANCELLED'] } } })]); return { organizationId: m.organizationId, mode: 'READ_ONLY', tool: 'organization_summary', sources: ['Customer', 'Contract', 'Visit'], values: { customers, contracts, openVisits: visits }, externalActions: false, modelProvider: 'NOT_ENABLED' }; }); }
     async usage(slug: string, identity: SaasIdentity) { return this.withTenant(slug, identity, 'reports', async (db, actor, m) => { requirePermission(actor, 'crm.read'); return { customers: await db.customer.count(), users: await this.control.db.saasMembership.count({ where: { organizationId: m.organizationId, active: true } }), pins: await db.prospectPin.count(), policy: m.organization.subscription?.plan.policy, externalUsage: 'NOT_CONNECTED', storageBytes: null, smsSent: 0 }; }); }
 }
