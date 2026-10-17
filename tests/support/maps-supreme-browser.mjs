@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {mkdir} from 'node:fs/promises';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {installGoogleMapsFixture} from './google-maps-fixture.mjs';
 export async function mapsSupremeBrowser({browser,base,user,password,suffix}){
  const context=await browser.newContext({viewport:{width:1440,height:1000},permissions:['geolocation'],geolocation:{latitude:45.5019,longitude:-73.5674}}),page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));let checks=0;
@@ -18,5 +18,5 @@ export async function mapsSupremeBrowser({browser,base,user,password,suffix}){
  await page.getByRole('heading',{name:'Résultats réels de la prospection',exact:true}).waitFor();await mkdir('.local/maps-supreme',{recursive:true});await page.screenshot({path:'.local/maps-supreme/after-desktop.png',fullPage:true});await page.setViewportSize({width:390,height:844});await page.screenshot({path:'.local/maps-supreme/after-mobile.png',fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);checks++;
  await page.reload();await page.getByRole('heading',{name:'Carte porte-à-porte',exact:true}).waitFor();await page.getByLabel('Rechercher une porte',{exact:true}).fill(prefix);await page.getByRole('row').filter({hasText:prefix+' 0'}).getByRole('cell',{name:'Soumission envoyée',exact:true}).waitFor();checks++;
  assert.deepEqual(errors,[]);return checks;
- }finally{await context.close()}
+ }catch(e){await mkdir('.local/maps-supreme',{recursive:true});await page.screenshot({path:'.local/maps-supreme/failure.png',fullPage:true});await writeFile('.local/maps-supreme/failure.txt',await page.locator('body').innerText());console.error('Supreme UI alerts:',await page.getByRole('alert').allTextContents());throw e}finally{await context.close()}
 }
