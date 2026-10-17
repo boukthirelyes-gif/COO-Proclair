@@ -97,3 +97,7 @@ La mesure automatisée utilise 10 000 clients synthétiques, dix lectures de 100
 - [ ] Tarifs approuvés, documentation client, démonstrations anonymisées, onboarding et import guidé complets.
 
 Aucune case organisationnelle n’est cochée par la seule présence de code.
+
+## Robustesse financière héritée
+
+L’audit a reproduit un blocage intermittent lors de transactions financières concurrentes sur un même client Prisma JS, sans verrou SQL en attente. Les transactions de FinanceService sont désormais ordonnées par client, avec admission bornée (32), attente maximale de 2 s avant démarrage et libération après erreur. Une requête expirée dans cette file ne démarre jamais ultérieurement. L’isolation Serializable, les clés idempotentes et les contrôles de version restent conservés ; les reprises de conflits SQL attendent brièvement entre essais. Des appels issus de clients distincts continuent à être arbitrés par PostgreSQL et sont testés avec un paiement idempotent concurrent. Cette file est locale au processus, pas une queue durable de paiements ni un remplacement des contraintes de base. Les premiers échecs de validation sont conservés dans les journaux locaux.
