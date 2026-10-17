@@ -11,7 +11,7 @@ test('provider health never claims that configuration proves a live connection',
     stripe:'CONFIGURED_UNVERIFIED',
     sms:'CONFIGURED_UNVERIFIED',
     rotorInbox:'AUTHORIZED_UNVERIFIED',
-    routing:'NOT_IMPLEMENTED',
+    routing:'NOT_CONFIGURED',
   });
 });
 
@@ -23,7 +23,7 @@ test('missing configuration and Rotor scope are shown as unavailable', () => {
     stripe:'NOT_CONFIGURED',
     sms:'NOT_CONFIGURED',
     rotorInbox:'NOT_AUTHORIZED',
-    routing:'NOT_IMPLEMENTED',
+    routing:'NOT_CONFIGURED',
   });
   assert.equal(providerHealthSummary(
     {stripe:{configured:false},twilio:{configured:true}},
@@ -41,3 +41,5 @@ test('provider health never includes credentials or phone numbers', () => {
   assert.equal(serialized.includes('AUTH_TOKEN'),false);
   assert.equal(serialized.includes('+1'),false);
 });
+
+test('configured routing is explicitly unverified',()=>{assert.equal(providerHealthSummary({stripe:{configured:false},twilio:{configured:false}},{connected:false,grantedScopes:[]},true).routing,'CONFIGURED_UNVERIFIED')});

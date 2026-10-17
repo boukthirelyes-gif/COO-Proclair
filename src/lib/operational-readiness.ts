@@ -1,3 +1,4 @@
+import {googleMapsBrowserConfiguration} from '../prospecting/google-config';
 /** Local configuration checks only: never a certification of live operations. */
 export type ReadinessCheck = {id:string; label:string; status:'CONFIGURED_UNVERIFIED'|'BLOCKED'|'REQUIRES_VALIDATION'; action:string};
 type Providers = {stripe:{configured:boolean;livePaymentsEnabled:boolean};twilio:{configured:boolean;sendingEnabled:boolean;voiceEnabled:boolean}};
@@ -9,7 +10,8 @@ export function operationalReadiness(env:Record<string,string|undefined>, provid
  add('session','Protection des sessions',(env.PROCLAIR_SESSION_SECRET?.length??0)>=32,'Configurer un secret stable d’au moins 32 caractères dans l’hébergement.');
  add('admin','Connexion administrateur',(env.PROCLAIR_ADMIN_PASSWORD?.length??0)>=12,'Configurer le mot de passe administrateur privé (12 caractères minimum).');
  add('cron','Authentification des tâches planifiées',(env.CRON_SECRET?.length??0)>=32,'Configurer CRON_SECRET et vérifier une exécution planifiée authentifiée.');
- add('maps','Google Maps',!!env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim(),'Configurer la clé Google Maps restreinte aux domaines du CRM, reconstruire puis vérifier les pins.');
+ add('maps','Google Maps',googleMapsBrowserConfiguration(env).configured,'Configurer la clé Google Maps restreinte aux domaines du CRM, reconstruire puis vérifier les pins.');
+ add('maps-routes','Calcul routier Google',Boolean(env.GOOGLE_ROUTES_API_KEY?.trim()),'Configurer une clé serveur Routes API distincte, vérifier les restrictions et tester une route sans modifier le planning.');
  add('stripe','Configuration Stripe',providers.stripe.configured,'Configurer Stripe et son secret de webhook, puis vérifier un paiement de test et sa réception.');
  add('live-payments','Encaissements Stripe réels',providers.stripe.livePaymentsEnabled,'Les encaissements réels exigent les clés LIVE distinctes, une autorisation serveur explicite et une recette avant utilisation.');
  add('sms','Envoi SMS Twilio',providers.twilio.configured&&providers.twilio.sendingEnabled,'Configurer Twilio ; activer les envois uniquement après validation du numéro, du consentement et des webhooks.');
