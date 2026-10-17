@@ -95,3 +95,9 @@ Tests existants conservés. Consulter le rapport du lot pour les résultats rée
 ## Restauration locale vérifiée
 
 Un export PostgreSQL du schéma public de la base navigateur synthétique a été restauré dans une nouvelle base locale isolée. Les comptes, visites, invitations et états MFA correspondent au jeu source ; le secret d’un facteur MFA restauré a été déchiffré avec la clé de test, sans afficher sa valeur. La base de restauration a ensuite été supprimée. Cela valide ce scénario technique local, pas les sauvegardes, la rétention ou la reprise après sinistre de Production. Les dumps privés ne sont pas commis.
+
+### Connexion indisponible sur une Preview
+
+Le contrôle `/api/health` doit répondre `200` avec `database: connected`. Un statut `schema_incomplete` nécessite les migrations sur la base Preview isolée. Le build Vercel applique maintenant les migrations versionnées en Preview via `scripts/preview-migrate.ts`, après validation de `PROCLAIR_PREVIEW_DATABASE_URL` par le même résolveur que le serveur. Une variable manquante ou équivalente à la connexion Production arrête le build avant toute migration. Aucun seed métier n’est exécuté en Preview. Les migrations sont transactionnelles, verrouillées et rejouables sans doublon.
+
+Une Preview déjà créée doit être redéployée avec ce code : modifier une branche ne remplace pas le code exécuté par une ancienne URL immuable. Un contrôle de santé réussi n’atteste pas à lui seul la connexion; vérifier aussi une authentification puis la lecture du dossier autorisé. Le message générique 503 ne permet pas de conclure à une migration manquante : consulter le code borné `Erreur API Proclair` dans les logs Vercel, sans divulguer secrets ou données clients.

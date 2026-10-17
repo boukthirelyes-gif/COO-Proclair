@@ -9,7 +9,9 @@ if(production){
 }
 function run(command,args,env=process.env){const result=spawnSync(command,args,{stdio:'inherit',env});if(result.error)throw new Error('Impossible de lancer '+command);if(result.status!==0)process.exit(result.status??1)}
 run('node',['scripts/generate-client.cjs']);
-// Only production deploys touch the production schema; previews must have a separate database.
+// Preview migrations use only the isolated Preview URL after runtime isolation checks.
+if(process.env.VERCEL_ENV==='preview')run('node',['--import','tsx','scripts/preview-migrate.ts']);
+// Only production deploys touch the production schema.
 if(production){
  run('node',['scripts/migrate.cjs'],{...process.env,DATABASE_URL:process.env.DIRECT_DATABASE_URL});
  run('node',['--import','tsx','scripts/seed.ts'],{...process.env,DATABASE_URL:process.env.DIRECT_DATABASE_URL});
