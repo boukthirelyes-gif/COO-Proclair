@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {schemaProbeReady, type SchemaProbe} from '../src/lib/schema-health';
+import {schemaProbeReady,securityMigrationReady, type SchemaProbe} from '../src/lib/schema-health';
 
 const complete: SchemaProbe = {
   loginBucket: '"LoginBucket"',
   appUser: '"AppUser"',
   customer: '"Customer"',
   migrations: '_proclair_migrations',
+  accountMfa:'AccountMfa',securityEpoch:'SecuritySessionEpoch',invitations:'UserInvitation',
 };
 
 test('health fails closed when the schema probe is absent or has unexpected cardinality', () => {
@@ -26,3 +27,5 @@ test('health detects missing login, application, or migration tables', () => {
 test('health passes only when the representative schema objects exist', () => {
   assert.equal(schemaProbeReady([complete]), true);
 });
+
+test('health requires the security migration marker, not only database connectivity',()=>{assert.equal(securityMigrationReady(null),false);assert.equal(securityMigrationReady([]),false);assert.equal(securityMigrationReady([{ready:false}]),false);assert.equal(securityMigrationReady([{ready:true}]),true);});

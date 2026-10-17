@@ -1,0 +1,5 @@
+CREATE TABLE "AccountMfa" (
+ "actorId" TEXT PRIMARY KEY,"encryptedSecret" TEXT NOT NULL,"enabled" BOOLEAN NOT NULL DEFAULT false,
+ "lastStep" INTEGER NOT NULL DEFAULT -1,"recoveryHashes" TEXT[] NOT NULL DEFAULT ARRAY[]::text[],
+ "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"updatedAt" TIMESTAMP(3) NOT NULL
+);

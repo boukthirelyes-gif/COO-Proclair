@@ -16,3 +16,9 @@ aside{overflow-y:auto}aside .brand,aside nav,aside .side-bottom{flex-shrink:0}
 .sales-board{display:flex;gap:14px;overflow-x:auto;padding-bottom:14px}.sales-column{min-width:230px;flex:1;background:#f3f7f7;border-radius:10px;padding:12px}.sales-column>h3{margin-top:0}.sales-card{background:#fff;border:1px solid #dce7e4;border-radius:8px;padding:12px;margin:12px 0}.sales-card p{font-size:12px}.sales-card button{width:100%;text-align:left}.sales-card label{margin-top:12px}
 
 .sales-card{overflow-wrap:anywhere}.sales-column{flex:0 0 260px}
+
+/* Scoped employee and account surfaces do not inherit the CRM sidebar offset. */
+main.account-security-page{margin:24px auto;width:min(100%,760px);padding:24px}
+main.employee-portal{margin:24px auto;width:min(100%,1100px);padding:24px}
+.users-directory>.panel-heading{flex-wrap:wrap;gap:12px}
+.security-management input[type=checkbox]{width:auto}

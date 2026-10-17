@@ -93,6 +93,7 @@ model Job {
  visits Visit[]
 }
 model Technician {
+ employee AppUser?
  id String @id @default(cuid())
  name String @unique
  active Boolean @default(true)
@@ -102,6 +103,7 @@ model Technician {
  visits Visit[]
 }
 model Visit {
+ technicianInstructions String @default("")
  invoice Invoice?
  id String @id @default(cuid())
  customerId String
@@ -414,6 +416,9 @@ model ClientLink {
 }
 
 model AppUser {
+ invitations UserInvitation[]
+ technicianId String? @unique
+ technician Technician? @relation(fields:[technicianId],references:[id],onDelete:SetNull)
  salesFollowUps SalesFollowUp[]
  salesQuotes Quote[]
  territories SalesTerritory[]
@@ -938,4 +943,36 @@ model CommunicationProof {
  verified Boolean
  detail String
  checkedAt DateTime @default(now())
+}
+
+model SecuritySessionEpoch {
+ id String @id
+ version Int @default(0)
+ updatedAt DateTime @updatedAt
+}
+
+model AccountMfa {
+ failedAttempts Int @default(0)
+ blockedUntil DateTime?
+ actorId String @id
+ encryptedSecret String
+ enabled Boolean @default(false)
+ lastStep Int @default(-1)
+ recoveryHashes String[] @default([])
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+}
+
+model UserInvitation {
+ id String @id @default(cuid())
+ userId String
+ user AppUser @relation(fields:[userId],references:[id],onDelete:Restrict)
+ userVersion Int
+ tokenHash String @unique
+ expiresAt DateTime
+ usedAt DateTime?
+ revokedAt DateTime?
+ createdBy String
+ createdAt DateTime @default(now())
+ @@index([userId,createdAt])
 }

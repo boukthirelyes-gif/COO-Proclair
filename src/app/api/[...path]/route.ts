@@ -32,10 +32,14 @@ import {LeadService} from '@/sales/leads';
 import parity from '@/data/rotor-parity.json';
 import {commissionImpact} from '@/finance/commission-impact';
 import {systemHealth} from '@/lib/system-health';
-import {schemaProbeReady} from '@/lib/schema-health';
+import {schemaProbeReady,securityMigrationReady,type SchemaProbe} from '@/lib/schema-health';
 import {RotorCapabilityRegistry} from '@/lib/rotor-capabilities';
 import {RotorMapService,validateRotorSchema} from '@/lib/rotor-map';
 import {RotorMonitor} from '@/lib/rotor-monitor';
+import {revokeUserSessions,recordLogin,securityOverview} from '@/lib/security-management';
+import {UserInvitations} from '@/lib/user-invitations';
+import {AccountMfaService} from '@/lib/account-mfa';
+import {EmployeePortal} from '@/lib/employee-portal';
 import {resolveActor,authenticate} from '@/lib/user-session';
 import {UserService,routePermission,requirePermission} from '@/lib/access';
 import {ProspectingService} from '@/prospecting/service';
@@ -138,13 +142,18 @@ export async function GET(request: NextRequest) {
     if (path === 'health') {
       // SELECT 1 alone is insufficient: a database may connect while Prisma
       // fails to serve authenticated routes because its schema was not migrated.
-      const probe = await prisma.$queryRaw<Array<{loginBucket:string|null;appUser:string|null;customer:string|null;migrations:string|null}>>`
+      const probe = await prisma.$queryRaw<Array<SchemaProbe>>`
         SELECT to_regclass('"LoginBucket"')::text AS "loginBucket",
                to_regclass('"AppUser"')::text AS "appUser",
                to_regclass('"Customer"')::text AS "customer",
-               to_regclass('"_proclair_migrations"')::text AS "migrations"
+               to_regclass('"_proclair_migrations"')::text AS "migrations",
+               to_regclass('"AccountMfa"')::text AS "accountMfa",
+               to_regclass('"SecuritySessionEpoch"')::text AS "securityEpoch",
+               to_regclass('"UserInvitation"')::text AS "invitations"
       `;
       if (!schemaProbeReady(probe)) return NextResponse.json({status:'degraded',database:'schema_incomplete'},{status:503,headers:{'Cache-Control':'no-store'}});
+      const securityMigration=await prisma.$queryRaw<{ready:boolean}[]>`SELECT EXISTS(SELECT 1 FROM "_proclair_migrations" WHERE name='20261017034000_mfa_attempt_limits') AS ready`;
+      if(!securityMigrationReady(securityMigration))return NextResponse.json({status:'degraded',database:'schema_incomplete'},{status:503,headers:{'Cache-Control':'no-store'}});
       return NextResponse.json({status:'ok',database:'connected'},{headers:{'Cache-Control':'no-store'}});
     }
     if(path==='integrations/rotor/callback') {
@@ -229,6 +238,9 @@ export async function GET(request: NextRequest) {
     if (path === 'session') return NextResponse.json({actor});
     if(/^quotes\/[^/]+\/print$/.test(path)){const quote=await quotes.get(path.split('/')[1]);return new NextResponse(invoiceDocument({...quote,items:quote.items as any,dueDate:quote.validUntil,contract:null,paidCents:0,balanceCents:0,voidReason:quote.status==='VOID'?quote.decisionNote:null},'quote'),{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'private, no-store','Content-Security-Policy':invoiceDocumentCsp,'X-Content-Type-Options':'nosniff'}});}
     if(path==='quotes')return NextResponse.json(await quotes.list());
+    if(path==='session/mfa/status')return NextResponse.json(await new AccountMfaService(prisma).status(actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='employee/visits')return NextResponse.json(await new EmployeePortal(prisma).visits(Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='security/overview')return NextResponse.json(await securityOverview(prisma,actor),{headers:{'Cache-Control':'private, no-store'}});
     if (path === 'worker/state') return NextResponse.json(await worker.state());
     if (path === 'finance/state' || path === 'finance/export') {
       const {invoices,payments,expenses} = await finance.readState();
@@ -277,11 +289,13 @@ async function mutate(request: NextRequest) {
       const loginName=input&&typeof input==='object'&&'username'in input&&typeof input.username==='string'?input.username.trim().toLowerCase().slice(0,100):'admin';
       if (!await takeLoginAttempt(prisma,Date.now(),loginName)) return NextResponse.json({error:'Trop de tentatives. Réessayez dans une minute.'},{status:429,headers:{'Retry-After':'60','Cache-Control':'no-store'}});
       const identity=await authenticate(prisma,input);
+      await recordLogin(prisma,loginName,identity);
       if(!identity)return NextResponse.json({error:'Identifiants invalides.'},{status:401});
       const response = NextResponse.json({actor:identity},{headers:{'Cache-Control':'private, no-store'}});
       response.cookies.set(sessionCookie, issueSession({id:identity.id,role:identity.accountRole,sessionVersion:identity.sessionVersion}), {httpOnly:true,sameSite:'strict',secure:requestIsSecure(request),path:'/',maxAge:8*60*60});
       return response;
     }
+    if(path==='invitations/accept'&&request.method==='POST')return NextResponse.json(await new UserInvitations(prisma).accept(input),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='agreements/portal/read'&&request.method==='POST')return NextResponse.json(await agreements.portalRead(input));
     if(path==='agreements/portal/accept'&&request.method==='POST')return NextResponse.json(await agreements.accept(input));
     if(path==='agreements/portal/pdf'&&request.method==='POST'){const pdf=await agreements.portalPdf(input);return new NextResponse(new Uint8Array(pdf.pdfBytes),{headers:{'Content-Type':'application/pdf','Content-Disposition':'attachment; filename=proclair-contract.pdf','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});}
@@ -326,7 +340,10 @@ async function mutate(request: NextRequest) {
     if(path==='finance/stripe/enterprise/test-invoice'&&request.method==='POST'){stripeAdmin(actor);const data=z.object({mode:z.literal('TEST'),customerId:z.string(),amountCents:z.number().int().positive().max(2147483647),dueDate:z.string(),idempotencyKey:z.string().min(8).max(100),approved:z.literal(true)}).strict().parse(input);let row=await finance.createInvoice({customerId:data.customerId,paymentMode:'TEST',dueDate:data.dueDate,items:[{description:'Facture de test Stripe — aucun encaissement réel',quantity:1,unitPriceCents:data.amountCents,taxRateBps:0}],idempotencyKey:'test-invoice:'+data.idempotencyKey},actor);if(row.status==='DRAFT')row=await finance.issueInvoice(row.id,{expectedVersion:row.version},actor);return NextResponse.json(row);}
     if(path==='finance/stripe/checkout'&&request.method==='POST')return NextResponse.json(await new StripePayments(prisma).checkout(input,actor));
     if(path==='finance/stripe/inspect'&&request.method==='POST')return NextResponse.json(await inspectStripeTest(input,actor));
-    if (path === 'session/logout') { const response = NextResponse.json({ok:true}); response.cookies.set(sessionCookie,'',{path:'/',maxAge:0}); return response; }
+    if(/^employee\/visits\/[^/]+\/start$/.test(path)&&request.method==='POST')return NextResponse.json(await new EmployeePortal(prisma).start(path.split('/')[2],input,actor));
+    if(/^employee\/visits\/[^/]+\/complete$/.test(path)&&request.method==='POST')return NextResponse.json(await new EmployeePortal(prisma).complete(path.split('/')[2],input,actor));
+    if(path==='security/revoke'&&request.method==='POST')return NextResponse.json(await revokeUserSessions(prisma,input,actor));
+    if (path === 'session/logout') { await revokeUserSessions(prisma,{userId:actor.id,approved:true},actor);const response = NextResponse.json({ok:true}); response.cookies.set(sessionCookie,'',{path:'/',maxAge:0}); return response; }
     if(request.method==='PATCH'&&/^agreements\/[^/]+$/.test(path))return NextResponse.json(await agreements.updateDraft(path.split('/')[1],input,actor));
     if(request.method==='POST'&&/^agreements\/[^/]+\/issue$/.test(path))return NextResponse.json(await agreements.issue(path.split('/')[1],input,actor));
     if(request.method==='POST'&&/^agreements\/[^/]+\/schedule$/.test(path))return NextResponse.json(await agreements.schedule(path.split('/')[1],input,actor));
@@ -364,6 +381,12 @@ async function mutate(request: NextRequest) {
       case 'integrations/rotor/pins/preview':return NextResponse.json(await rotorMap.preview(input,actor));
       case 'integrations/rotor/pins/import':return NextResponse.json(await rotorMap.importPage(input,actor));
       case 'integrations/rotor/pins/activity':return NextResponse.json(await rotorMap.readChecked('summarize_map_pin_activity',input,actor));
+      case 'session/mfa/begin': return NextResponse.json(await new AccountMfaService(prisma).begin(input,actor),{headers:{'Cache-Control':'private, no-store'}});
+      case 'session/mfa/confirm': return NextResponse.json(await new AccountMfaService(prisma).confirm(input,actor),{headers:{'Cache-Control':'private, no-store'}});
+      case 'session/mfa/disable': return NextResponse.json(await new AccountMfaService(prisma).disable(input,actor),{headers:{'Cache-Control':'private, no-store'}});
+      case 'users/invitations/create': return NextResponse.json(await new UserInvitations(prisma).create(input,actor),{headers:{'Cache-Control':'private, no-store'}});
+      case 'users/invitations': return NextResponse.json(await new UserInvitations(prisma).issue(input,actor),{headers:{'Cache-Control':'private, no-store'}});
+      case 'users/invitations/revoke': return NextResponse.json(await new UserInvitations(prisma).revoke(input,actor));
       case 'users':return NextResponse.json(await users.create(input,actor),{status:201});
       case 'prospecting':return NextResponse.json(await prospecting.save(null,input,actor),{status:201});
       case 'integrations/rotor/connect': {
