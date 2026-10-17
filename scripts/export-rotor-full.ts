@@ -7,7 +7,7 @@
  *   node --env-file-if-exists=.env --import tsx scripts/export-rotor-full.ts
  *   node --env-file-if-exists=.env --import tsx scripts/export-rotor-full.ts --resume
  */
-import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {mkdir,readFile,writeFile,rename} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {privateExportRoot,safeArchiveError} from '../src/lib/private-export';
@@ -41,7 +41,8 @@ const dateNow=new Date();
 const pad=(n:number)=>String(n).padStart(2,'0');
 const year=dateNow.getUTCFullYear(), month=dateNow.getUTCMonth();
 const end=new Date(Date.UTC(year,month+1,1));
-const firstYear=2024;
+const firstYear=Number(process.env.ROTOR_EXPORT_FIRST_YEAR||'2024');
+if(!Number.isInteger(firstYear)||firstYear<1900||firstYear>year)throw Error('ROTOR_EXPORT_FIRST_YEAR must be between 1900 and the current year.');
 const windows:{start:string;end:string}[]=[];
 for(let y=firstYear;y<=year;y++)for(let m=0;m<12;m++){
  const start=new Date(Date.UTC(y,m,1)),stop=new Date(Date.UTC(y,m+1,1));
@@ -62,7 +63,7 @@ if(resume){
  manifest={format:'PROCLAIR_ROTOR_NDJSON_V1',batch:randomUUID(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),source:'Rotor OAuth read-only',complete:false,datasets:{}};
  await writeFile(manifestPath,JSON.stringify(manifest,null,2),{mode:0o600});
 }
-const save=async()=>{manifest.updatedAt=new Date().toISOString();await writeFile(manifestPath,JSON.stringify(manifest,null,2),{mode:0o600});};
+const save=async()=>{manifest.updatedAt=new Date().toISOString();const pending=manifestPath+'.pending';await writeFile(pending,JSON.stringify(manifest,null,2),{mode:0o600});await rename(pending,manifestPath);};
 const problems:string[]=[];
 for(const spec of specs){
  const ranges=spec.ranged?windows:[null];
@@ -77,10 +78,16 @@ for(const spec of specs){
    manifest.datasets[key]=state;await save();
   }
   try{
-   for(;state.page<=2000;){
+   for(;;){
+    if(!Number.isSafeInteger(state.page)||state.page>=Number.MAX_SAFE_INTEGER)throw Error('Unsafe page counter');
     const args=spec.unpaged?{}:range?{page:state.page,limit,start:range.start,end:range.end}:{page:state.page,limit};
     const result=await rotorArchiveRead(spec.name,args);
-    if(result.pagination&&result.pagination.total!==null)state.total=result.pagination.total;
+    if(result.pagination&&result.pagination.total!==null){
+     if(state.total!==null&&state.total!==result.pagination.total)throw Object.assign(Error('Changed source total'),{code:'ROTOR_TOTAL_CHANGED'});
+     state.total=result.pagination.total;
+    }
+    const nextCount=state.count+result.data.length;
+    if(!Number.isSafeInteger(nextCount)||(state.total!==null&&(nextCount>state.total||(!result.pagination?.has_more&&nextCount!==state.total))))throw Object.assign(Error('Count mismatch'),{code:'ROTOR_COUNT_MISMATCH'});
     if(result.data.length){
      // Stable source IDs are preserved to support importer deduplication.
      const lines=result.data.map(row=>JSON.stringify(row)).join('\n')+'\n';
@@ -92,7 +99,6 @@ for(const spec of specs){
     if(!result.pagination?.has_more){state.complete=true;state.error=undefined;await save();break;}
     state.page++;await save();
    }
-   if(!state.complete)throw Error('Page cap 2000 reached: archive incomplete.');
    console.log(spec.key,windowKey,state.count,'complete');
   }catch(error){
    const message=safeArchiveError(error);
@@ -105,5 +111,6 @@ for(const spec of specs){
 manifest.complete=Object.values(manifest.datasets).every(v=>v.complete)&&!problems.length;
 await save();
 console.log('Export location:',root);
-console.log('Complete:',manifest.complete);
+console.log('Selected archive scopes complete:',manifest.complete);
+console.log('Global migration certified: false. Ranged records start in',firstYear,'; absent categories and source totals require separate verification.');
 if(!manifest.complete){console.log('Resume after repairing connection: --resume');process.exitCode=2;}

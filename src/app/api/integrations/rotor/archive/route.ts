@@ -35,7 +35,7 @@ export async function GET(request:NextRequest){
   const args:Record<string,unknown>={};
   if(!unpaged.has(tool)){
    const page=Number(query.get('page')),limit=Number(query.get('limit')||'100');
-   if(!Number.isInteger(page)||page<1||page>2000||![25,50,100].includes(limit))
+   if(!Number.isSafeInteger(page)||page<1||page>=Number.MAX_SAFE_INTEGER||![25,50,100].includes(limit))
     return NextResponse.json({error:'Pagination invalide.'},{status:400,headers:replyHeaders});
    args.page=page;args.limit=limit;
    if(ranged.has(tool)){

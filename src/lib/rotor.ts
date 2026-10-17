@@ -31,7 +31,7 @@ export async function rotorTools(){const token=await usableToken();const deadlin
 
 /** Perform fixed, explicitly allowed read-only MCP operations on a single page. */
 export async function rotorReadPage(page:number,limit:number,start:string,end:string,kinds:('CUSTOMER'|'JOB'|'VISIT')[]=['CUSTOMER','JOB','VISIT']){
- if(!Number.isInteger(page)||page<1||page>2000||!Number.isInteger(limit)||limit<1||limit>50)
+ if(!Number.isSafeInteger(page)||page<1||page>=Number.MAX_SAFE_INTEGER||!Number.isInteger(limit)||limit<1||limit>50)
   throw new DomainError('ROTOR_PAGE','Pagination Rotor invalide.',400);
  const begin=new Date(start),finish=new Date(end);
  if(!Number.isFinite(begin.getTime())||!Number.isFinite(finish.getTime())||finish<=begin||finish.getTime()-begin.getTime()>366*86400000)
@@ -167,7 +167,7 @@ export async function rotorArchiveRead(name:RotorArchiveTool,args:Record<string,
  if(!Object.hasOwn(rotorArchiveScopes,name))throw new DomainError('FORBIDDEN','Lecture Rotor non autorisée.',403);
  const ranged=rotorArchiveRanged.has(name),unpaged=rotorArchiveUnpaged.has(name);
  const page=unpaged?1:args.page,limit=unpaged?100:args.limit;
- if(!unpaged&&(!Number.isInteger(page)||Number(page)<1||Number(page)>2000||!Number.isInteger(limit)||Number(limit)<1||Number(limit)>100))
+ if(!unpaged&&(!Number.isSafeInteger(page)||Number(page)<1||Number(page)>=Number.MAX_SAFE_INTEGER||!Number.isInteger(limit)||Number(limit)<1||Number(limit)>100))
   throw new DomainError('ROTOR_PAGE','Pagination invalide.',400);
  const expected=unpaged?[]:ranged?['page','limit','start','end']:['page','limit'];
  if(Object.keys(args).some(k=>!expected.includes(k)))throw new DomainError('ROTOR_ARGUMENTS','Paramètres non autorisés.',400);

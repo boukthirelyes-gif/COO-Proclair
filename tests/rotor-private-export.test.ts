@@ -5,7 +5,7 @@ import {rotorArchiveRead,type RotorArchiveTool} from '../src/lib/rotor';
 import {privateExportRoot,safeArchiveError,requireArchivePermissions} from '../src/lib/private-export';
 test('private Rotor reader rejects prototype names and invalid arguments before credentials or transport',async()=>{
  for(const name of ['constructor','__proto__','tools/call'])await assert.rejects(()=>rotorArchiveRead(name as RotorArchiveTool,{page:1,limit:100}),{code:'FORBIDDEN'});
- await assert.rejects(()=>rotorArchiveRead('list_customers',{page:2001,limit:100}),{code:'ROTOR_PAGE'});
+ await assert.rejects(()=>rotorArchiveRead('list_customers',{page:Number.MAX_SAFE_INTEGER,limit:100}),{code:'ROTOR_PAGE'});
  await assert.rejects(()=>rotorArchiveRead('list_customers',{page:1,limit:100,includeSecret:true}),{code:'ROTOR_ARGUMENTS'});
  await assert.rejects(()=>rotorArchiveRead('list_visits',{page:1,limit:100,start:'invalid',end:'2026-10-14'}),{code:'ROTOR_RANGE'});
 });

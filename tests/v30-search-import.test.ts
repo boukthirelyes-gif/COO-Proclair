@@ -57,3 +57,11 @@ test('annual Rotor imports use the same 366 day boundary in service and PostgreS
  await assert.rejects(()=>db.rotorImportRun.create({data:{start:new Date(input.start),end:new Date('2027-01-03T00:00:00Z'),kinds:['VISIT'],checkpoints:{},createdBy:'fixture'}}));
  assert.equal(await db.visit.count(),0);assert.equal(await db.payment.count(),0);
 }));
+
+test('historical page-limit runs can resume beyond page 2000 without native writes',{skip:!process.env.TEST_DATABASE_URL,timeout:60000},async()=>isolated(async db=>{
+ await new RotorCapabilityRegistry(db).record({tools:[{name:'list_jobs',description:'Synthetic paged reader',annotations:{readOnlyHint:true},inputSchema:{type:'object',properties:{page:{type:'integer'},limit:{type:'integer'}}}}],hasMore:false,readOnly:true,protocolVersion:'2025-03-26',scopes:['jobs:read']},bootstrapActor);
+ let requested=0;const reader:any=async(page:number,limit:number,start:string,end:string)=>{requested=page;const empty={data:[],pagination:{page,hasMore:false,total:null},raw:{data:[],pagination:{page,has_more:false}}};return {customers:empty,jobs:empty,visits:empty,page,limit,start,end}};
+ const service=new RotorImportService(db,reader),run=await service.create({start:'2026-01-01T00:00:00Z',end:'2026-02-01T00:00:00Z',kinds:['JOB'],approved:true},bootstrapActor);
+ await db.rotorImportRun.update({where:{id:run.id},data:{status:'LIMIT_REACHED',errorCode:'PAGE_LIMIT',checkpoints:{JOB:{page:2001,pages:2000,received:50000,total:null,done:false,lastHash:null}}}});
+ const report=await service.step(run.id,bootstrapActor);assert.equal(requested,2001);assert.equal(report.run.status,'COMPLETE');assert.equal(report.completeness.categories.JOB.confidence,'END_REPORTED_TOTAL_UNKNOWN');assert.equal(report.completeness.migrationCertified,false);assert.equal(await db.job.count(),0);assert.equal(await db.invoice.count(),0);
+}));
