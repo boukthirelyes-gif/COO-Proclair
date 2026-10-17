@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
+import {mkdirSync} from 'node:fs';
 import {issueSession} from '../../src/lib/auth.ts';
 
 // Called only by the isolated browser suite: no production URL or credentials.
 export async function checkPreviewLogin(browser,base){
+ mkdirSync('.local/preview-delivery',{recursive:true});
  const context=await browser.newContext({viewport:{width:1440,height:1000},timezoneId:'America/Toronto'}),page=await context.newPage();
  try{
   await page.goto(base);await page.getByRole('heading',{name:'Connexion à Proclair',exact:true}).waitFor();
