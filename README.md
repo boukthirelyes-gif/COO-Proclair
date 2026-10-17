@@ -106,3 +106,5 @@ La version 0.3.0 ajoute l’espace sombre regroupé, la recherche globale, les d
 Les profils, sessions révocables, MFA TOTP et invitations du CRM Next.js sont documentés dans [le guide de sécurité](docs/enterprise-security/README.md). Le prototype Python historique est une démonstration locale sans ce RBAC ; il ne constitue pas le backend sécurisé de l’entreprise.
 
 Fondations SaaS pilotes (désactivées par défaut), isolation et checklist commerciale : [documentation SaaS](docs/saas/README.md). Aucune activation de facturation réelle.
+
+[Rapport de validation locale SaaS](docs/saas/VALIDATION.md).
