@@ -1,3 +1,6 @@
+import {computeMapRoute,technicianRoutes} from '@/prospecting/routes';
+import {PinPhotos} from '@/prospecting/photos';
+import {prospectingInsights} from '@/prospecting/insights';
 import {googleMapsBrowserConfiguration} from '@/prospecting/google-config';
 import {prospectingViewport} from '@/prospecting/viewport';
 import {CommunicationCenter} from '@/providers/communication-center';
@@ -209,6 +212,10 @@ export async function GET(request: NextRequest) {
     if(path==='leads')return NextResponse.json(await leads.list(actor));
     if(/^leads\/[^/]+\/history$/.test(path))return NextResponse.json(await leads.history(path.split('/')[1],actor));
     if(/^leads\/[^/]+$/.test(path))return NextResponse.json(await leads.get(path.split('/')[1],actor));
+    if(path==='prospecting/technician-routes')return NextResponse.json(await technicianRoutes(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='prospecting/insights')return NextResponse.json(await prospectingInsights(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(/^prospecting\/[^/]+\/photos$/.test(path))return NextResponse.json(await new PinPhotos(prisma).list(path.split('/')[1],actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(/^prospecting\/[^/]+\/photos\/[^/]+$/.test(path)){const row=await new PinPhotos(prisma).get(path.split('/')[1],path.split('/')[3],actor);return new NextResponse(new Uint8Array(row.bytes),{headers:{'Content-Type':row.mime,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'; sandbox"}});}
     if(path==='prospecting/map-config')return NextResponse.json(googleMapsBrowserConfiguration(process.env),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='prospecting/viewport')return NextResponse.json(await prospectingViewport(prisma,Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(/^prospecting\/[^/]+$/.test(path))return NextResponse.json(await prospecting.get(path.split('/')[1],actor));
@@ -222,6 +229,7 @@ export async function GET(request: NextRequest) {
     if(/^integrations\/rotor\/imports\/[^/]+$/.test(path))return NextResponse.json(await rotorImports.report(path.split('/')[3],actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='integrations/rotor/capabilities')return NextResponse.json(await registry.state());
     if(path==='integrations/rotor/pins'){const rows=await prisma.rotorMapPin.findMany({take:2000,orderBy:{syncedAt:'desc'}}),ids=rows.map(p=>p.customerExternalId).filter((v):v is string=>Boolean(v));const [native,mirrored]=await Promise.all([prisma.customer.findMany({where:{rotorExternalId:{in:ids}},select:{id:true,name:true,rotorExternalId:true}}),prisma.rotorMirrorRecord.findMany({where:{kind:'CUSTOMER',externalId:{in:ids}},select:{externalId:true,name:true}})]);const pins=rows.map(p=>({...p,customerReference:p.customerExternalId?{externalId:p.customerExternalId,nativeId:native.find(c=>c.rotorExternalId===p.customerExternalId)?.id??null,name:native.find(c=>c.rotorExternalId===p.customerExternalId)?.name??mirrored.find(c=>c.externalId===p.customerExternalId)?.name??null}:null}));if(Buffer.byteLength(JSON.stringify(pins))>3500000)throw new DomainError('MAP_TOO_LARGE','Le miroir nécessite une recherche paginée plus précise.',413);return NextResponse.json(pins);}
+    if(/^territories\/[^/]+\/history$/.test(path))return NextResponse.json(await territories.history(path.split('/')[1],actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='territories')return NextResponse.json(await territories.list(actor));
     if(path==='users')return NextResponse.json(await users.list(actor));
     if(path==='prospecting')return NextResponse.json(await prospecting.list(actor,request.nextUrl.searchParams.get('after'),Object.fromEntries([...request.nextUrl.searchParams].filter(([name])=>name!=='after'))));
@@ -335,10 +343,14 @@ async function mutate(request: NextRequest) {
     if(request.method==='POST'&&/^agreements\/[^/]+\/issue$/.test(path))return NextResponse.json(await agreements.issue(path.split('/')[1],input,actor));
     if(request.method==='POST'&&/^agreements\/[^/]+\/schedule$/.test(path))return NextResponse.json(await agreements.schedule(path.split('/')[1],input,actor));
     if(request.method==='POST'&&/^agreements\/[^/]+\/revoke$/.test(path))return NextResponse.json(await agreements.revoke(path.split('/')[1],actor));
+    if(request.method==='POST'&&/^prospecting\/[^/]+\/visit$/.test(path))return NextResponse.json(await prospecting.recordVisit(path.split('/')[1],input,actor));
+    if(request.method==='POST'&&path==='prospecting/routes')return NextResponse.json(await computeMapRoute(prisma,input,actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(request.method==='POST'&&/^prospecting\/[^/]+\/photos$/.test(path))return NextResponse.json(await new PinPhotos(prisma).add(path.split('/')[1],input,actor),{status:201});
     if(request.method==='POST'&&/^prospecting\/[^/]+\/status$/.test(path))return NextResponse.json(await prospecting.quickStatus(path.split('/')[1],input,actor));
     if(request.method==='POST'&&/^integrations\/rotor\/imports\/[^/]+\/step$/.test(path))return NextResponse.json(await rotorImports.step(path.split('/')[3],actor));
     if(path==='integrations/rotor/imports'&&request.method==='POST')return NextResponse.json(await rotorImports.create(input,actor),{status:201});
     if(request.method==='PATCH'&&/^leads\/[^/]+$/.test(path))return NextResponse.json(await leads.update(path.split('/')[1],input,actor));
+    if(request.method==='POST'&&/^territories\/[^/]+\/reassign$/.test(path))return NextResponse.json(await territories.reassign(path.split('/')[1],input,actor));
     if(request.method==='PATCH'&&/^territories\/[^/]+$/.test(path))return NextResponse.json(await territories.save(path.split('/')[1],input,actor));
     if(request.method==='PATCH'&&/^users\/[^/]+$/.test(path))return NextResponse.json(await users.update(path.split('/')[1],input,actor));
     if(request.method==='PATCH'&&/^prospecting\/[^/]+$/.test(path))return NextResponse.json(await prospecting.save(path.split('/')[1],input,actor));

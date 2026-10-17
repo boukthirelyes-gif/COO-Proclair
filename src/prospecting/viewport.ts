@@ -9,6 +9,7 @@ export type MapPoint={id:string|null;address:string|null;latitude:number;longitu
 export async function prospectingViewport(db:PrismaClient,input:unknown,actor:AccessActor,schema='public'){
  requirePermission(actor,'map.read');if(!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(schema))throw new DomainError('INVALID_SCHEMA','Stockage invalide.',500);
  const v=viewportQuery.parse(input),{south,north,west,east,zoom,...filters}=v,where=mapWhere(filters,actor),parts:Prisma.Sql[]=[Prisma.sql`p.latitude BETWEEN ${south} AND ${north}`,west<=east?Prisma.sql`p.longitude BETWEEN ${west} AND ${east}`:Prisma.sql`(p.longitude>=${west} OR p.longitude<=${east})`];
+ if(west<=east)parts.push(Prisma.sql`point(p.longitude,p.latitude) <@ box(point(${west},${south}),point(${east},${north}))`);
  if(where.ownerId)parts.push(Prisma.sql`p."ownerId"=${where.ownerId}`);
  for(const name of ['status','typeId','territoryId'] as const)if(v[name])parts.push(Prisma.sql`${Prisma.raw('p."'+name+'"')}=${v[name]}`);
  if(where.createdAt?.gte)parts.push(Prisma.sql`p."createdAt">=${where.createdAt.gte}`);if(where.createdAt?.lt)parts.push(Prisma.sql`p."createdAt"<${where.createdAt.lt}`);

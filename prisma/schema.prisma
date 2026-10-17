@@ -432,6 +432,11 @@ model AppUser {
  pins ProspectPin[]
 }
 model ProspectPin {
+ lastVisitedAt DateTime?
+ visitCount Int @default(0)
+ operationId String? @unique
+ creationFingerprint String?
+ photos ProspectPinPhoto[]
  @@index([ownerId,latitude,longitude])
  @@index([latitude,longitude])
  @@index([createdAt,id])
@@ -697,6 +702,8 @@ model AgreementAccess {
  @@index([agreementId])
 }
 model SalesTerritory {
+ teamName String?
+ teamMemberIds String[] @default([])
  id String @id @default(cuid())
  name String
  color String
@@ -940,4 +947,16 @@ model CommunicationProof {
  verified Boolean
  detail String
  checkedAt DateTime @default(now())
+}
+
+model ProspectPinPhoto {
+ id String @id @default(cuid())
+ pinId String
+ pin ProspectPin @relation(fields:[pinId],references:[id])
+ bytes Bytes
+ mime String
+ caption String
+ createdBy String
+ createdAt DateTime @default(now())
+ @@index([pinId,createdAt])
 }
