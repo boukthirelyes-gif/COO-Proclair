@@ -1,3 +1,4 @@
+import {OmegaEngine,omegaRequest} from './engine';
 import {SalesFollowUps} from './sales-followups';
 import type {PrismaClient} from '@prisma/client';
 import {z} from 'zod';
@@ -10,6 +11,7 @@ import {omegaOperations} from './operations';
 const examples=['Combien de contrats actifs avons-nous ?','Qui n’a pas encore confirmé ?','Montre les factures impayées.','Quels clients ont des visites restantes ?','Remplis les routes de demain.'];
 export async function omegaAssistant(db:PrismaClient,input:unknown,actor:AccessActor,dbSchema='public'){
  requirePermission(actor,'omega');requirePermission(actor,'crm.read');const {message}=z.object({message:z.string().trim().min(1).max(500)}).strict().parse(input),q=message.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();let response:any={mode:'ASSISTED',executed:false,source:'POSTGRESQL',generatedAt:new Date().toISOString(),examples};
+ const command=omegaRequest(message);if(command)return new OmegaEngine(db,()=>new Date(),dbSchema).read(command,actor);
  if(/briefing|priorit|urgence|urgent|quoi faire|que dois.je faire|bilan.*journ|resume.*journ/.test(q)){
    const snapshot=await omegaOperations(db,actor,new Date(),dbSchema),active=snapshot.groups.filter(group=>group.total>0);
    response={...response,intent:'OPERATIONS_BRIEFING',answer:active.length?active.map(group=>`${group.label} : ${group.total}. ${group.reason}`).join('\n'):'Aucun dossier ne correspond actuellement aux règles de priorité dans votre périmètre. Les autres modules restent à consulter selon vos besoins.',rows:active.flatMap(group=>group.items.filter(item=>['visits','invoices'].includes(item.view)).map(item=>({...item,detail:group.label+' · '+item.detail}))).slice(0,10),limited:active.some(group=>group.total>group.items.length)||active.reduce((n,g)=>n+g.items.length,0)>10,action:'OPEN_OPERATIONS',scope:snapshot.scope};

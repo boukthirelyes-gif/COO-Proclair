@@ -939,3 +939,27 @@ model CommunicationProof {
  detail String
  checkedAt DateTime @default(now())
 }
+
+model OmegaEngineOperation {
+ id String @id @default(cuid())
+ actorId String
+ key String
+ payloadHash String
+ title String
+ status String @default("AWAITING_APPROVAL")
+ taskId String? @unique
+ task OmegaInternalTask? @relation(fields:[taskId],references:[id],onDelete:Restrict)
+ createdAt DateTime @default(now())
+ completedAt DateTime?
+ @@unique([actorId,key])
+ @@index([actorId,createdAt])
+}
+model OmegaInternalTask {
+ id String @id @default(cuid())
+ operation OmegaEngineOperation?
+ title String
+ createdBy String
+ status String @default("OPEN")
+ createdAt DateTime @default(now())
+ @@index([createdBy,status,createdAt])
+}

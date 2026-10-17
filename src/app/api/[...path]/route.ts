@@ -25,6 +25,7 @@ import {dashboardMetrics} from '@/lib/dashboard-metrics';
 import {rotorLivePage} from '@/lib/rotor-live';
 import {RotorCustomerPromotion} from '@/lib/rotor-customer-promotion';
 import {customerDossier} from '@/lib/customer-dossier';
+import {OmegaEngine} from '@/omega/engine';
 import {omegaAssistant} from '@/omega/assistant';
 import {RotorImportService} from '@/lib/rotor-import';
 import {globalSearch} from '@/lib/global-search';
@@ -229,6 +230,8 @@ export async function GET(request: NextRequest) {
     if (path === 'session') return NextResponse.json({actor});
     if(/^quotes\/[^/]+\/print$/.test(path)){const quote=await quotes.get(path.split('/')[1]);return new NextResponse(invoiceDocument({...quote,items:quote.items as any,dueDate:quote.validUntil,contract:null,paidCents:0,balanceCents:0,voidReason:quote.status==='VOID'?quote.decisionNote:null},'quote'),{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'private, no-store','Content-Security-Policy':invoiceDocumentCsp,'X-Content-Type-Options':'nosniff'}});}
     if(path==='quotes')return NextResponse.json(await quotes.list());
+    if(path==='omega/engine/tools')return NextResponse.json(await new OmegaEngine(prisma).catalog(actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='omega/engine/history')return NextResponse.json(await new OmegaEngine(prisma).history(actor),{headers:{'Cache-Control':'private, no-store'}});
     if (path === 'worker/state') return NextResponse.json(await worker.state());
     if (path === 'finance/state' || path === 'finance/export') {
       const {invoices,payments,expenses} = await finance.readState();
@@ -393,6 +396,11 @@ async function mutate(request: NextRequest) {
       case 'omega/supervisor/review-batch': return NextResponse.json(await supervisor.reviewBatch(input,actor));
       case 'omega/supervisor/reconcile': return NextResponse.json(await supervisor.reconcile(input,actor));
       case 'omega/supervisor/review': return NextResponse.json(await supervisor.review(input,actor));
+      case 'omega/engine/read': return NextResponse.json(await new OmegaEngine(prisma).read(input,actor));
+      case 'omega/engine/prepare': return NextResponse.json(await new OmegaEngine(prisma).prepare(input,actor));
+      case 'omega/engine/execute': return NextResponse.json(await new OmegaEngine(prisma).execute(input,actor));
+      case 'omega/engine/complete': return NextResponse.json(await new OmegaEngine(prisma).complete(input,actor));
+      case 'omega/engine/control': return NextResponse.json(await new OmegaEngine(prisma).control(input,actor));
       case 'omega/assistant': return NextResponse.json(await omegaAssistant(prisma,input,actor));
       case 'territories': return NextResponse.json(await territories.save(null,input,actor),{status:201});
       case 'customers': return NextResponse.json(await service.createCustomer(input,actor),{status:201});
