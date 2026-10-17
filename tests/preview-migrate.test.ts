@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
 import {Client} from 'pg';
-const run=(extra:Record<string,string|undefined>)=>spawnSync(process.execPath,['--import','tsx','scripts/preview-migrate.ts'],{encoding:'utf8',env:{NODE_ENV:'test',PATH:process.env.PATH,...extra}});
+const auth={PROCLAIR_ADMIN_PASSWORD:'synthetic-preview-admin-only',PROCLAIR_SESSION_SECRET:'synthetic-preview-session-secret-only-123456'};
+const run=(extra:Record<string,string|undefined>)=>spawnSync(process.execPath,['--import','tsx','scripts/preview-migrate.ts'],{encoding:'utf8',env:{NODE_ENV:'test',PATH:process.env.PATH,...auth,...extra}});
 test('preview deployment refuses absent credentials, production aliases and production execution',()=>{
  const url='postgresql://synthetic:fake@localhost:1/production';
  for(const env of [{VERCEL_ENV:'preview',DATABASE_URL:url},{VERCEL_ENV:'preview',DATABASE_URL:url,PROCLAIR_PREVIEW_DATABASE_URL:url},{VERCEL_ENV:'production',PROCLAIR_PREVIEW_DATABASE_URL:url}]){

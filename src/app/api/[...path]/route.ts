@@ -1,3 +1,4 @@
+import {deployedRevision,authenticationConfigured} from '@/lib/preview-deployment';
 import {CommunicationCenter} from '@/providers/communication-center';
 import {StripeEnterprise} from '@/providers/stripe-enterprise';
 import {stripeAdmin} from '@/providers/stripe-modes';
@@ -139,6 +140,7 @@ export async function GET(request: NextRequest) {
       const dispatch=await worker.tick(),missions=await supervisor.tick();
       return NextResponse.json({...dispatch,supervisor:missions},{headers:{'Cache-Control':'no-store'}});
     }
+    if(path==='deployment')return NextResponse.json({revision:deployedRevision(process.env)},{headers:{'Cache-Control':'no-store'}});
     if (path === 'health') {
       // SELECT 1 alone is insufficient: a database may connect while Prisma
       // fails to serve authenticated routes because its schema was not migrated.
@@ -154,7 +156,8 @@ export async function GET(request: NextRequest) {
       if (!schemaProbeReady(probe)) return NextResponse.json({status:'degraded',database:'schema_incomplete'},{status:503,headers:{'Cache-Control':'no-store'}});
       const securityMigration=await prisma.$queryRaw<{ready:boolean}[]>`SELECT EXISTS(SELECT 1 FROM "_proclair_migrations" WHERE name='20261017034000_mfa_attempt_limits') AS ready`;
       if(!securityMigrationReady(securityMigration))return NextResponse.json({status:'degraded',database:'schema_incomplete'},{status:503,headers:{'Cache-Control':'no-store'}});
-      return NextResponse.json({status:'ok',database:'connected'},{headers:{'Cache-Control':'no-store'}});
+      if(!authenticationConfigured(process.env))return NextResponse.json({status:'degraded',database:'connected',authentication:'not_configured'},{status:503,headers:{'Cache-Control':'no-store'}});
+      return NextResponse.json({status:'ok',database:'connected'},{headers:{'Cache-Control':'no-store',...(deployedRevision(process.env)?{'X-Proclair-Revision':deployedRevision(process.env)!}:{})}});
     }
     if(path==='integrations/rotor/callback') {
       const cookie=request.cookies.get('rotor_oauth')?.value;
