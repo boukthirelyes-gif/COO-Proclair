@@ -238,7 +238,7 @@ export async function GET(request: NextRequest) {
     if (path === 'session') return NextResponse.json({actor});
     if(/^quotes\/[^/]+\/print$/.test(path)){const quote=await quotes.get(path.split('/')[1]);return new NextResponse(invoiceDocument({...quote,items:quote.items as any,dueDate:quote.validUntil,contract:null,paidCents:0,balanceCents:0,voidReason:quote.status==='VOID'?quote.decisionNote:null},'quote'),{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'private, no-store','Content-Security-Policy':invoiceDocumentCsp,'X-Content-Type-Options':'nosniff'}});}
     if(path==='quotes')return NextResponse.json(await quotes.list());
-    if(path==='session/mfa/status')return NextResponse.json(await new AccountMfaService(prisma).status(actor),{headers:{'Cache-Control':'private, no-store'}});
+    if(path==='session/mfa/status')return NextResponse.json({enabled:false,policy:'PASSWORD_ONLY'},{headers:{'Cache-Control':'private, no-store'}});
     if(path==='employee/visits')return NextResponse.json(await new EmployeePortal(prisma).visits(Object.fromEntries(request.nextUrl.searchParams),actor),{headers:{'Cache-Control':'private, no-store'}});
     if(path==='security/overview')return NextResponse.json(await securityOverview(prisma,actor),{headers:{'Cache-Control':'private, no-store'}});
     if (path === 'worker/state') return NextResponse.json(await worker.state());
@@ -381,8 +381,8 @@ async function mutate(request: NextRequest) {
       case 'integrations/rotor/pins/preview':return NextResponse.json(await rotorMap.preview(input,actor));
       case 'integrations/rotor/pins/import':return NextResponse.json(await rotorMap.importPage(input,actor));
       case 'integrations/rotor/pins/activity':return NextResponse.json(await rotorMap.readChecked('summarize_map_pin_activity',input,actor));
-      case 'session/mfa/begin': return NextResponse.json(await new AccountMfaService(prisma).begin(input,actor),{headers:{'Cache-Control':'private, no-store'}});
-      case 'session/mfa/confirm': return NextResponse.json(await new AccountMfaService(prisma).confirm(input,actor),{headers:{'Cache-Control':'private, no-store'}});
+      case 'session/mfa/begin': return NextResponse.json({error:'Authentification par nom d’utilisateur et mot de passe uniquement.'},{status:410});
+      case 'session/mfa/confirm': return NextResponse.json({error:'Authentification par nom d’utilisateur et mot de passe uniquement.'},{status:410});
       case 'session/mfa/disable': return NextResponse.json(await new AccountMfaService(prisma).disable(input,actor),{headers:{'Cache-Control':'private, no-store'}});
       case 'users/invitations/create': return NextResponse.json(await new UserInvitations(prisma).create(input,actor),{headers:{'Cache-Control':'private, no-store'}});
       case 'users/invitations': return NextResponse.json(await new UserInvitations(prisma).issue(input,actor),{headers:{'Cache-Control':'private, no-store'}});

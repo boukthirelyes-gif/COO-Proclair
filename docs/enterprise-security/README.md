@@ -1,3 +1,5 @@
+> Mise à jour du 17 octobre 2026 : à la demande du propriétaire, la connexion utilise uniquement le nom d’utilisateur et le mot de passe. Le formulaire ne demande plus de code, les routes d’activation MFA répondent 410 et les anciens enrôlements conservés ne bloquent plus la connexion. Les primitives TOTP et leurs tests restent conservés pour préserver l’historique technique; les sections MFA ci-dessous décrivent cette ancienne capacité, désormais désactivée dans le parcours public. Aucun mot de passe, rôle ou droit d’accès n’est changé.
+
 # Proclair — sécurité et gestion d'équipe
 
 Lot issu de develop ; aucune modification directe en Production. Il ne constitue ni un audit exhaustif, ni une certification, ni une déclaration de conformité Loi 25.

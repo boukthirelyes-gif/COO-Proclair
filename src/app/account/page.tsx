@@ -1,2 +1,1 @@
-import AccountMfa from '@/components/AccountMfa';
-export default function AccountSecurity(){return <main className="account-security-page"><AccountMfa/></main>;}
+export default function AccountSecurity(){return <main className="account-security-page"><section className="panel"><h1>Connexion à Proclair</h1><p>Votre nom d’utilisateur et votre mot de passe suffisent pour vous connecter. Aucun code supplémentaire n’est demandé.</p><a href="/">Retour au CRM</a></section></main>;}
