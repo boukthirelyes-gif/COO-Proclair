@@ -39,6 +39,8 @@ POST /api/employee/visits/:id/start accepte uniquement expectedVersion et approv
 
 ## Centre de sécurité
 
+Le centre de santé conserve toute la liste des migrations appliquées (métadonnées seulement), sans tronquer les versions historiques au-delà de 30 entrées.
+
 Dans Utilisateurs : comptes actifs/inactifs, échecs de connexion sur 24 h, tâches en dead-letter, 30 derniers événements sensibles, invitations en attente, MFA enrôlées et révocation globale. Il affiche des **comptes**, pas un nombre inventé de sessions actives. Révocation de son propre compte = reconnexion requise. Les autres utilisateurs n'accèdent pas à /api/security/overview ni /revoke.
 
 ## MFA personnelle
