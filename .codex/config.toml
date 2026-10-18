@@ -1,0 +1,8 @@
+# 267 Agency subagents + 1 coordinator. No tasks start automatically.
+# V2 cap includes the primary thread; actual slots depend on Codex/runtime quotas.
+[agents]
+enabled = true
+
+[features.multi_agent_v2]
+enabled = true
+max_concurrent_threads_per_session = 268

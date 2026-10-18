@@ -1,0 +1,42 @@
+name: Import Complete Agency Catalogue
+on:
+  push:
+    branches:
+      - feat/codex-agency-agents-proclair
+    paths:
+      - scripts/vendor-agency-agents.py
+      - .github/workflows/vendor-agency-agents.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  vendor:
+    if: github.ref == 'refs/heads/feat/codex-agency-agents-proclair'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout COO-Proclair
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Checkout pinned The Agency sources (not executed)
+        uses: actions/checkout@v4
+        with:
+          repository: msitarzewski/agency-agents
+          ref: 652b2692f8d8ec2b1f1a38e559073e287dfdc469
+          path: agency-source
+          persist-credentials: false
+      - name: Convert all 267 upstream specialist profiles to Codex TOML
+        run: python3 scripts/vendor-agency-agents.py agency-source
+      - name: Validate all 267 profiles
+        run: python3 scripts/check-agency-agents.py
+      - name: Commit only generated Codex artifacts to feature branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A .codex/agents .codex/agency-manifest.json docs/AGENCY_AGENTS.md AGENTS.md
+          if git diff --cached --quiet; then
+            echo 'Already up to date'
+          else
+            git commit -m 'feat(codex): vendor all 267 The Agency profiles'
+            git push origin HEAD:feat/codex-agency-agents-proclair
+          fi

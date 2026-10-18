@@ -1,0 +1,4 @@
+interface:
+  display_name: "Proclair Agency"
+  short_description: "Coordonne les 267 experts de ton CRM"
+  default_prompt: "$proclair-agency Analyse le CRM Proclair avec les spécialistes pertinents, en gardant Production intacte."
