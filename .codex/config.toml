@@ -2,4 +2,6 @@
 # Enabled only in supported Codex clients and trusted project workspaces.
 [agents]
 enabled = true
-max_concurrent_threads_per_session = 4
+# Codex limit: 16 spawned subagents, excluding the primary coordinator.
+# Actual capacity depends on the active client, workspace and rate limits.
+max_concurrent_threads_per_session = 16

@@ -25,8 +25,8 @@ Demander explicitement par exemple :
 
 Le nombre de **267 agents disponibles** n'est **pas** un nombre de processus
 automatiquement actifs. Codex orchestre le travail selon les outils,
-permissions, limites et parametres du client. Ici, le plafond propose est 4
-sous-agents actifs. Il ne s'agit pas de l'orchestrateur OMEGA dans l'application.
+permissions, limites et parametres du client. Ici, le plafond configure est 16
+sous-agents actifs au maximum, plus le coordinateur. Il ne s'agit pas de l'orchestrateur OMEGA dans l'application.
 
 ## Provenance et verification
 

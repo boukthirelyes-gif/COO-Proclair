@@ -13,4 +13,4 @@
 - Validation finale : `agency_testing_reality_checker`
 - Code review : `agency_engineering_code_reviewer`
 
-Autres rôles : consulter `.codex/agency-manifest.json` (**267 noms**). Lancer **4 agents** maximum simultanément.
+Autres rôles : consulter `.codex/agency-manifest.json` (**267 noms**). Permettre **jusqu'à 16 agents** simultanés plus le coordinateur, uniquement pour des tâches indépendantes, sans édition du même fichier par plusieurs agents.
