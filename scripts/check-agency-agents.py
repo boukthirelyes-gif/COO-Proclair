@@ -13,6 +13,7 @@ assert cfg["agents"]["enabled"] is True
 assert 1 <= cfg["agents"]["max_concurrent_threads_per_session"] <= 4
 manifest = json.loads((ROOT / ".codex/agency-manifest.json").read_text(encoding="utf-8"))
 assert manifest["count"] == 267
+assert (ROOT / "AGENTS.md").read_text(encoding="utf-8").count("## Agents The Agency dans Codex") == 1
 assert manifest["commit"] == "652b2692f8d8ec2b1f1a38e559073e287dfdc469"
 assert len(manifest["agents"]) == 267
 files = sorted((ROOT / ".codex/agents").glob("agency_*.toml"))

@@ -98,7 +98,9 @@ def main() -> None:
 """
     agents_path = ROOT / "AGENTS.md"
     current = agents_path.read_text(encoding="utf-8")
-    old_index = current.find("## Agents specialises The Agency pour Codex")
+    headings = ("## Agents specialises The Agency pour Codex", "## Agents The Agency dans Codex")
+    positions = [current.find(heading) for heading in headings if heading in current]
+    old_index = min(positions) if positions else -1
     if old_index >= 0:
         current = current[:old_index].rstrip() + "\n\n"
     agents_path.write_text(current + section, encoding="utf-8")
