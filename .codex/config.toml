@@ -1,0 +1,5 @@
+# COO-Proclair — Codex project-scoped multi-agent configuration
+# Enabled only in supported Codex clients and trusted project workspaces.
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 4

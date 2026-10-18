@@ -18,3 +18,12 @@ en ligne. Si un accès ou une clé manque, terminer le travail indépendant et n
 le blocage ; ne jamais annoncer une publication non vérifiée. Préserver les données,
 les fonctionnalités et les restrictions existantes. Cette préférence explicite
 prévaut sur les anciens rapports qui prescrivent de laisser tous les lots en test.
+
+## Agents The Agency dans Codex
+
+- Les **267 profils** d'agents specialises sont dans `.codex/agents/agency_*.toml` (source epinglee + manifeste `.codex/agency-manifest.json`).
+- Pour piloter les experts dans Codex, utiliser `$proclair-agency` (`.agents/skills/proclair-agency/SKILL.md`), puis lire `CODEX_START_HERE.md`.
+- Charger le projet de confiance dans Codex; deleguer les taches independantes a des sous-agents pertinents. Ne pas lancer 267 agents simultanement; limite de 4 threads dans `.codex/config.toml`.
+- Profils essentiels : `agency_engineering_frontend_developer`, `agency_engineering_backend_architect`, `agency_engineering_ai_engineer`, `agency_testing_test_automation_engineer`, `agency_security_appsec_engineer`, `agency_engineering_payments_billing_engineer`.
+- Les fichiers sont des configurations de role Codex, pas des processus autonomes OMEGA et n'accordent aucun acces supplementaire.
+- Aucune modification Production / paiements reels / SMS clients / donnees sans autorisation explicite. Guide `docs/AGENCY_AGENTS.md`.
