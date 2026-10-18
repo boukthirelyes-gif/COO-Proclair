@@ -10,7 +10,10 @@ import tomllib
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 cfg = tomllib.loads((ROOT / ".codex/config.toml").read_text(encoding="utf-8"))
 assert cfg["agents"]["enabled"] is True
-assert cfg["agents"]["max_concurrent_threads_per_session"] == 16
+assert cfg["features"]["multi_agent_v2"]["enabled"] is True
+assert cfg["features"]["multi_agent_v2"]["max_concurrent_threads_per_session"] == 268
+assert cfg["agents"]["enabled"] is True
+assert "max_concurrent_threads_per_session" not in cfg["agents"]
 manifest = json.loads((ROOT / ".codex/agency-manifest.json").read_text(encoding="utf-8"))
 assert manifest["count"] == 267
 assert (ROOT / "AGENTS.md").read_text(encoding="utf-8").count("## Agents The Agency dans Codex") == 1
@@ -37,4 +40,7 @@ assert originals == names
 skill = (ROOT / ".agents/skills/proclair-agency/SKILL.md").read_text(encoding="utf-8")
 assert skill.startswith("---\nname: proclair-agency\n")
 assert "agency-manifest.json" in skill and "16 agents" in skill
+all_skill = (ROOT / ".agents/skills/proclair-all-agents/SKILL.md").read_text(encoding="utf-8")
+assert all_skill.startswith("---\nname: proclair-all-agents\n")
+assert "267" in all_skill and "268" in all_skill
 print("PASS: 267 Agency roles, Proclair skill and sanitized security profiles.")

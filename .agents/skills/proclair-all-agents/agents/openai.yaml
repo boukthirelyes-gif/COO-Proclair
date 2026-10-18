@@ -1,0 +1,4 @@
+interface:
+  display_name: "Proclair All 267"
+  short_description: "Tente 267 sous-agents simultanés"
+  default_prompt: "$proclair-all-agents Tente un audit en parallèle avec les 267 profils disponibles, rapporte le nombre réellement actif, sans toucher à Production."

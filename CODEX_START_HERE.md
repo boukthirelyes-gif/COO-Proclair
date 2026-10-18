@@ -25,3 +25,13 @@ $proclair-agency Active le mode équipe multi-agents pour COO-Proclair. Découpe
 ```
 
 Le nombre de 16 est un *maximum de configuration*, non une promesse de 16 exécutions effectives; certains clients Codex (dont un mode multi-agent V2 ou une gestion à distance) peuvent appliquer leurs propres limites. Plus d'agents augmente la consommation de tokens et peut aggraver les conflits si plusieurs modifient les mêmes fichiers.
+
+## Utiliser tous les 267 simultanément
+
+Après avoir sélectionné la branche `feat/codex-agency-agents-proclair` et démarré une nouvelle session Codex, demander :
+
+```text
+$proclair-all-agents Lance un audit simultané de COO-Proclair avec les 267 spécialistes The Agency, chacun sur une mission indépendante et en lecture seule. Le coordinateur doit vérifier le nombre vraiment lancé (objectif 267 sous-agents actifs à la fois), les refus de quotas et les résultats. Aucun message client, paiement réel, import, migration ou déploiement.
+```
+
+La valeur `268` dans la configuration V2 compte **l'agent principal**; il reste **267** places pour les spécialistes. Ce plafond n'est pas une promesse que Codex ou ton forfait peut réellement les faire travailler tous en même temps. Sans capacité effective, donner la limite observée.

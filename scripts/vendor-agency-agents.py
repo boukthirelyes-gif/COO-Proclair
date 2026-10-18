@@ -91,7 +91,7 @@ def main() -> None:
 
 - Les **267 profils** d'agents specialises sont dans `.codex/agents/agency_*.toml` (source epinglee + manifeste `.codex/agency-manifest.json`).
 - Pour piloter les experts dans Codex, utiliser `$proclair-agency` (`.agents/skills/proclair-agency/SKILL.md`), puis lire `CODEX_START_HERE.md`.
-- Charger le projet de confiance dans Codex; deleguer les taches independantes a des sous-agents pertinents. Ne pas lancer 267 agents simultanement; plafond de 16 sous-agents dans `.codex/config.toml`, plus le coordinateur; limiter les changements concurrents de fichiers.
+- Charger le projet de confiance dans Codex; deleguer les taches independantes a des sous-agents pertinents. Lancer les 267 agents simultanement uniquement sur demande explicite via `$proclair-all-agents`; limite V2 de 268 threads (267 sous-agents + 1 coordinateur), sous reserve des quotas; proteger les fichiers partages.
 - Profils essentiels : `agency_engineering_frontend_developer`, `agency_engineering_backend_architect`, `agency_engineering_ai_engineer`, `agency_testing_test_automation_engineer`, `agency_security_appsec_engineer`, `agency_engineering_payments_billing_engineer`.
 - Les fichiers sont des configurations de role Codex, pas des processus autonomes OMEGA et n'accordent aucun acces supplementaire.
 - Aucune modification Production / paiements reels / SMS clients / donnees sans autorisation explicite. Guide `docs/AGENCY_AGENTS.md`.
@@ -131,8 +131,8 @@ Demander explicitement par exemple :
 
 Le nombre de **267 agents disponibles** n'est **pas** un nombre de processus
 automatiquement actifs. Codex orchestre le travail selon les outils,
-permissions, limites et parametres du client. Ici, le plafond configure est 16
-sous-agents actifs au maximum, plus le coordinateur. Il ne s'agit pas de l'orchestrateur OMEGA dans l'application.
+permissions, limites et parametres du client. Ici, le plafond V2 configure est de 267
+sous-agents actifs au maximum, plus le coordinateur (268 places). Il ne s'agit pas de l'orchestrateur OMEGA dans l'application.
 
 ## Provenance et verification
 

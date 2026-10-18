@@ -1,7 +1,8 @@
-# COO-Proclair — Codex project-scoped multi-agent configuration
-# Enabled only in supported Codex clients and trusted project workspaces.
+# 267 Agency subagents + 1 coordinator. No tasks start automatically.
+# V2 cap includes the primary thread; actual slots depend on Codex/runtime quotas.
 [agents]
 enabled = true
-# Codex limit: 16 spawned subagents, excluding the primary coordinator.
-# Actual capacity depends on the active client, workspace and rate limits.
-max_concurrent_threads_per_session = 16
+
+[features.multi_agent_v2]
+enabled = true
+max_concurrent_threads_per_session = 268
