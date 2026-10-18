@@ -66,3 +66,17 @@ ne sont pas activés par la seule configuration de Maps JavaScript API.
 Cette procédure ne demande aucun changement sur main ou Production. Les pins,
 notes, vendeurs et historiques restent dans le CRM ; aucune donnée client ni clé
 réelle n’est ajoutée au dépôt.
+
+## Gestion des refus dans le CRM
+
+Un refus d’authentification ou un chargement dépassant 20 secondes retire désormais
+le handle de la carte et son état prêt. Le conteneur Google en erreur est masqué ;
+les fiches et la saisie des notes restent disponibles. Le diagnostic affiche
+uniquement l’origine du domaine courant, sans la clé ni les paramètres de l’URL.
+Les erreurs synchrones du chargeur sont également prises en charge.
+
+Cinq scénarios navigateur utilisent le composant réel avec un transport Google
+simulé : refus avant initialisation, refus après création de la carte, panne
+réseau, erreur synchrone et délai dépassé. Ils sont intégrés à la suite existante
+users-map, sans appel aux API Google. Ces tests ne constituent pas une autorisation
+d’une clé réelle et ne prouvent pas que Google Maps est rétabli à distance.
