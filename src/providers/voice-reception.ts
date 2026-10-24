@@ -29,7 +29,7 @@ function forward(r:twilio.twiml.VoiceResponse,origin:string,target:string,from:s
 export function receptionGreeting(origin:string){
  const r=new twilio.twiml.VoiceResponse();
  const g=r.gather({
-  input:'speech dtmf',action:signedAction(origin),method:'POST',
+  input:['speech','dtmf'],action:signedAction(origin),method:'POST',
   language:lang,speechModel:'phone_call',speechTimeout:'auto',
   timeout:5,numDigits:1,actionOnEmptyResult:true
  });
@@ -61,7 +61,7 @@ export function receptionInput(origin:string,p:Record<string,string>,target:stri
   forward(r,origin,target,p.From||'',ownPhone);
   return r.toString();
  }
- const again=r.gather({input:'dtmf',action:signedAction(origin),method:'POST',numDigits:1,timeout:7,actionOnEmptyResult:true});
+ const again=r.gather({input:['dtmf'],action:signedAction(origin),method:'POST',numDigits:1,timeout:7,actionOnEmptyResult:true});
  again.say({language:lang},'Appuyez sur zéro pour parler à une personne, ou raccrochez si vous avez toutes les informations.');
  say(r,'Merci d’avoir appelé Proclair.');
  r.hangup();
