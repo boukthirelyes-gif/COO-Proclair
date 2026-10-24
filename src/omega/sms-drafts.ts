@@ -58,7 +58,7 @@ export function suggestRotorSmsReply(body:string):SmsTriage{
   return draft('SCHEDULING','Disponibilité ou réservation','normal',
    'Bonjour! Merci pour ton message. On va regarder les disponibilités dans ton secteur et on te confirme une plage avant de réserver quoi que ce soit. Merci, Proclair.',
    'Ne pas promettre une date ni réserver sans contrôler la disponibilité et le contrat.');
- if(contains(s,[/\b(moustiquaire|fenetre|vitre|interieur|exterieur|cadrage|porte|garage|pluie|etre present|a la maison)\b/]))
+ if(contains(s,[/\b(moustiquaires?|fenetres?|vitres?|interieur|exterieur|cadrages?|portes?|garages?|pluie|etre present|a la maison)\b/]))
   return draft('SERVICE_QUESTION','Question sur le lavage','normal',
    'Bonjour! Pour les lavages extérieurs, les fenêtres doivent être fermées et les moustiquaires extérieures retirées avant notre passage. Tu n’as généralement pas besoin d’être sur place pour l’extérieur. Si tu as une question particulière, écris-moi et je vais vérifier. Merci, Proclair.',
    'Vérifier que la question concerne bien un lavage extérieur; personnaliser avant envoi.');
