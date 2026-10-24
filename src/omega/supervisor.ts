@@ -4,10 +4,10 @@ import {z} from 'zod';
 import {DomainError} from '../domain/rules';
 import {requirePermission,type AccessActor,type Permission} from '../lib/access';
 
-export const supervisorRules=['OVERDUE_VISIT','UNCONFIRMED_VISIT','UNSCHEDULED_VISIT','LEAD_CALLBACK'] as const;
+export const supervisorRules=['OVERDUE_VISIT','UNASSIGNED_SOON_VISIT','UNCONFIRMED_VISIT','UNSCHEDULED_VISIT','LEAD_CALLBACK'] as const;
 type Rule=typeof supervisorRules[number];
 const ruleSchema=z.enum(supervisorRules),CONTROL='native-supervisor',BATCH=25;
-const priorities:Record<Rule,number>={OVERDUE_VISIT:0,LEAD_CALLBACK:1,UNCONFIRMED_VISIT:2,UNSCHEDULED_VISIT:3};
+const priorities:Record<Rule,number>={OVERDUE_VISIT:0,UNASSIGNED_SOON_VISIT:0,LEAD_CALLBACK:1,UNCONFIRMED_VISIT:2,UNSCHEDULED_VISIT:3};
 const decisionSchema=z.object({id:z.string().min(1).max(100),expectedVersion:z.number().int().positive(),action:z.enum(['APPROVE','DONE','DISMISS']),note:z.string().trim().min(3).max(1000),approved:z.literal(true)}).strict();
 const digest=(v:unknown)=>createHash('sha256').update(JSON.stringify(v)).digest('hex');
 type DB=Prisma.TransactionClient;
@@ -22,6 +22,7 @@ function grant(rule:Rule,actor:AccessActor){
 const defaultControl={id:CONTROL,enabled:false,rules:[] as string[],cursors:{},version:0,lastRunAt:null};
 function visitWhere(rule:Rule,now:Date):Prisma.VisitWhereInput{
  if(rule==='OVERDUE_VISIT')return {OR:[{status:{in:['SCHEDULED','CONFIRMED']},startsAt:{lt:now}},{status:'IN_PROGRESS',endsAt:{lt:now}}]};
+ if(rule==='UNASSIGNED_SOON_VISIT')return {status:{in:['SCHEDULED','CONFIRMED']},technicianId:null,startsAt:{gte:now,lt:new Date(now.getTime()+48*60*60*1000)},contract:{active:true}};
  if(rule==='UNCONFIRMED_VISIT')return {status:{in:['PENDING','PROPOSED','RESCHEDULED']}};
  return {status:'CONFIRMED',startsAt:null,contract:{active:true}};
 }
@@ -43,7 +44,7 @@ async function current(tx:DB,rule:Rule,sourceId:string,now:Date){
 export class OmegaSupervisor {
  constructor(private db:PrismaClient,private now:()=>Date=()=>new Date()){}
  async configure(input:unknown,actor:AccessActor){
-  access(actor);const v=z.object({enabled:z.boolean(),rules:z.array(ruleSchema).max(4),expectedVersion:z.number().int().nonnegative()}).strict().parse(input);
+  access(actor);const v=z.object({enabled:z.boolean(),rules:z.array(ruleSchema).max(5),expectedVersion:z.number().int().nonnegative()}).strict().parse(input);
   if(new Set(v.rules).size!==v.rules.length||v.enabled&&!v.rules.length)throw new DomainError('RULES_REQUIRED','Choisissez des scénarios distincts avant activation.',400);
   for(const rule of v.rules)grant(rule,actor);
   return this.db.$transaction(async tx=>{
@@ -63,7 +64,7 @@ export class OmegaSupervisor {
    if(!lock[0]?.locked)return {enabled:true,busy:true,created:0,scanned:0,continuation:false,externalEffects:false};
    const control=await tx.omegaSupervisorControl.findUnique({where:{id:CONTROL}});
    if(!control?.enabled)return {enabled:false,busy:false,created:0,scanned:0,continuation:false,externalEffects:false};
-   const rules=z.array(ruleSchema).max(4).parse(control.rules);
+   const rules=z.array(ruleSchema).max(5).parse(control.rules);
    if(actor)for(const rule of rules)grant(rule,actor);
    const cursors=z.record(z.string(),z.string()).parse(control.cursors);let scanned=0,created=0,continuation=false;
    for(const rule of rules){
@@ -116,7 +117,7 @@ export class OmegaSupervisor {
    const rule=ruleSchema.parse(mission.rule);grant(rule,actor);const now=this.now();
    const row:any=rule==='LEAD_CALLBACK'?await tx.lead.findUnique({where:{id:mission.sourceId},include:leadInclude}):await tx.visit.findUnique({where:{id:mission.sourceId},include:{customer:{select:{name:true}},contract:{select:{active:true}}}});
    const fresh=await current(tx,rule,mission.sourceId,now);
-   const explanation:Record<Rule,string>={OVERDUE_VISIT:'Le début prévu est passé sans démarrage, ou la fin prévue est dépassée pour une visite en cours.',UNCONFIRMED_VISIT:'La visite est en attente, proposée ou à replanifier. Une confirmation humaine reste nécessaire.',UNSCHEDULED_VISIT:'La visite est confirmée, sans créneau, et son contrat est actif.',LEAD_CALLBACK:'Le rappel du prospect actif est arrivé à échéance. Les restrictions de contact bloquent sa préparation.'};
+   const explanation:Record<Rule,string>={OVERDUE_VISIT:'Le début prévu est passé sans démarrage, ou la fin prévue est dépassée pour une visite en cours.',UNASSIGNED_SOON_VISIT:'La visite commence dans moins de 48 heures, avec un contrat actif mais aucun technicien affecté. Vérifiez les disponibilités, le trajet et l’horaire avant d’assigner.',UNCONFIRMED_VISIT:'La visite est en attente, proposée ou à replanifier. Une confirmation humaine reste nécessaire.',UNSCHEDULED_VISIT:'La visite est confirmée, sans créneau, et son contrat est actif.',LEAD_CALLBACK:'Le rappel du prospect actif est arrivé à échéance. Les restrictions de contact bloquent sa préparation.'};
    const restricted=rule==='LEAD_CALLBACK'&&!!row&&!eligibleLead(row,now)&&(row.status==='DO_NOT_CONTACT'||row.sourcePin?.status==='DO_NOT_CONTACT'||row.sourcePin?.type?.restricted===true);
    const isCurrent=fresh?.fingerprint===mission.fingerprint;
    const reason=!row?'Le dossier source n’existe plus.':restricted?'Une restriction de prospection interdit l’approbation.':!fresh?'Le dossier ne correspond plus à ce scénario.':!isCurrent?'Le dossier a changé depuis la préparation de cette mission.':'La source correspond toujours à la mission préparée.';
