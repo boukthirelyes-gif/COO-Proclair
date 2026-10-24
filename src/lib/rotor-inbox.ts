@@ -1,4 +1,5 @@
 import {Prisma,type PrismaClient} from '@prisma/client';
+import {suggestRotorSmsReply} from '@/omega/sms-drafts';
 import {z} from 'zod';
 import {DomainError} from '@/domain/rules';
 import {bootstrapActor,requirePermission,type AccessActor} from './access';
@@ -111,7 +112,7 @@ export class RotorInboxService {
   const ids=[...new Set(latest.map(x=>x.customerId).filter((v):v is string=>Boolean(v)))];
   const customers=await this.db.customer.findMany({where:{id:{in:ids}},select:{id:true,name:true}});
   const names=new Map(customers.map(c=>[c.id,c.name]));
-  return {items:latest.map(x=>({...x,body:x.body.slice(0,300),
+  return {items:latest.map(x=>({...x,body:x.body.slice(0,300),triage:suggestRotorSmsReply(x.body),
    customerName:x.customerId?names.get(x.customerId)??null:null})),
    checkedRecent:messages.length,partial:messages.length===500,readOnly:true};
  }

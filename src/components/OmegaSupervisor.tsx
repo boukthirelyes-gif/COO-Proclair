@@ -3,7 +3,7 @@ import {useEffect,useRef,useState} from 'react';
 import OmegaMissionDetail from './OmegaMissionDetail';
 import type {SearchResult} from '@/lib/global-search';
 import './omega-supervisor.css';
-const labels:Record<string,string>={OVERDUE_VISIT:'Visites en retard',UNCONFIRMED_VISIT:'Visites à confirmer',UNSCHEDULED_VISIT:'Visites confirmées à placer',LEAD_CALLBACK:'Rappels de prospects échus'};
+const labels:Record<string,string>={OVERDUE_VISIT:'Visites en retard',UNASSIGNED_SOON_VISIT:'Visites dans 48 h sans technicien',UNCONFIRMED_VISIT:'Visites à confirmer',UNSCHEDULED_VISIT:'Visites confirmées à placer',LEAD_CALLBACK:'Rappels de prospects échus'};
 const statuses:Record<string,string>={DRAFT:'À examiner',APPROVED:'Approuvée',DONE:'Traitée',DISMISSED:'Écartée'};
 const priorityLabels=['Urgent','Prioritaire','À confirmer','À placer'];
 async function api(path:string,body?:unknown,signal?:AbortSignal){const r=await fetch('/api/omega/supervisor'+path,body===undefined?{cache:'no-store',signal}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal});const v=await r.json();if(!r.ok)throw Error(v.error||'Supervision indisponible.');return v}
