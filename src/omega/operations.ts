@@ -21,6 +21,7 @@ export async function omegaOperations(db:PrismaClient,actor:AccessActor,now=new 
    groups.push({key,label,priority,reason,total,items:rows.map(row=>({id:row.id,label:row.customer.name,detail:row.service+' · '+row.status+(row.startsAt?' · '+stamp(row.startsAt):''),view:'visits',customerId:row.customerId}))});
   };
   await visitGroup('OVERDUE_VISITS','Visites en retard','URGENT','Le début prévu est passé sans démarrage, ou la fin prévue est passée pour une visite en cours.',{OR:[{startsAt:{lt:now},status:{in:['SCHEDULED','CONFIRMED']}},{endsAt:{lt:now},status:'IN_PROGRESS'}]});
+  await visitGroup('UNASSIGNED_SOON','Visites proches sans technicien','URGENT','Visite prévue dans les 48 prochaines heures sans technicien affecté. Vérifier la capacité et l’horaire avant toute modification.',{status:{in:['SCHEDULED','CONFIRMED']},technicianId:null,startsAt:{gte:now,lt:new Date(now.getTime()+48*60*60*1000)},contract:{active:true}});
   await visitGroup('UNCONFIRMED_VISITS','Visites à confirmer','HIGH','Une confirmation humaine ou une replanification est encore nécessaire.',{status:{in:['PENDING','PROPOSED','RESCHEDULED']}});
   await visitGroup('CONFIRMED_UNSCHEDULED','Visites confirmées à placer','NORMAL','Ces visites confirmées n’ont pas de créneau et leur contrat est actif.',{status:'CONFIRMED',startsAt:null,contract:{active:true}});
   if(scope.worker){
@@ -29,6 +30,23 @@ export async function omegaOperations(db:PrismaClient,actor:AccessActor,now=new 
    groups.push({key:'WORKER_FAILURES',label:'Préparations OMEGA en échec',priority:'HIGH',reason:'Une préparation a échoué ou épuisé ses tentatives ; examinez-la avant toute relance.',total,items:rows.map(row=>({id:row.id,label:'Préparation du '+row.date,detail:row.status+' · '+row.attempts+'/'+row.maxAttempts+' tentatives',view:'omega'}))});
   }
   if(scope.communications){
+   // Latest imported Rotor SMS per phone, not just page 1. No sending.
+   const unanswered=await tx.$queryRaw<{externalId:string;customerId:string|null;messageAt:Date;name:string|null;total:bigint}[]>(Prisma.sql`
+    WITH latest AS (
+     SELECT DISTINCT ON (m."phone") m."externalId",m."customerId",m."messageAt",m."direction",m."phone"
+     FROM ${table('RotorInboxMessage')} m
+     WHERE m."phone" IS NOT NULL AND m."phone"<>'' AND m."messageAt"<=${now}
+     ORDER BY m."phone",m."messageAt" DESC,m."externalId" DESC
+    )
+    SELECT l."externalId",l."customerId",l."messageAt",c."name",COUNT(*) OVER() AS "total"
+    FROM latest l LEFT JOIN ${table('Customer')} c ON c.id=l."customerId"
+    WHERE l."direction"='inbound' AND l."messageAt"<=${new Date(now.getTime()-60*60*1000)}
+    ORDER BY l."messageAt" ASC,l."externalId" ASC LIMIT 10
+   `);
+   groups.push({key:'ROTOR_UNANSWERED_SMS',label:'SMS Rotor à vérifier',priority:'HIGH',
+    reason:'Dernier message connu entrant depuis au moins une heure. Miroir Rotor seulement : vérifier la conversation complète et le dernier envoi avant de répondre.',
+    total:Number(unanswered[0]?.total??0),
+    items:unanswered.map(row=>({id:row.externalId,label:row.name||'Contact sans dossier rapproché',detail:'Dernier SMS entrant · '+stamp(row.messageAt)+' · réponse à vérifier dans Rotor',view:'integrations',...(row.customerId?{customerId:row.customerId}:{})}))});
    const where={status:{in:['DRAFT','APPROVED']},dueAt:{lt:now}},total=await tx.communicationFollowUp.count({where});
    const rows=await tx.communicationFollowUp.findMany({where,take:10,orderBy:[{dueAt:'asc'},{id:'asc'}],select:{id:true,sourceKind:true,status:true,dueAt:true}});
    groups.push({key:'COMMUNICATION_FOLLOWUPS',label:'Suivis de communications échus',priority:'HIGH',reason:'L’échéance d’un suivi ouvert est passée. La validité de la source doit être vérifiée avant toute action.',total,items:rows.map(row=>({id:row.id,label:'Suivi '+row.sourceKind,detail:row.status+' · '+stamp(row.dueAt),view:'omega'}))});
