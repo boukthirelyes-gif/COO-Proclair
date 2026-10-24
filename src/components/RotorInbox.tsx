@@ -23,6 +23,7 @@ export default function RotorInbox({connected,grantedScopes}:{connected:boolean;
  const [notice,setNotice]=useState('');
  const [auto,setAuto]=useState<any>(null);
  const [followups,setFollowups]=useState<any[]>([]);
+ async function copyDraft(content:string){try{await navigator.clipboard.writeText(content);setNotice('Brouillon copié. Aucun SMS envoyé.');setError('')}catch{setError('Impossible de copier le brouillon. Sélectionnez le texte manuellement.')}}
  const authorized=connected&&grantedScopes.includes('inbox:read');
  async function loadAux(){
   const results=await Promise.all([
@@ -106,7 +107,15 @@ export default function RotorInbox({connected,grantedScopes}:{connected:boolean;
   <div className="toolbar"><span>{filteredTotal} résultat(s) dans l'historique importé.</span><button disabled={busy||historyPage===1} onClick={()=>setHistoryPage(p=>Math.max(1,p-1))}>← Précédent</button><span>Page {historyPage}</span><button disabled={busy||historyPage*100>=filteredTotal} onClick={()=>setHistoryPage(p=>p+1)}>Suivant →</button></div>
   <small>Recherche paginée dans les messages déjà importés. Aucun envoi ni transfert de numéro.</small>
   <h3>Conversations à examiner (lecture seule)</h3>
-  <p>Le dernier SMS connu de ces conversations est entrant. Vérifiez Rotor avant de répondre : un message hors de la période importée peut manquer.</p>
-  {followups.length?followups.map(item=><article className="service-contract" key={item.externalId}><strong>{item.customerName||item.phone||'Client non rapproché'}</strong><small>{dateLabel(item.messageAt)} · SMS reçu</small><p style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{item.body}</p></article>):<p>Aucun suivi détecté dans les messages importés.</p>}
+  <p>Le dernier SMS connu est entrant. OMEGA classe les demandes et prépare des brouillons à copier dans Rotor. Aucun message n’est envoyé automatiquement. Vérifiez le contexte dans Rotor avant d’utiliser une réponse : un SMS récent peut ne pas avoir été importé.</p>
+  {followups.length?followups.map(item=><article className="service-contract" key={item.externalId}><strong>{item.customerName||item.phone||'Client non rapproché'}</strong><small>{dateLabel(item.messageAt)} · SMS reçu</small><p style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{item.body}</p>
+   {item.triage&&<div className="panel" style={{padding:12,marginTop:8}}>
+    <p><strong>OMEGA : {item.triage.label}</strong> · Priorité {item.triage.priority==='urgent'?'urgente':item.triage.priority==='high'?'élevée':'normale'} · Vérification humaine requise</p>
+    <p><small>{item.triage.note}</small></p>
+    {item.triage.suggestedReply?<><p style={{whiteSpace:'pre-wrap'}}>{item.triage.suggestedReply}</p>
+     <button type="button" disabled={busy} onClick={()=>void copyDraft(item.triage.suggestedReply)}>Copier la réponse suggérée</button></>:
+     <small>Aucune réponse suggérée : traitement prioritaire ou désabonnement.</small>}
+   </div>}
+  </article>):<p>Aucun suivi détecté dans les messages importés.</p>}
  </section>
 }
