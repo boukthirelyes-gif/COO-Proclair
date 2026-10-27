@@ -20,7 +20,7 @@
     "check:secrets": "python3 scripts/check-secrets.py",
     "test:quotes:e2e": "node --env-file-if-exists=.env tests/browser-quotes.mjs",
     "test:portal:e2e": "node --env-file-if-exists=.env tests/browser-portal.mjs",
-    "test:users-map:e2e": "node --env-file-if-exists=.env tests/browser-users-map.mjs",
+    "test:users-map:e2e": "node --env-file-if-exists=.env --import tsx tests/browser-users-map.mjs",
     "test:compatibility:e2e": "node --env-file-if-exists=.env tests/browser-compatibility.mjs",
     "check:parity": "node scripts/render-parity.mjs --check",
     "test:leads:e2e": "node --env-file-if-exists=.env tests/browser-leads.mjs",
@@ -77,7 +77,7 @@
     "@types/react-dom": "19.2.3",
     "playwright": "1.58.2",
     "prisma": "6.19.3",
-    "tsx": "4.21.0",
+    "tsx": "4.23.15",
     "typescript": "5.9.3",
     "@types/google.maps": "^3.66.6"
   },

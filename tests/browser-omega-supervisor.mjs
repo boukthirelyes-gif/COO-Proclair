@@ -19,11 +19,21 @@ try{
  await page.goto(base+'/?view=omega');await page.getByLabel('Mot de passe',{exact:true}).fill(process.env.PROCLAIR_ADMIN_PASSWORD);await page.getByRole('button',{name:'Se connecter',exact:true}).click();
  await page.getByRole('heading',{name:'Superviseur OMEGA',exact:true}).waitFor();const panel=page.locator('.omega-supervisor');
  assert.equal(await panel.getByText('Aucun SMS, appel, paiement ou confirmation automatique.',{exact:false}).count(),1);checks++;
+ // A previous interrupted synthetic run may have left the engine enabled.
+ // Open its native configuration instead of assuming a fresh, disabled engine.
+ if(!await panel.locator('details.omega-settings').evaluate(el=>el.open))await panel.locator('details.omega-settings > summary').click();
  await panel.getByLabel('Activer le superviseur de missions').check();
  for(const label of ['Visites en retard','Visites confirmées à placer','Rappels de prospects échus'])await panel.getByLabel(label,{exact:true}).uncheck();
  await panel.getByLabel('Visites à confirmer',{exact:true}).check();await panel.getByRole('button',{name:'Enregistrer les scénarios OMEGA',exact:true}).click();
  await panel.getByRole('status').filter({hasText:'Scénarios activés'}).waitFor();checks++;
  await panel.getByRole('button',{name:'Analyser les dossiers maintenant',exact:true}).click();await panel.getByRole('status').filter({hasText:'mission(s) créée(s)'}).waitFor();
+ // A single 25-row cycle need not contain this fixture when earlier synthetic
+ // records remain. Complete the bounded pass, then select our own fixture.
+ await panel.getByRole('button',{name:'Analyser en continu',exact:true}).click();
+ await panel.getByRole('status').filter({hasText:'Passage terminé pour les scénarios activés.'}).waitFor();
+ await panel.getByLabel('Rechercher une mission',{exact:true}).fill(prefix);
+ await panel.getByRole('button',{name:'Rechercher les missions',exact:true}).click();
+ await panel.getByText('1 mission(s) correspondant aux filtres · page 1',{exact:true}).waitFor();
  let mission=await db.omegaMission.findFirstOrThrow({where:{sourceId:prefix}});assert.equal(mission.status,'DRAFT');checks++;
  const card=panel.locator('article').filter({hasText:customer.name});await card.getByRole('button',{name:'Comprendre cette mission',exact:true}).click();
  const dialog=page.getByRole('dialog',{name:'Fiche de mission OMEGA',exact:true});await dialog.getByRole('status').filter({hasText:'La source correspond toujours'}).waitFor();await dialog.getByRole('heading',{name:'Pourquoi OMEGA a préparé cette mission',exact:true}).waitFor();assert.equal(await dialog.getByText('Aucune décision auditée enregistrée.',{exact:true}).count(),1);checks++;

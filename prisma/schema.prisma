@@ -93,6 +93,7 @@ model Job {
  visits Visit[]
 }
 model Technician {
+ employee AppUser?
  id String @id @default(cuid())
  name String @unique
  active Boolean @default(true)
@@ -102,6 +103,7 @@ model Technician {
  visits Visit[]
 }
 model Visit {
+ technicianInstructions String @default("")
  invoice Invoice?
  id String @id @default(cuid())
  customerId String
@@ -414,6 +416,9 @@ model ClientLink {
 }
 
 model AppUser {
+ invitations UserInvitation[]
+ technicianId String? @unique
+ technician Technician? @relation(fields:[technicianId],references:[id],onDelete:SetNull)
  salesFollowUps SalesFollowUp[]
  salesQuotes Quote[]
  territories SalesTerritory[]
@@ -938,4 +943,139 @@ model CommunicationProof {
  verified Boolean
  detail String
  checkedAt DateTime @default(now())
+}
+
+model SecuritySessionEpoch {
+ id String @id
+ version Int @default(0)
+ updatedAt DateTime @updatedAt
+}
+
+model AccountMfa {
+ failedAttempts Int @default(0)
+ blockedUntil DateTime?
+ actorId String @id
+ encryptedSecret String
+ enabled Boolean @default(false)
+ lastStep Int @default(-1)
+ recoveryHashes String[] @default([])
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+}
+
+model UserInvitation {
+ id String @id @default(cuid())
+ userId String
+ user AppUser @relation(fields:[userId],references:[id],onDelete:Restrict)
+ userVersion Int
+ tokenHash String @unique
+ expiresAt DateTime
+ usedAt DateTime?
+ revokedAt DateTime?
+ createdBy String
+ createdAt DateTime @default(now())
+ @@index([userId,createdAt])
+}
+
+// SaaS control plane only. CRM records stay in a distinct schema per organization.
+model SaasOrganization {
+ id String @id @default(cuid())
+ slug String @unique
+ name String
+ schemaName String @unique
+ status String @default("PENDING")
+ schemaVersion String?
+ settings Json @default("{}")
+ provisioningAttempts Int @default(0)
+ lastErrorCode String?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ memberships SaasMembership[]
+ subscription SaasSubscription?
+ integrations SaasIntegration[]
+ events SaasEvent[]
+}
+model SaasUser {
+ id String @id @default(cuid())
+ email String @unique
+ name String
+ passwordHash String
+ active Boolean @default(true)
+ createdAt DateTime @default(now())
+ memberships SaasMembership[]
+ sessions SaasSession[]
+}
+model SaasMembership {
+ id String @id @default(cuid())
+ organizationId String
+ organization SaasOrganization @relation(fields:[organizationId],references:[id],onDelete:Restrict)
+ userId String
+ user SaasUser @relation(fields:[userId],references:[id],onDelete:Restrict)
+ role String @default("OWNER")
+ active Boolean @default(true)
+ createdAt DateTime @default(now())
+ @@unique([organizationId,userId])
+ @@index([userId,active])
+}
+model SaasSession {
+ tokenHash String @id
+ userId String
+ user SaasUser @relation(fields:[userId],references:[id],onDelete:Cascade)
+ expiresAt DateTime
+ revokedAt DateTime?
+ createdAt DateTime @default(now())
+ @@index([userId,expiresAt])
+}
+model SaasPlan {
+ code String @id
+ name String
+ monthlyPriceCents Int?
+ currency String @default("CAD")
+ policy Json
+ active Boolean @default(true)
+ version Int @default(1)
+ subscriptions SaasSubscription[]
+}
+model SaasSubscription {
+ organizationId String @id
+ organization SaasOrganization @relation(fields:[organizationId],references:[id],onDelete:Restrict)
+ planCode String
+ plan SaasPlan @relation(fields:[planCode],references:[code],onDelete:Restrict)
+ status String @default("TRIALING")
+ trialEndsAt DateTime?
+ version Int @default(1)
+ updatedAt DateTime @updatedAt
+}
+model SaasIntegration {
+ id String @id @default(cuid())
+ organizationId String
+ organization SaasOrganization @relation(fields:[organizationId],references:[id],onDelete:Restrict)
+ provider String
+ encryptedSecret String
+ status String @default("UNVERIFIED")
+ externalAccountId String?
+ updatedAt DateTime @updatedAt
+ @@unique([organizationId,provider])
+ @@unique([provider,externalAccountId])
+}
+model SaasEvent {
+ id String @id @default(cuid())
+ organizationId String
+ organization SaasOrganization @relation(fields:[organizationId],references:[id],onDelete:Restrict)
+ actorId String
+ action String
+ details Json
+ createdAt DateTime @default(now())
+ @@index([organizationId,createdAt])
+}
+model SaasInvitation {
+ tokenHash String @id
+ organizationId String
+ email String
+ role String
+ createdBy String
+ expiresAt DateTime
+ usedAt DateTime?
+ createdAt DateTime @default(now())
+ @@index([organizationId,expiresAt])
 }
