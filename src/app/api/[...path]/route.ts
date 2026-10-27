@@ -436,7 +436,7 @@ async function mutate(request: NextRequest) {
       case 'omega/preview': return NextResponse.json(await service.previewFill(input,actor));
       case 'omega/apply': requirePermission(actor,'dispatch');return NextResponse.json(await service.applyFill(input,actor));
       case 'worker/state': return NextResponse.json(await worker.configure(input as {enabled:boolean},actor));
-      case 'worker/tick': return NextResponse.json(await worker.tick());
+      case 'worker/tick': return NextResponse.json(await worker.tickForActor(actor));
       case 'worker/run': {
         if (!input || typeof input !== 'object' || !('date' in input) || typeof input.date !== 'string') return NextResponse.json({error:'Date requise.'},{status:400});
         return NextResponse.json(await worker.enqueue(input.date,actor),{status:201});

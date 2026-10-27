@@ -70,6 +70,7 @@ export function routePermission(path:string,method:string):Permission|null {
  if(/^integrations\/rotor\/live\/(payments|invoices)$/.test(path))return method==='GET'?'finance':'integrations';
  if(path==='integrations/rotor/live/sms')return method==='GET'?'crm.read':'integrations';
  if(path.startsWith('integrations/'))return 'integrations';
+ if(method==='POST'&&(path==='worker/run'||path==='worker/tick'))return 'dispatch';
  if(path.startsWith('omega/')||path.startsWith('worker/'))return 'omega';
  if(path==='quotes'||path.startsWith('quotes/'))return path.endsWith('/convert')?'finance':'quotes';
  if(path.startsWith('portal/'))return 'settings';
