@@ -8,6 +8,7 @@ const complete: SchemaProbe = {
   customer: '"Customer"',
   migrations: '_proclair_migrations',
   accountMfa:'AccountMfa',securityEpoch:'SecuritySessionEpoch',invitations:'UserInvitation',
+  contactIdentity:true,
 };
 
 test('health fails closed when the schema probe is absent or has unexpected cardinality', () => {

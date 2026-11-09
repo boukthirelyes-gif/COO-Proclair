@@ -447,6 +447,9 @@ model ProspectPin {
  type MapPinType? @relation(fields: [typeId], references: [id])
  id String @id @default(cuid())
  address String
+ // PostgreSQL-generated normalized address; never supplied by a client.
+ contactAddressKey String @default(dbgenerated())
+ @@index([contactAddressKey], type: Hash)
  latitude Float
  longitude Float
  status String @default("NOT_KNOCKED")

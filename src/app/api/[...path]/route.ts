@@ -151,7 +151,10 @@ export async function GET(request: NextRequest) {
                to_regclass('"_proclair_migrations"')::text AS "migrations",
                to_regclass('"AccountMfa"')::text AS "accountMfa",
                to_regclass('"SecuritySessionEpoch"')::text AS "securityEpoch",
-               to_regclass('"UserInvitation"')::text AS "invitations"
+               to_regclass('"UserInvitation"')::text AS "invitations",
+               EXISTS (SELECT 1 FROM information_schema.columns
+                       WHERE table_schema=current_schema() AND table_name='ProspectPin'
+                         AND column_name='contactAddressKey' AND is_generated='ALWAYS') AS "contactIdentity"
       `;
       if (!schemaProbeReady(probe)) return NextResponse.json({status:'degraded',database:'schema_incomplete'},{status:503,headers:{'Cache-Control':'no-store'}});
       const securityMigration=await prisma.$queryRaw<{ready:boolean}[]>`SELECT EXISTS(SELECT 1 FROM "_proclair_migrations" WHERE name='20261017034000_mfa_attempt_limits') AS ready`;

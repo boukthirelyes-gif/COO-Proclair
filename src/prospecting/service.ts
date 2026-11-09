@@ -1,4 +1,5 @@
 import {mapWhere} from './query';
+import {protectContactAddress} from './contact-protection';
 import {contains,type Point} from './geometry';
 import {z} from 'zod';
 import {Prisma,type PrismaClient} from '@prisma/client';
@@ -30,6 +31,7 @@ export class ProspectingService {
  if(ownerId){const owner=await tx.appUser.findUnique({where:{id:ownerId}});if(!owner?.active||!owner.permissions.includes('map.read'))throw new DomainError('INVALID_OWNER','Choisissez un utilisateur actif autorisé à consulter la carte.');}
  if(before?.status==='DO_NOT_CONTACT'&&values.status!=='DO_NOT_CONTACT'&&(actor.accountRole!=='ADMIN'||values.notes.trim().length<3))throw new DomainError('DO_NOT_CONTACT','Seul un administrateur peut lever cette restriction avec une note justificative.',403);
  const chosenId=values.typeId===undefined?(before?.status==='DO_NOT_CONTACT'&&values.status!=='DO_NOT_CONTACT'?null:before?.typeId):values.typeId;const type=chosenId?await tx.mapPinType.findUnique({where:{id:chosenId}}):null;if(chosenId&&!type?.active)throw new DomainError('INVALID_PIN_TYPE','Catégorie de pin indisponible.');const beforeType=before?.typeId?await tx.mapPinType.findUnique({where:{id:before.typeId}}):null;if(beforeType?.restricted&&!type?.restricted&&(actor.accountRole!=='ADMIN'||values.notes.trim().length<3))throw new DomainError('DO_NOT_CONTACT','Seul un administrateur peut lever Never Knock avec une justification.',403);if(type?.restricted&&values.callbackAt)throw new DomainError('DO_NOT_CONTACT','Never Knock interdit tout rappel.');const restrictedType=values.status==='DO_NOT_CONTACT'?await tx.mapPinType.findFirst({where:{restricted:true}}):null;const data={...values,territoryId,typeId:restrictedType?.id??chosenId??null,status:type?.restricted?'DO_NOT_CONTACT':values.status,ownerId,callbackAt:values.callbackAt?new Date(values.callbackAt):null};
+ await protectContactAddress(tx,{id,address:data.address,latitude:data.latitude,longitude:data.longitude,status:data.status,before,wasRestricted:before?.status==='DO_NOT_CONTACT'||!!beforeType?.restricted});
  const row=id?await tx.prospectPin.update({where:{id,version:expectedVersion},data:{...data,version:{increment:1}},include}):await tx.prospectPin.create({data:{...data,createdBy:actor.id},include});
  await tx.auditEvent.create({data:{actorId:actor.id,actorRole:actor.accountRole,action:id?'PROSPECT_PIN_UPDATED':'PROSPECT_PIN_CREATED',entityType:'ProspectPin',entityId:row.id,...(before?{before:JSON.parse(JSON.stringify(before))}:{}),after:JSON.parse(JSON.stringify(row))}});return row;
  },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable});}
