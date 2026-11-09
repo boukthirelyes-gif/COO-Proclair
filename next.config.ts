@@ -8,6 +8,7 @@ const config: NextConfig = {
  outputFileTracingIncludes: {
   '/*': [
    './public/fonts/OpenSans-Regular.ttf',
+   './prisma/migrations/**/migration.sql',
    './node_modules/.prisma/client/**/*',
    './node_modules/@prisma/client/runtime/*.wasm',
   ],

@@ -130,12 +130,20 @@ export class StripeEnterprise {
    let result:unknown={ignored:true};
    if(event.type.startsWith('checkout.session.')||event.type.startsWith('payment_intent.')){
     const checkoutId=object.metadata?.proclairCheckoutId;
-    const row=checkoutId?await this.db.stripeCheckout.findFirst({where:{id:checkoutId,mode,enterprise:true}}):null;
+    // A shared Stripe account can emit events for checkouts created outside Proclair.
+    // Check known provider IDs before ignoring an event with no Proclair attribution:
+    // missing metadata on our own transaction must still fail validation/retry.
+    matching(typeof object.id==='string'&&object.id.length>0);
+    const providerReference=event.type.startsWith('checkout.session.')?{sessionId:object.id}:{paymentIntentId:object.id};
+    const row=await this.db.stripeCheckout.findFirst({where:{...(checkoutId?{id:checkoutId}:providerReference),mode,enterprise:true}});
+    if(!row&&!checkoutId&&!object.metadata?.proclairEnterprise&&!object.metadata?.invoiceId){result={ignored:true,reason:'UNRELATED_TRANSACTION'}}
+    else{
     if(!row?.sessionId)throw new DomainError('TRANSACTION_NOT_FOUND','Transaction Stripe absente ou préparation en cours.',503);
     if(event.type.startsWith('checkout.session.'))matching(object.id===row.sessionId&&object.client_reference_id===row.id&&object.metadata?.invoiceId===row.invoiceId&&object.currency==='cad'&&object.amount_total===row.amountCents);
     else matching(object.metadata?.invoiceId===row.invoiceId&&object.currency==='cad'&&object.amount===row.amountCents);
     const session=await this.client(mode).checkout.sessions.retrieve(row.sessionId);
     result=await this.applyCanonical(mode,row.id,session,event.type.startsWith('payment_intent.')?object.id:undefined);
+    }
    }else if(event.type.startsWith('refund.'))result=await this.applyRefund(mode,object.id);
    else if(event.type==='charge.refunded'){const refunds=await this.client(mode).refunds.list({payment_intent:ref(object.payment_intent),limit:100});if(refunds.has_more)throw new DomainError('REFUND_REVIEW_REQUIRED','Plus de 100 remboursements : rapprochement paginé requis.',503);result=await Promise.all(refunds.data.map(refund=>this.applyRefund(mode,refund.id)))}
    await this.transaction(async tx=>{await tx.$executeRaw`SELECT pg_advisory_xact_lock(714928366)`;if(!await tx.providerEvent.findUnique({where:{id:processedId}})){await tx.providerEvent.create({data:{id:processedId,provider:'STRIPE_ENTERPRISE_'+mode,kind:event.type}});await tx.stripeEventDecision.create({data:{receiptId,outcome:'PROCESSED'}})}});

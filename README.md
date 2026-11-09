@@ -100,3 +100,11 @@ La livraison 0.2.0 ajoute le registre de capacités Rotor, le consentement progr
 ## Première tranche Proclair V30
 
 La version 0.3.0 ajoute l’espace sombre regroupé, la recherche globale, les dossiers clients, l’import Rotor reprenable avec promotion client explicite et le parcours Service / Agree / Schedule. L’assistant OMEGA utilise des requêtes métier sur PostgreSQL. Aucun fournisseur Stripe/Twilio/courriel ni AUTOPILOT n’est connecté par cette livraison. [Rapport complet et point de reprise](docs/PROCLAIR_V30_OVERNIGHT_REPORT.md).
+
+## Sécurité et équipe
+
+Les profils, sessions révocables, MFA TOTP et invitations du CRM Next.js sont documentés dans [le guide de sécurité](docs/enterprise-security/README.md). Le prototype Python historique est une démonstration locale sans ce RBAC ; il ne constitue pas le backend sécurisé de l’entreprise.
+
+Fondations SaaS pilotes (désactivées par défaut), isolation et checklist commerciale : [documentation SaaS](docs/saas/README.md). Aucune activation de facturation réelle.
+
+[Rapport de validation locale SaaS](docs/saas/VALIDATION.md).

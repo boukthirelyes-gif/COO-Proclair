@@ -24,6 +24,8 @@ Configurer les valeurs dans Settings → Environment Variables, jamais dans Git 
 |---|---|---|
 | `DATABASE_URL` | URL PostgreSQL runtime, idéalement poolée, avec TLS fourni par l’hébergeur | Production ; base différente en Preview |
 | `DIRECT_DATABASE_URL` | URL PostgreSQL directe, non poolée par transaction, pour migrations | Production uniquement |
+| `PROCLAIR_PREVIEW_DATABASE_URL` | URL runtime de la base Preview isolée, jamais Production | Preview uniquement |
+| `PROCLAIR_PREVIEW_DIRECT_DATABASE_URL` | URL directe de la même base Preview, sans pooler transactionnel ; obligatoire si le runtime utilise Neon `-pooler` | Preview uniquement |
 | `PROCLAIR_ADMIN_PASSWORD` | Mot de passe administrateur privé et aléatoire, au moins 12 caractères | Production ; différent en Preview |
 | `PROCLAIR_SESSION_SECRET` | Secret aléatoire stable, au moins 32 caractères ; signe les sessions et chiffre les jetons Rotor | Production ; différent en Preview |
 | `PROCLAIR_PUBLIC_ORIGIN` | Origine HTTPS stable, sans chemin ni slash final, ex. `https://nom-du-projet.vercel.app` | Production ; URL stable différente en Preview si OAuth testé |
@@ -33,9 +35,13 @@ Ne jamais préfixer ces variables par `NEXT_PUBLIC_`. Aucun jeton Rotor ni ident
 
 Pour générer localement une valeur secrète : `openssl rand -hex 32`, puis la saisir directement dans le gestionnaire de secrets Vercel. Conserver `PROCLAIR_SESSION_SECRET` dans un coffre : sa perte rend les autorisations Rotor chiffrées illisibles. Sa rotation invalide les sessions et exige une reconnexion Rotor ou une migration explicite du chiffrement.
 
-Ne pas donner les variables de production aux Preview. Leur build ne migre pas la base automatiquement ; préparer une base de Preview séparée et lui appliquer les migrations manuellement via `DATABASE_URL=URL_PREVIEW npm run db:migrate`. Les variables doivent être cohérentes avec chaque domaine, sinon la protection contre les requêtes de modification d’origine différente les refusera.
+Ne pas donner les variables de production aux Preview. Le build Preview valide ses secrets d’authentification et son isolation, puis applique les migrations à sa base séparée via `scripts/preview-migrate.ts`. Les verrous PostgreSQL utilisent la connexion directe Preview, sans seed métier. Les variables doivent être cohérentes avec chaque domaine, sinon la protection contre les requêtes de modification d’origine différente les refusera.
 
 ## 4. Compilation et migrations
+
+En Preview, le compte principal `admin` utilise exclusivement `PROCLAIR_ADMIN_PASSWORD` privé de cet environnement. Aucun compte en base ni mot de passe par défaut n’est nécessaire. Le secret de session doit rester stable entre déploiements. Un secret absent ou trop court fait échouer le build avant migration. Les connexions runtime et directe doivent désigner la même base Preview, différente de toute connexion Production disponible.
+
+Le endpoint public `/api/deployment` renvoie seulement le SHA fourni par Vercel (ou `null` si absent), sans secret. `/api/health` refuse un schéma ou une configuration d’authentification incomplets. Un statut READY ou un contrôle de santé réussi ne remplace pas le test réel de connexion, actualisation et déconnexion.
 
 En Production, le build vérifie la configuration, génère Prisma, applique les migrations additives via `DIRECT_DATABASE_URL`, initialise de façon idempotente les trois techniciens déjà demandés, puis compile Next.js. Aucun client, facture, paiement ou visite de démonstration n’est créé. Aucun reset ni import de données locales n’est exécuté.
 

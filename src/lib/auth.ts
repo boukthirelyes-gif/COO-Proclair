@@ -17,6 +17,7 @@ export function issueSession(identity: {id:string;role:string;sessionVersion?:nu
   const body = Buffer.from(JSON.stringify({...identity,expires:Date.now()+durationMs,nonce:randomBytes(16).toString('hex')})).toString('base64url');
   return body + '.' + createHmac('sha256', secret()).update(body).digest('base64url');
 }
+/** @deprecated Signature-only helper. Authenticated endpoints must use resolveActor for revocation and current grants. */
 export function actorFor(request: NextRequest): {id:string;role:'ADMIN'} | null {
   const token = request.cookies.get(COOKIE)?.value;
   if (!token) return null;

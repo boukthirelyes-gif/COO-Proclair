@@ -52,6 +52,8 @@ jobs:
       PROCLAIR_SESSION_SECRET: ci_only_session_secret_minimum_32_characters
       TWILIO_SEND_ENABLED: 'false'
       TWILIO_VOICE_ENABLED: 'false'
+      PROCLAIR_SAAS_ENABLED: 'true'
+      PROCLAIR_SAAS_ALLOW_PROVISIONING: 'true'
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7

@@ -16,6 +16,6 @@ try{
  const after=(await(await admin.request.get(base+'/api/users')).json()).find(u=>u.id===userId);assert.equal(after.role,user.role);assert.equal(after.active,true);assert.deepEqual(after.permissions,user.permissions);assert.equal(after.version,user.version+1);assert.equal('passwordHash'in after,false);assert.equal('password'in after,false);
  await row.getByRole('button',{name:'Réinitialiser le mot de passe',exact:true}).click();await panel.getByRole('button',{name:'Annuler la réinitialisation'}).click();assert.equal(await panel.count(),0);assert.equal((await fresh.request.get(base+'/api/state')).status(),200);assert.deepEqual(errors,[]);console.log(JSON.stringify({passwordResetChecks:5,pageErrors:errors}));await context.close();await fresh.close();
 }finally{
- if(admin&&userId){const row=(await(await admin.request.get(base+'/api/users')).json()).find(u=>u.id===userId);if(row){const {id,version,createdAt,...fields}=row;await admin.request.patch(base+'/api/users/'+id,{headers:{Origin:base},data:{...fields,expectedVersion:version,active:false}})}}
+ if(admin&&userId){const row=(await(await admin.request.get(base+'/api/users')).json()).find(u=>u.id===userId);if(row){const {id,version,createdAt,invitations,mfaEnabled,...fields}=row;await admin.request.patch(base+'/api/users/'+id,{headers:{Origin:base},data:{...fields,expectedVersion:version,active:false}})}}
  await browser.close();
 }
